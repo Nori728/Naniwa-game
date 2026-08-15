@@ -3,32 +3,49 @@ import streamlit as st
 # 页面标题与风格设置
 st.set_page_config(page_title="偶像团体内后台乙女游戏", page_icon="🌟")
 
-# 注入 CSS：高对比度卡片与粉色系按钮，保证文字极度清晰
-st.markdown("""
+# 侧边栏：允许玩家自己上传浪花男子的本地照片作为背景
+st.sidebar.title("🖼️ 背景图设置")
+bg_file = st.sidebar.file_uploader("上传浪花男子背景图 (PNG/JPG)", type=["png", "jpg", "jpeg"])
+
+# 默认背景：柔和极简的薄荷粉蓝浪花风格（干净不眼花）
+default_bg = "https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=1920"
+
+if bg_file is not None:
+    import base64
+    bytes_data = bg_file.getvalue()
+    base64_bg = base64.b64encode(bytes_data).decode()
+    bg_style = f"background-image: url('data:image/png;base64,{base64_bg}');"
+else:
+    bg_style = f"background-image: url('{default_bg}');"
+
+# 注入 CSS：舒适淡雅卡片，极高可读性
+st.markdown(f"""
 <style>
-    .stApp {
-        background-image: url('https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=1920');
+    .stApp {{
+        {bg_style}
         background-size: cover;
         background-position: center;
         background-attachment: fixed;
-    }
+    }}
     
-    .main .block-container {
-        background-color: rgba(255, 255, 255, 0.96);
+    /* 白色纯洁卡片底色，确保文字清清晰晰 */
+    .main .block-container {{
+        background-color: rgba(255, 255, 255, 0.95);
         padding: 2.5rem;
         border-radius: 20px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-        margin-top: 2rem;
-    }
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        margin-top: 1.5rem;
+    }}
 
-    p, h1, h2, h3, div, span {
-        color: #1a1a1a !important;
-    }
+    p, h1, h2, h3, div, span {{
+        color: #2b2b2b !important;
+    }}
 
-    div.stButton > button {
+    /* 优雅粉色实体按钮 */
+    div.stButton > button {{
         width: 100%;
         background-color: #ffffff;
-        color: #d63384 !important;
+        color: #ff69b4 !important;
         border: 2px solid #ffb6c1;
         border-radius: 12px;
         padding: 0.8rem 1rem;
@@ -36,14 +53,14 @@ st.markdown("""
         font-weight: bold;
         margin-bottom: 8px;
         transition: all 0.2s ease;
-    }
+    }}
     
-    div.stButton > button:hover {
+    div.stButton > button:hover {{
         background-color: #ff69b4;
         color: #ffffff !important;
         border-color: #ff69b4;
         transform: translateY(-2px);
-    }
+    }}
 </style>
 """, unsafe_allow_html=True)
 
