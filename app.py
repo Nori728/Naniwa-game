@@ -1,3 +1,5 @@
+import streamlit as st
+
 # 页面标题与风格设置
 st.set_page_config(page_title="偶像团体内后台乙女游戏", page_icon="🌟")
 st.title("🌟 后台专属恋爱故事")
