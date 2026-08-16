@@ -1,455 +1,271 @@
 import streamlit as st
-import random
 import os
 
-# -----------------------------------------------------------------------------
-# 1. 页面基本配置与防报错安全函数
-# -----------------------------------------------------------------------------
-st.set_page_config(page_title="浪花男子互动小游戏", page_icon="🎬", layout="centered")
+st.set_page_config(page_title="浪花男子：心动抉择（全角色全结局版）", page_icon="💖", layout="centered")
 
-def safe_image(img_path, caption=None, use_column_width=True):
-    """安全加载图片：文件存在才显示，不存在时不报错"""
+# -----------------------------------------------------------------------------
+# 1. 基础资源与辅助函数
+# -----------------------------------------------------------------------------
+def safe_image(img_path, caption=None):
     if img_path and os.path.exists(img_path):
-        st.image(img_path, caption=caption, use_column_width=use_column_width)
+        st.image(img_path, caption=caption, use_column_width=True)
 
-def safe_audio(audio_path, loop=True, autoplay=True):
-    """安全加载音频：文件存在才播放，不存在时不报错"""
+def safe_audio(audio_path):
     if audio_path and os.path.exists(audio_path):
         try:
-            st.audio(audio_path, loop=loop, autoplay=autoplay)
+            st.audio(audio_path, loop=True, autoplay=True)
         except Exception:
             pass
 
 # -----------------------------------------------------------------------------
-# 2. 全局状态初始化
+# 2. 全员与全身份数据配置
 # -----------------------------------------------------------------------------
-MEMBERS = ["丈君", "大酱", "布丁", "高恭", "流星", "米七", "谦杜"]
-
-if "step" not in st.session_state:
-    st.session_state.step = 0
-if "affection" not in st.session_state:
-    st.session_state.affection = {m: 0 for m in MEMBERS}
-if "current_dialogue" not in st.session_state:
-    st.session_state.current_dialogue = ""
-if "current_img" not in st.session_state:
-    st.session_state.current_img = ""
-if "player_role" not in st.session_state:
-    st.session_state.player_role = ""
-
-# 成员专属结算立绘图（没有文件时会自动安全跳过）
-MEMBER_IMAGES = {
-    "丈君": "images/zhang_jun.gif",
-    "大酱": "images/da_jiang.gif",
-    "布丁": "images/bu_ding.gif",
-    "高恭": "images/gao_gong.gif",
-    "流星": "images/liu_xing.gif",
-    "米七": "images/mi_qi.gif",
-    "谦杜": "images/qian_du.gif",
+MEMBERS = {
+    "丈君": {"nick": "丈君", "trait": "搞笑又可靠的大哥哥", "img": "images/zhang_jun.gif"},
+    "大酱": {"nick": "大酱", "trait": "热情太阳般的 C 位", "img": "images/da_jiang.gif"},
+    "布丁": {"nick": "布丁", "trait": "甜美可爱又贴心的甜妹", "img": "images/bu_ding.gif"},
+    "高恭": {"nick": "高恭", "trait": "温柔包容的队长", "img": "images/gao_gong.gif"},
+    "流星": {"nick": "流星", "trait": "眼睛会闪光的小恶魔", "img": "images/liu_xing.gif"},
+    "米七": {"nick": "米七", "trait": "高挑帅气的长腿王子", "img": "images/mi_qi.gif"},
+    "谦杜": {"nick": "谦杜", "trait": "时尚又有主见的末子", "img": "images/qian_du.gif"},
 }
 
-# -----------------------------------------------------------------------------
-# 3. 完整剧情数据库 (4身份 x 5幕)
-# 格式: ("选项文本", "角色台词", "场景专属图片路径")
-# -----------------------------------------------------------------------------
-STORY_DATA = {
-    "经纪人": {
-        1: {
-            "title": "🎬 第一幕：后台行程与考勤Check",
-            "opts": {
-                "丈君": ("确认走位：『核对一下待会儿的走位和麦克风。』", "『有你这个金牌经纪人在，我完全不担心！』", "images/m_1_zhang.jpg"),
-                "大酱": ("递上行程表：『等下的联访流程看过了吗？』", "『看过了！放心，我回答绝对得体！』", "images/m_1_da.jpg"),
-                "布丁": ("检查服装：『服装领结稍微偏了，我帮你整整。』", "『嘿嘿，谢谢你～多亏你这么细心！』", "images/m_1_buding.jpg"),
-                "高恭": ("确认状态：『嗓子怎么样？要不要喝润喉茶？』", "『刚刚好，听到你的声音我就踏实了。』", "images/m_1_gaogong.jpg"),
-                "流星": ("提醒走位：『等下第 3 首歌记得从升降台走。』", "『收到！我会用最帅的姿势上台的！』", "images/m_1_liuxing.jpg"),
-                "米七": ("沟通休息时间：『再等 10 分钟就可以休息了。』", "『没关系，只要能看着你忙碌就很满足。』", "images/m_1_miqi.jpg"),
-                "谦杜": ("调试器材：『吉他音轨我已经和音响师对接好了。』", "『太靠谱了！待会的第一音符为你而弹！』", "images/m_1_qiandu.jpg")
-            }
-        },
-        2: {
-            "title": "🎬 第二幕：舞台中场紧急应变",
-            "opts": {
-                "丈君": ("递上毛巾：『中场休息只有 3 分钟，快补水！』", "『呼……幸好有你在台侧接住我！』", "images/m_2_zhang.jpg"),
-                "大酱": ("帮忙换装：『外套袖口有点卡，我拉开一下。』", "『离我这么近……我会心跳加速打乱呼吸的。』", "images/m_2_da.jpg"),
-                "布丁": ("递上能量棒：『吃一口补充血糖！』", "『好甜！感觉又有体力在台上蹦蹦跳跳了！』", "images/m_2_buding.jpg"),
-                "高恭": ("拭去汗水：『跳得太卖力了，别脱水。』", "『有你照顾我，这点累根本不算什么。』", "images/m_2_gaogong.jpg"),
-                "流星": ("打气加油：『刚才的舞段引爆全场了！』", "『那是当然！因为我的眼光一直在你身上！』", "images/m_2_liuxing.jpg"),
-                "米七": ("递上冰镇饮料：『凉一下降降温。』", "『谢谢……手贴在一起的温度比饮料还冰呢。』", "images/m_2_miqi.jpg"),
-                "谦杜": ("调整耳返：『听得清伴奏吗？』", "『耳返里最清晰的，始终是你叮嘱我的声音。』", "images/m_2_qiandu.jpg")
-            }
-        },
-        3: {
-            "title": "🎬 第三幕：演出成功后的发布会后台",
-            "opts": {
-                "丈君": ("递上答记问提纲：『记者提问别紧张。』", "『只要你在镜头后陪着我，我就能对答如流。』", "images/m_3_zhang.jpg"),
-                "大酱": ("赞许微笑了：『今天表现给满分！』", "『得到你的夸奖，比拿大奖还开心！』", "images/m_3_da.jpg"),
-                "布丁": ("做偷偷打气手势：『等下采访结束吃大餐！』", "『好耶！我要坐在你旁边吃！』", "images/m_3_buding.jpg"),
-                "高恭": ("整理发型：『碎发理一下，上镜更好看。』", "『嗯……你想怎么理都听你的。』", "images/m_3_gaogong.jpg"),
-                "流星": ("比赞：『刚才临场反应太棒了！』", "『全靠你平时训练有方嘛！夸我不如多陪我聊会～』", "images/m_3_liuxing.jpg"),
-                "米七": ("轻声提醒：『累的话眼神可以少看镜头。』", "『那我只看着你，可以吗？』", "images/m_3_miqi.jpg"),
-                "谦杜": ("递上手帕：『记者问完就去休息。』", "『嗯，等结束了我有话想单独对你说。』", "images/m_3_qiandu.jpg")
-            }
-        },
-        4: {
-            "title": "🎬 第四幕：深夜庆功宴后的专车上",
-            "opts": {
-                "丈君": ("调低空调：『别吹风感冒了。』", "『今晚别把我当明星，只当普通男孩子好吗？』", "images/m_4_zhang.jpg"),
-                "大酱": ("肩靠肩坐着：『累了就闭眼眯会儿。』", "『你的肩膀比任何枕头都要让人安心。』", "images/m_4_da.jpg"),
-                "布丁": ("递上热饮：『暖暖胃再睡。』", "『今天辛苦你陪我们跑一天了，快喝一口。』", "images/m_4_buding.jpg"),
-                "高恭": ("看着车窗外的夜景：『明天有一整天假。』", "『那明天……能把时间私心留给我吗？』", "images/m_4_gaogong.jpg"),
-                "流星": ("分享耳机：『听听今天的现场音频吧。』", "『这首歌我的高音，是想着你才唱出来的。』", "images/m_4_liuxing.jpg"),
-                "米七": ("牵起你的手：『今天太忙，都没怎么好好说话。』", "『别抽开手……就让我握一会儿就好。』", "images/m_4_miqi.jpg"),
-                "谦杜": ("侧头看你：『辛苦你了，经纪人小姐。』", "『比起经纪人，我更想听你只叫我的名字。』", "images/m_4_qiandu.jpg")
-            }
-        },
-        5: {
-            "title": "🎬 第五幕：清晨事务所的清晨告白",
-            "opts": {
-                "丈君": ("走向丈君：『早安，今天也要一起加油！』", "『以后不只是工作，你的余生我也想一起加油！』", "images/m_5_zhang.jpg"),
-                "大酱": ("走向大酱：『这是今天的行程安排。』", "『相比行程，我更关心我的心什么时候能住进你心里。』", "images/m_5_da.jpg"),
-                "布丁": ("走向布丁：『早安！给你带了早餐。』", "『以后每天的早餐，我都想跟你一起吃！』", "images/m_5_buding.jpg"),
-                "高恭": ("走向高恭：『昨晚睡得好吗？』", "『梦里全是你，你说我睡得好不好？』", "images/m_5_gaogong.jpg"),
-                "流星": ("走向流星：『今天有新歌录制哦。』", "『我想写一首只属于我们俩的情歌！』", "images/m_5_liuxing.jpg"),
-                "米七": ("走向米七：『早安，看起来精神不错。』", "『因为一想到早起能见到你，我就睡不着了。』", "images/m_5_miqi.jpg"),
-                "谦杜": ("走向谦杜：『准备好开启新一天了吗？』", "『只要你在我身边，每一天都是最美好的开端。』", "images/m_5_qiandu.jpg")
-            }
-        }
-    },
-    "粉丝/地下恋": {
-        1: {
-            "title": "🎬 第一幕：后台休息室的秘密碰面",
-            "opts": {
-                "丈君": ("悄悄递手幅：『只属于你的独家应援！』", "『嘘……被看到就糟糕了，但你能来我超开心！』", "images/f_1_zhang.jpg"),
-                "大酱": ("塞私房零食：『辛苦啦，偷偷给你带的。』", "『只有你还记得我最爱吃这个，真想抱抱你。』", "images/f_1_da.jpg"),
-                "布丁": ("拿出周边请他签名：『能帮我签在这个位置吗？』", "『签这里不够，我想在你的心上盖个章！』", "images/f_1_buding.jpg"),
-                "高恭": ("戴着帽子低头过去：『没被狗仔发现吧？』", "『放心，我安排了工作人员避开镜头，快坐下。』", "images/f_1_gaogong.jpg"),
-                "流星": ("拉拉衣服：『今天的舞台造型太帅了！』", "『是吗？那为了你，我待会台上再帅一点！』", "images/f_1_liuxing.jpg"),
-                "米七": ("角落小声说话：『后台人好多，好紧张。』", "『握住我的手就不紧张了，别松开哦。』", "images/f_1_miqi.jpg"),
-                "谦杜": ("递上手写信：『给你的信，回家再看。』", "『我现在就想看，因为里面一定写满了爱意！』", "images/f_1_qiandu.jpg")
-            }
-        },
-        2: {
-            "title": "🎬 第二幕：观众席与舞台的暗号交流",
-            "opts": {
-                "丈君": ("举起专属灯牌：『我在第一排看着你！』", "『台上看到你的那一刻，我整个人都亮起来了！』", "images/f_2_zhang.jpg"),
-                "大酱": ("比心互动：『接住我的爱心！』", "『在台上接收到了！我也暗搓搓比了个心给你！』", "images/f_2_da.jpg"),
-                "布丁": ("挥舞应援棒：『跟着节奏晃动。』", "『你的应援棒晃得最可爱，我一眼就认出来了！』", "images/f_2_buding.jpg"),
-                "高恭": ("眼神锁死舞台：『专注地看着他唱深情歌。』", "『刚才那句台词，我完全是看着你的眼睛唱的。』", "images/f_2_gaogong.jpg"),
-                "流星": ("尖叫欢呼：『流星最棒啦！』", "『听到你的声音了！今晚我是你一个人的偶像！』", "images/f_2_liuxing.jpg"),
-                "米七": ("温情凝视：『默默在台下为你加油。』", "『有你在台下，这片星海才有了意义。』", "images/f_2_miqi.jpg"),
-                "谦杜": ("弹吉他指台下：『他在 Solo 时指向了你。』", "『那个动作是只属于我们俩的秘密暗号！』", "images/f_2_qiandu.jpg")
-            }
-        },
-        3: {
-            "title": "🎬 第三幕：退场通道的闪躲与拥抱",
-            "opts": {
-                "丈君": ("躲在通道阴影里：『演出太成功啦！』", "『（一把抱住你）让我抱一秒，充充电……』", "images/f_3_zhang.jpg"),
-                "大酱": ("递上湿纸巾：『擦擦汗，别着凉。』", "『真想公开我们的关系，再也不用躲躲藏藏。』", "images/f_3_da.jpg"),
-                "布丁": ("塞入口香糖：『辛苦啦！』", "『跟你在后台悄悄约会，感觉像偷吃糖果一样甜！』", "images/f_3_buding.jpg"),
-                "高恭": ("把鸭舌帽按低：『警卫走过来了！』", "『别怕，我把你挡在怀里，谁也看不到。』", "images/f_3_gaogong.jpg"),
-                "流星": ("击掌庆祝：『今晚你帅爆了！』", "『击掌变扣指！今晚去我家续杯甜言蜜语？』", "images/f_3_liuxing.jpg"),
-                "米七": ("小声告别：『我要先回观众席了。』", "『别走……再陪我待三分钟，就三分钟。』", "images/f_3_miqi.jpg"),
-                "谦杜": ("披上他的外套：『别被路人认出来。』", "『外套上有我的香水味，就像我一直在陪着你。』", "images/f_3_qiandu.jpg")
-            }
-        },
-        4: {
-            "title": "🎬 第四幕：深夜私人公寓的秘密约会",
-            "opts": {
-                "丈君": ("开门迎他：『外面没有记者吧？』", "『没有！终于能卸下所有伪装，好好拥抱你了。』", "images/f_4_zhang.jpg"),
-                "大酱": ("倒一杯热牛奶：『今天辛苦了。』", "『只要能回到有你的房间，再累都烟消云散了。』", "images/f_4_da.jpg"),
-                "布丁": ("一起窝在沙发：『要看今天的演唱会回放吗？』", "『不看电视，我只想看着你的脸。』", "images/f_4_buding.jpg"),
-                "高恭": ("帮他摘下口罩：『辛苦了，我的明星先生。』", "『在你面前，我只是那个深深爱着你的普通男人。』", "images/f_4_gaogong.jpg"),
-                "流星": ("递上拖鞋：『快进来吧。』", "『回家真好！最喜欢你在这个家等我的样子。』", "images/f_4_liuxing.jpg"),
-                "米七": ("靠在他肩膀上：『今天看到万人为你欢呼呢。』", "『万人的欢呼，也抵不过你一句温柔的问候。』", "images/f_4_miqi.jpg"),
-                "谦杜": ("拿吉他弹奏：『能弹一首专属于我的歌吗？』", "『遵命，我的专属听众，只为你一个人演奏。』", "images/f_4_qiandu.jpg")
-            }
-        },
-        5: {
-            "title": "🎬 第五幕：黎明前的浪漫誓言",
-            "opts": {
-                "丈君": ("走向丈君：『天快亮了，要准备回去了吗？』", "『总有一天，我要在万人面前牵起你的手！』", "images/f_5_zhang.jpg"),
-                "大酱": ("走向大酱：『帮你把帽子戴好。』", "『等我登顶的那一天，我们就向全世界公开！』", "images/f_5_da.jpg"),
-                "布丁": ("走向布丁：『下次什么时候能再见？』", "『很快！只要你想我，我随时飞奔来见你！』", "images/f_5_buding.jpg"),
-                "高恭": ("走向高恭：『注意安全，路上小心。』", "『我的心留在这里了，你一定要替我保管好。』", "images/f_5_gaogong.jpg"),
-                "流星": ("走向流星：『在台上也要想我哦。』", "『放心！我的每一个笑容，都是给你看的！』", "images/f_5_liuxing.jpg"),
-                "米七": ("走向米七：『我会一直当你的头号粉丝。』", "『比起头号粉丝，我更想让你当我的终生伴侣。』", "images/f_5_miqi.jpg"),
-                "谦杜": ("走向谦杜：『期待你写的新歌。』", "『每一首歌的灵感都是你，你就是我的缪斯。』", "images/f_5_qiandu.jpg")
-            }
-        }
-    },
-    "青梅竹马": {
-        1: {
-            "title": "🎬 第一幕：熟悉的家常便当盒",
-            "opts": {
-                "丈君": ("递上便当：『阿姨让我带给你的蛋包饭。』", "『哇！还是小时候的味道，有你在真好！』", "images/c_1_zhang.jpg"),
-                "大酱": ("拿毛巾揉他头发：『又不好好擦头发。』", "『嘿嘿，小时候你不就经常这样帮我擦嘛～』", "images/c_1_da.jpg"),
-                "布丁": ("递上布丁：『还记得你小时候最爱吃这个。』", "『一点都没变！你还是最懂我口味的人！』", "images/c_1_buding.jpg"),
-                "高恭": ("帮他理领带：『从小到大笨手笨脚的。』", "『反正有你帮我整理，我就懒得学会啦！』", "images/c_1_gaogong.jpg"),
-                "流星": ("打趣聊天：『小不点居然真的当大明星了。』", "『什么小不点！我现在比你高多了好吗！』", "images/c_1_liuxing.jpg"),
-                "米七": ("递上热麦茶：『家里带的，快喝点。』", "『还是你带的水最合我胃口，谢谢你啊。』", "images/c_1_miqi.jpg"),
-                "谦杜": ("拿照片调侃：『我这里还有你小时候黑历史照片哦。』", "『快收起来！万一被团员看到我形象就全毁啦！』", "images/c_1_qiandu.jpg")
-            }
-        },
-        2: {
-            "title": "🎬 第二幕：儿时回忆与舞台蜕变",
-            "opts": {
-                "丈君": ("指着舞台：『没想到你站在上面这么亮眼。』", "『以前在公园表演给你的情景，你还记得吗？』", "images/c_2_zhang.jpg"),
-                "大酱": ("递上润喉糖：『小时候你唱歌嗓子哑了也是吃这个。』", "『对啊，每次我生病都是你守护在我身边。』", "images/c_2_da.jpg"),
-                "布丁": ("分享小零食：『小时候我们俩总抢这个吃。』", "『这次我不跟你抢了，全都留给你吃！』", "images/c_2_buding.jpg"),
-                "高恭": ("看着台上的他：『真的长成很可靠的大人了呢。』", "『可是在你面前，我依然是那个想依赖你的少年。』", "images/c_2_gaogong.jpg"),
-                "流星": ("拍拍他肩膀：『帅气程度快赶上当年邻家大哥了。』", "『什么邻家大哥，我现在只想做你的唯一选择！』", "images/c_2_liuxing.jpg"),
-                "米七": ("温情微笑：『阿姨在家里也在看直播呢。』", "『那她有没有问起，我什么时候带你回家？』", "images/c_2_miqi.jpg"),
-                "谦杜": ("拿旧吉他挑弹：『这把吉他跟小时候那把好像。』", "『当年为你弹的第一首歌，我现在还能背出来。』", "images/c_2_qiandu.jpg")
-            }
-        },
-        3: {
-            "title": "🎬 第三幕：后台休息室的怀念时光",
-            "opts": {
-                "丈君": ("并排坐在沙发上：『今天很累吧？』", "『只要能跟你聊聊天，疲惫瞬间就没了。』", "images/c_3_zhang.jpg"),
-                "大酱": ("拿热敷贴给他：『肩膀又酸了吗？』", "『还是你贴得最到位，从小到大都没变。』", "images/c_3_da.jpg"),
-                "布丁": ("分一块蛋糕：『尝尝这个新口味。』", "『好甜！跟你小时候给我做的一模一样！』", "images/c_3_buding.jpg"),
-                "高恭": ("帮你倒水：『倒是我在被你照顾呢。』", "『因为我早就发誓，长大后换我来照顾你。』", "images/c_3_gaogong.jpg"),
-                "流星": ("比划身高：『确实比小时候高不少。』", "『那当然！现在的我，足够为你遮风挡雨了！』", "images/c_3_liuxing.jpg"),
-                "米七": ("帮你拉好外套：『别吹后台的冷气。』", "『你对我这么好，就不怕我这辈子离不开你吗？』", "images/c_3_miqi.jpg"),
-                "谦杜": ("哼哼旧童谣：『还记得这首歌吗？』", "『记得！那是我们童年最美好的旋律。』", "images/c_3_qiandu.jpg")
-            }
-        },
-        4: {
-            "title": "🎬 第四幕：回家路上的晚风漫步",
-            "opts": {
-                "丈君": ("走在熟悉的小路上：『跟小时候一模一样。』", "『唯一不同的是，我现在想牵着你的手走下去。』", "images/c_4_zhang.jpg"),
-                "大酱": ("指着路灯：『当年我们在这里捉过萤火虫。』", "『现在的我，只想把最亮的光芒献给你。』", "images/c_4_da.jpg"),
-                "布丁": ("买路边热热的烤红薯：『分你一半！』", "『好香！还是跟你一起吃东西最开心了！』", "images/c_4_buding.jpg"),
-                "高恭": ("为你挡去迎面来的自行车：『小心！』", "『（拉住你）从小你就慌慌张张的，没我不行吧？』", "images/c_4_gaogong.jpg"),
-                "流星": ("小跑起来：『来比比谁先跑到巷子口！』", "『输的人要答应赢的人一个要求！不许耍赖！』", "images/c_4_liuxing.jpg"),
-                "米七": ("看着漫天繁星：『今晚的夜空真美。』", "『相比星空，我更喜欢侧头看着你微笑的样子。』", "images/c_4_miqi.jpg"),
-                "谦杜": ("轻轻扣住你的手：『风有点大呢。』", "『手太冷了……就这样让我握着暖一暖吧。』", "images/c_4_qiandu.jpg")
-            }
-        },
-        5: {
-            "title": "🎬 第五幕：家门口的温情心声",
-            "opts": {
-                "丈君": ("走向丈君：『到家啦，快进去吧。』", "『我们认识这么多年了，以后……能换个身份陪伴吗？』", "images/c_5_zhang.jpg"),
-                "大酱": ("走向大酱：『阿姨还在等你吃饭呢。』", "『比起吃饭，我更想先听听你的心意。』", "images/c_5_da.jpg"),
-                "布丁": ("走向布丁：『明天见啦！』", "『不要明天见，我现在就想跟你一直在一起！』", "images/c_5_buding.jpg"),
-                "高恭": ("走向高恭：『晚安，做个好梦。』", "『有你的梦，一定全是甜甜的浪漫。』", "images/c_5_gaogong.jpg"),
-                "流星": ("走向流星：『明天还要早起跑行程呢。』", "『知道啦！但你必须答应我，明天第一眼要看到我！』", "images/c_5_liuxing.jpg"),
-                "米七": ("走向米七：『快回去休息吧。』", "『陪伴了我整个童年的你，愿意陪伴我的余生吗？』", "images/c_5_miqi.jpg"),
-                "谦杜": ("走向谦杜：『今天很开心，谢谢你。』", "『谢什么！我们之间，早就不分彼此了。』", "images/c_5_qiandu.jpg")
-            }
-        }
-    },
-    "在日留学生or打工人": {
-        1: {
-            "title": "🎬 第一幕：后台兼职打工的意外偶遇",
-            "opts": {
-                "丈君": ("递上翻译资料：『今天的现场日语台词我已经翻译好了。』", "『日语进步神速啊！有你在后台沟通顺畅多了！』", "images/w_1_zhang.jpg"),
-                "大酱": ("帮忙整理道具箱：『打工人加油！』", "『辛苦你了！等兼职结束我请你吃拉面！』", "images/w_1_da.jpg"),
-                "布丁": ("送上快餐盒饭：『打工人的午餐到了。』", "『哇！你帮我领的这份看起来最好吃！』", "images/w_1_buding.jpg"),
-                "高恭": ("递上打工签到表：『请在这里签字。』", "『签好了。异国打拼很辛苦吧？有困难随时找我。』", "images/w_1_gaogong.jpg"),
-                "流星": ("帮忙搬运音响：『放着我来吧！』", "『怎么能让女孩子搬重物！快放下我来！』", "images/w_1_liuxing.jpg"),
-                "米七": ("用中文打招呼：『你好，辛苦啦！』", "『（惊讶）中文！为了你我也有在好好学中文哦！』", "images/w_1_miqi.jpg"),
-                "谦杜": ("拿水问候：『打工累了吗？』", "『不累！看到你们在舞台上闪闪发光，我也充满能量！』", "images/w_1_qiandu.jpg")
-            }
-        },
-        2: {
-            "title": "🎬 第二幕：异国文化与语言的交流",
-            "opts": {
-                "丈君": ("教他一句中文：『试试用中文跟粉丝打招呼？』", "『“我爱你”是这么发音的对吗？我想对你一个人说。』", "images/w_2_zhang.jpg"),
-                "大酱": ("分享家乡零食：『尝尝我们家乡特产！』", "『好吃！以后去你的家乡，你一定要当我的导游！』", "images/w_2_da.jpg"),
-                "布丁": ("聊异国生活：『刚来日本时经常迷路呢。』", "『以后你想去哪，我都当你的专属导航！』", "images/w_2_buding.jpg"),
-                "高恭": ("关心学业打工：『兼职和学习能兼顾吗？』", "『别太拼了，要是累坏了我可是会心疼的。』", "images/w_2_gaogong.jpg"),
-                "流星": ("做趣味口音对比：『我的日语口音可爱吗？』", "『超可爱！每次听你说话我都想摸摸你的头！』", "images/w_2_liuxing.jpg"),
-                "米七": ("交流家乡文化：『我们家乡也有很美的风景。』", "『真想有一天，能跟你一起去你的家乡看看。』", "images/w_2_miqi.jpg"),
-                "谦杜": ("用中文唱流行歌：『哼唱一段中文旋律。』", "『声音真好听！能教教我这首歌怎么唱吗？』", "images/w_2_qiandu.jpg")
-            }
-        },
-        3: {
-            "title": "🎬 第三幕：后台休息室的互相疗愈",
-            "opts": {
-                "丈君": ("递上温热的茶水：『独自在异国打拼辛苦了。』", "『你也是啊！我们都在为了梦想努力，一起加油！』", "images/w_3_zhang.jpg"),
-                "大酱": ("帮他拿创可贴：『舞蹈动作练习受伤了吗？』", "『一点小伤，但你给我贴上后就不痛了。』", "images/w_3_da.jpg"),
-                "布丁": ("分享打工趣事：『今天遇到了很有趣的客人。』", "『哈哈！听你说话心情总能变得特别好！』", "images/w_3_buding.jpg"),
-                "高恭": ("递上日语学习笔记：『这个语法不太懂。』", "『过来坐下，我手把手教你怎么用。』", "images/w_3_gaogong.jpg"),
-                "流星": ("比划打工动作：『今天搬了一下午箱子。』", "『辛苦啦！来，我的手臂借你当靠枕！』", "images/w_3_liuxing.jpg"),
-                "米七": ("互相加油鼓劲：『我们都要成为更好的人。』", "『有你的鼓励，我觉得自己能征服全世界！』", "images/w_3_miqi.jpg"),
-                "谦杜": ("拿吉他轻弹：『为你弹一首疗愈的曲子。』", "『希望这首曲子，能治愈你在异国他乡的所有孤独。』", "images/w_3_qiandu.jpg")
-            }
-        },
-        4: {
-            "title": "🎬 第四幕：打工结束后的电车站台",
-            "opts": {
-                "丈君": ("并排等电车：『末班车快来了。』", "『真希望这趟电车永远不要来，能多陪你一会儿。』", "images/w_4_zhang.jpg"),
-                "大酱": ("买自动贩卖机饮料：『热可可给你。』", "『握着热可可，感觉整个冬天都不冷了。』", "images/w_4_da.jpg"),
-                "布丁": ("看着电车进站：『今天打工很充实！』", "『跟你在一起的时间，才是我一天中最充实的时刻。』", "images/w_4_buding.jpg"),
-                "高恭": ("挡住风口：『站台风大，往我身后站。』", "『异国他乡很冷，但我的怀抱随时为你敞开。』", "images/w_4_gaogong.jpg"),
-                "流星": ("挥手道别：『明天我还有课呢。』", "『那上完课……能来我的练习室看我吗？』", "images/w_4_liuxing.jpg"),
-                "米七": ("轻轻拉住你的衣角：『车来了……』", "『（小声）明天……还能在后台看到你吗？』", "images/w_4_miqi.jpg"),
-                "谦杜": ("戴着耳机分享音乐：『听听看这首新曲。』", "『写这首歌的时候，心里全是你站在台侧的样子。』", "images/w_4_qiandu.jpg")
-            }
-        },
-        5: {
-            "title": "🎬 第五幕：东京塔夜景下的温暖拥抱",
-            "opts": {
-                "丈君": ("走向丈君：『东京的夜景真美啊。』", "『在这个陌生的城市里，你就是我最想珍惜的风景。』", "images/w_5_zhang.jpg"),
-                "大酱": ("走向大酱：『谢谢你一直照顾我这个留学生。』", "『不是照顾，是我发自内心想靠近你、守护你。』", "images/w_5_da.jpg"),
-                "布丁": ("走向布丁：『打工能遇到你，真是太幸运了。』", "『遇到你也是我这辈子最大的幸运！』", "images/w_5_buding.jpg"),
-                "高恭": ("走向高恭：『异国生活因为你变得温暖了。』", "『以后你的每一个四季，我都想陪你一起度过。』", "images/w_5_gaogong.jpg"),
-                "流星": ("走向流星：『今天也要梦想成真哦！』", "『我的梦想里，必须要有你才算完美！』", "images/w_5_liuxing.jpg"),
-                "米七": ("走向米七：『谢谢你带给我的温暖。』", "『这份温暖是相互的，你早已成为了我的避风港。』", "images/w_5_miqi.jpg"),
-                "谦杜": ("走向谦杜：『音乐跨越了语言的界限呢。』", "『爱意也是，无论来自哪里，我的心都为你跳动。』", "images/w_5_qiandu.jpg")
-            }
-        }
-    }
-}
+ROLES = ["经纪人", "粉丝/地下恋", "青梅竹马", "在日留学生or打工人"]
+
+# 初始化 Session State
+if "role" not in st.session_state:
+    st.session_state.role = None
+if "target" not in st.session_state:
+    st.session_state.target = None
+if "act" not in st.session_state:
+    st.session_state.act = 1
+if "score" not in st.session_state:
+    st.session_state.score = 0
+if "history" not in st.session_state:
+    st.session_state.history = []
 
 # -----------------------------------------------------------------------------
-# 4. 核心 UI 渲染函数
+# 3. 动态全角色多分支剧情生成器
 # -----------------------------------------------------------------------------
-def render_choice_step(role_name, act_num, next_step):
-    """渲染选择幕"""
-    act_data = STORY_DATA[role_name][act_num]
-    st.subheader(act_data["title"])
-    st.write(f"（当前身份：【{role_name}】）")
-
-    for member in MEMBERS:
-        btn_text, dialogue, scene_img = act_data["opts"][member]
-        if st.button(f"走向 {member}：{btn_text}"):
-            st.session_state.affection[member] += 15
-            st.session_state.current_dialogue = dialogue
-            st.session_state.current_img = scene_img
-            st.session_state.step = next_step
-            st.rerun()
-
-def render_display_step(next_step, is_final=False):
-    """渲染对话展示幕"""
-    st.subheader("💬 成员的回应：")
-    safe_image(st.session_state.current_img)
-    st.success(st.session_state.current_dialogue)
-
-    btn_label = "查看最终好感度结算与告白结局 💖 ➔" if is_final else "继续前往下一幕 ➔"
-    if st.button(btn_label):
-        st.session_state.step = next_step
-        st.rerun()
-
-def render_ending_step():
-    """渲染专属结局结算"""
-    st.header("🏆 专属结局结算中...")
-
-    best_member = max(st.session_state.affection, key=st.session_state.affection.get)
-    score = st.session_state.affection[best_member]
-    role = st.session_state.player_role
-    st.balloons()
-    st.success(f"在【{role}】的故事线中，与你羁绊最深的团员是：**{best_member}**（好感度：{score} 分）！")
+def get_act_data(role, target, act):
+    """根据身份、角色和当前幕数，生成对应的分支选项与剧情对话"""
+    t = target
     
-    ENDINGS = {
-        "丈君": "『无论是万人瞩目的舞台，还是狭窄的后台通道……只要你在我视野里，我就能闪闪发光。做我唯一的那个特别存在，好吗？』",
-        "大酱": "『这些日子谢谢你一直陪在我身旁。比起那些遥不可及的奖项，我现在最想拥抱和拥有的，只有你而已。』",
-        "布丁": "『所有好吃的甜点我都想分你一半，不，全给你也可以！只要……你愿意把你的余生也分我一半！』",
-        "高恭": "『在你面前，我不用扮演那个完美的大人。未来的路还很长，我想带着最真实的自己，牵着你一直走下去。』",
-        "流星": "『看见了吗？今晚所有的光芒和掌声，都是因为你在台下看着我才爆发出来的！你就是我永不熄灭的幸运星！』",
-        "米七": "『每次累到想放弃的时候，只要靠在你身边就能重新充满力量。别离开我……变成我专属的港湾吧。』",
-        "谦杜": "『我写了那么多关于爱的歌词，但只有面对你时，我才明白那些旋律真正的意义。这首为你而写的歌，你想听一辈子吗？』"
-    }
+    # 【经纪人线】
+    if role == "经纪人":
+        if act == 1:
+            return {
+                "title": "🎬 第一幕：后台迎面的压力",
+                "desc": f"离上台还有 10 分钟，{t} 一个人站在休息室门口发呆，看起来有些紧张。",
+                "choices": [
+                    {"label": f"🅰️ 递上热茶温柔鼓励：『别担心，{t} 排练很完美，相信自己！』", "dialogue": f"『听到你这么说，我心里一下子踏实了！等会儿看我表现吧！』", "score": 20},
+                    {"label": f"🅱️ 敲敲表格提醒：『{t}，还有 10 分钟，记得检查麦克风。』", "dialogue": f"『好的，我知道了，这就去准备。』", "score": 10},
+                    {"label": f"🆎 严厉督促：『怎么还在发呆？大家都在等你呢！』", "dialogue": f"『……抱歉，我只是有点头晕，马上来。』（眼神有些黯淡）", "score": -10}
+                ]
+            }
+        elif act == 2:
+            return {
+                "title": "🎬 第二幕：突发危机",
+                "desc": f"中场换装时间仅剩 1 分钟，{t} 的服装拉链突然卡住了！",
+                "choices": [
+                    {"label": f"🅰️ 眼神坚定迅速上手帮忙拉开，顺手擦掉他额头的汗：『有我在，别慌。』", "dialogue": f"『你靠得好近……心跳都要漏拍了，不过多亏有你！』", "score": 20},
+                    {"label": f"🅱️ 叫旁边服装师：『老师快来帮 {t} 看看！』", "dialogue": f"『呼……险些赶不上，谢谢你叫人帮忙！』", "score": 10},
+                    {"label": f"🆎 抱怨吐槽：『怎么关键时刻掉链子啊，快点！』", "dialogue": f"『对不起……我下次会注意的。』（显得有些沮丧）", "score": -10}
+                ]
+            }
+        elif act == 3:
+            return {
+                "title": "🎬 第三幕：深夜保姆车",
+                "desc": f"演出完美结束，在回程的车上，{t} 累得靠在座椅上昏昏欲睡。",
+                "choices": [
+                    {"label": "🅰️ 调低空调，轻轻将他的头靠在自己肩膀上。", "dialogue": f"『（微笑着没睁眼）你的肩膀好暖和……别动，让我靠一会儿。』", "score": 20},
+                    {"label": "🅱️ 拿出一瓶水放在他手边：『累坏了吧，喝点水。』", "dialogue": f"『嗯，今天辛苦你陪我跑一整天了。』", "score": 10},
+                    {"label": "🆎 拿出行程表敲醒他：『别睡啦，明早还有通告！』", "dialogue": f"『……好吧，让我再叹一口气。』（疲惫地揉揉眼）", "score": -10}
+                ]
+            }
+
+    # 【粉丝/地下恋线】
+    elif role == "粉丝/地下恋":
+        if act == 1:
+            return {
+                "title": "🎬 第一幕：后台通道的秘密碰面",
+                "desc": f"在无人注意的后台角落，你和 {t} 只有短短 1 分钟的碰面时间。",
+                "choices": [
+                    {"label": "🅰️ 悄悄递上手写信和小零食，拉拉他的手。", "dialogue": f"『只有你还记得我最爱吃这个！真想不管不顾抱抱你……』", "score": 20},
+                    {"label": "🅱️ 保持距离比心：『今天台上超级帅哦！』", "dialogue": f"『嘿嘿，能得到你的夸奖，比拿大奖还开心！』", "score": 10},
+                    {"label": "🆎 慌张后退：『被人看到就完蛋了，我先走了！』", "dialogue": f"『诶……就这么不想跟我多待一秒吗？』（有些失落）", "score": -10}
+                ]
+            }
+        elif act == 2:
+            return {
+                "title": "🎬 第二幕：台下观众席的暗号",
+                "desc": f"演唱会高潮，{t} 巡场时眼神扫过了你所在的区域。",
+                "choices": [
+                    {"label": "🅰️ 举起只有你俩懂的专属手幅，甜甜一笑。", "dialogue": f"在台上精准捕捉到了你的眼神，对着你的方向做了一个专属于你的飞吻！", "score": 20},
+                    {"label": "🅱️ 跟着大家一起挥舞应援棒欢呼。", "dialogue": f"{t} 向你所在的方向大力挥了挥手，笑容灿烂。", "score": 10},
+                    {"label": "🆎 害怕被发现，连忙低头遮住脸。", "dialogue": f"{t} 在台上的眼神一愣，失落地移开了视线……", "score": -10}
+                ]
+            }
+        elif act == 3:
+            return {
+                "title": "🎬 第三幕：深夜公寓约会",
+                "desc": f"{t} 风尘仆仆赶到你的住处，解下口罩深深叹了口气。",
+                "choices": [
+                    {"label": "🅰️ 主动上前抱住他的腰：『今天辛苦啦。』", "dialogue": f"『在你面前，我只想做那个深深爱着你的普通男人。』", "score": 20},
+                    {"label": "🅱️ 递上一杯温牛奶：『快进来，外面冷。』", "dialogue": f"『只要能回到有你的房间，再累都烟消云散了。』", "score": 10},
+                    {"label": "🆎 警惕地张望：『后面没记者狗仔跟着吧？』", "dialogue": f"『放心吧……我们之间除了防备狗仔，就没有别的话想说了吗？』", "score": -10}
+                ]
+            }
+
+    # 【青梅竹马线】
+    elif role == "青梅竹马":
+        if act == 1:
+            return {
+                "title": "🎬 第一幕：家常便当盒",
+                "desc": f"你带了便当去看 {t}，他正坐在休息室擦汗。",
+                "choices": [
+                    {"label": "🅰️ 递上便当帮他整理乱发：『还记得你最爱吃这个。』", "dialogue": f"『一点都没变！从小到大，还是你最懂我的口味！』", "score": 20},
+                    {"label": "🅱️ 放在桌上：『阿姨让我带给你的，快吃吧。』", "dialogue": f"『太好了！正好肚子饿得咕咕叫呢！』", "score": 10},
+                    {"label": "🆎 拿旧照调侃：『你小时候流鼻涕的照片我可还留着呢！』", "dialogue": f"『快收起来！万一被团员看到，我形象就全毁啦！』", "score": -10}
+                ]
+            }
+        elif act == 2:
+            return {
+                "title": "🎬 第二幕：童年回忆",
+                "desc": f"两人并排坐在沙发上，聊起了小时候在公园打闹的日子。",
+                "choices": [
+                    {"label": "🅰️ 感慨：『没想到当年那个小不点，现在真成了大明星。』", "dialogue": f"『无论我走多远，在你面前我永远是那个少年。』", "score": 20},
+                    {"label": "🅱️ 分享零食：『诺，小时候我们俩总抢这个吃。』", "dialogue": f"『这次我不跟你抢了，全都留给你吃！』", "score": 10},
+                    {"label": "🆎 催促：『你现在是大忙人了，我就不打扰你了。』", "dialogue": f"『别走啊……在你心里我现在就只剩下“大忙人”了吗？』", "score": -10}
+                ]
+            }
+        elif act == 3:
+            return {
+                "title": "🎬 第三幕：晚风漫步",
+                "desc": "深夜工作结束，两人走在回家熟悉的小路上。",
+                "choices": [
+                    {"label": "🅰️ 侧头看他：『这条路我们从小走到大呢。』", "dialogue": f"『唯一不同的是，现在的我……想牵着你的手继续走下去。』", "score": 20},
+                    {"label": "🅱️ 买热烤红薯：『分你一半！』", "dialogue": f"『好香！还是跟你在一起时吃东西最开心！』", "score": 10},
+                    {"label": "🆎 往前小跑：『快点走啦，明天还要早起！』", "dialogue": f"『等等我啊……你就不能慢下来陪我多走一会儿吗？』", "score": -10}
+                ]
+            }
+
+    # 【留学生/打工人线】
+    else:
+        if act == 1:
+            return {
+                "title": "🎬 第一幕：后台兼职偶遇",
+                "desc": f"你在后台当兼职翻译，正好碰到 {t} 在练习中文台词。",
+                "choices": [
+                    {"label": "🅰️ 耐心纠正发音：『发音很棒，加油哦！』", "dialogue": f"『真的吗？为了你，我一定会好好练习中文的！』", "score": 20},
+                    {"label": "🅱️ 递上资料：『这是今天的台词对照表。』", "dialogue": f"『太清晰了！有你在后台沟通顺畅多了，谢谢你！』", "score": 10},
+                    {"label": "🆎 拘谨低头：『那个……请问有什么需要我做的吗？』", "dialogue": f"『不用这么拘谨啦，把我当成普通朋友就好了嘛。』", "score": -10}
+                ]
+            }
+        elif act == 2:
+            return {
+                "title": "🎬 第二幕：异国文化交流",
+                "desc": f"休息时间，{t} 好奇地问起你在日本的打工生活。",
+                "choices": [
+                    {"label": "🅰️ 分享家乡零食，聊起异国趣事。", "dialogue": f"『真好吃！以后有机会，你一定要当我的导游带我去你的家乡！』", "score": 20},
+                    {"label": "🅱️ 聊起打工：『虽然有点累，但很充实。』", "dialogue": f"『一个人在异国打拼真不简单，有困难随时找我！』", "score": 10},
+                    {"label": "🆎 倒苦水：『语言不通，真想回国了。』", "dialogue": f"『别气馁啊……如果你走了，我会非常舍不得你的。』", "score": -10}
+                ]
+            }
+        elif act == 3:
+            return {
+                "title": "🎬 第三幕：电车站台",
+                "desc": "深夜打工结束，你们在微凉的电车站台并排等车。",
+                "choices": [
+                    {"label": "🅰️ 买两罐热可可，碰到了彼此的手指。", "dialogue": f"『握着热可可……感觉整个冬天都不冷了，手贴在一起更暖和。』", "score": 20},
+                    {"label": "🅱️ 看着电车：『今天工作很充实，电车来啦。』", "dialogue": f"『真希望这趟电车永远不要来，能多陪你一会儿。』", "score": 10},
+                    {"label": "🆎 戴上耳机不说话。", "dialogue": f"『（小声嘀咕）……是我太无聊了吗，你怎么不理我了。』", "score": -10}
+                ]
+            }
+
+# -----------------------------------------------------------------------------
+# 4. 界面绘制与游戏主流程
+# -----------------------------------------------------------------------------
+st.title("💖 浪花男子：心动抉择（全员全结局版）")
+safe_audio("audio/bgm.mp3")
+
+# 选择界面
+if st.session_state.role is None:
+    st.subheader("1️⃣ 请选择你的身份：")
+    role_choice = st.selectbox("身份列表", ROLES)
     
-    st.markdown(f"### 💖 【{best_member} × {role}】专属心动结局")
-    safe_image(MEMBER_IMAGES.get(best_member), caption=best_member)
-    st.write(ENDINGS.get(best_member, f"【{best_member}】温柔地凝视着你，向你诉说着独一无二的心意..."))
+    st.subheader("2️⃣ 请选择你想攻略的成员：")
+    target_choice = st.selectbox("成员列表", list(MEMBERS.keys()))
+    
+    m_info = MEMBERS[target_choice]
+    st.caption(f"✨ 成员特征：{m_info['trait']}")
+    
     st.write("---")
-    if st.button("🔄 重新选择身份/开始新游戏"):
-        st.session_state.step = 0
-        st.session_state.affection = {m: 0 for m in MEMBERS}
-        st.session_state.current_dialogue = ""
-        st.session_state.current_img = ""
-        st.session_state.player_role = ""
+    if st.button("🌟 开启心动之旅 🌟", use_container_width=True):
+        st.session_state.role = role_choice
+        st.session_state.target = target_choice
+        st.session_state.act = 1
+        st.session_state.score = 0
+        st.session_state.history = []
         st.rerun()
 
-# -----------------------------------------------------------------------------
-# 5. 主程序逻辑路由
-# -----------------------------------------------------------------------------
-st.title("💖 浪花男子心动日常")
-
-# 播放背景音乐（没有文件时安全跳过）
-safe_audio("audio/bgm.mp3", loop=True, autoplay=True)
-
-# 首页选择界面
-if st.session_state.step == 0:
-    st.subheader("请选择你的身份开启专属剧情：")
-    roles = ["经纪人", "粉丝/地下恋", "青梅竹马", "在日留学生or打工人"]
-    role = st.radio("你的身份是：", roles)
+# 剧情互动界面（1~3幕）
+elif st.session_state.act <= 3:
+    act = st.session_state.act
+    role = st.session_state.role
+    target = st.session_state.target
     
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("开启专属故事线 ➔"):
-            st.session_state.player_role = role
-            if role == "经纪人": st.session_state.step = 100
-            elif role == "粉丝/地下恋": st.session_state.step = 200
-            elif role == "青梅竹马": st.session_state.step = 300
-            elif role == "在日留学生or打工人": st.session_state.step = 400
-            st.rerun()
-    with col2:
-        if st.button("🎲 试试单抽每日运势"):
-            st.session_state.step = 999
+    act_data = get_act_data(role, target, act)
+    
+    st.sidebar.metric("攻略对象", target)
+    st.sidebar.metric("心动指数", st.session_state.score)
+    
+    st.subheader(f"【{role} 线】{act_data['title']}")
+    st.info(act_data["desc"])
+    
+    # 展示前一幕的选择反馈
+    if st.session_state.history:
+        last = st.session_state.history[-1]
+        st.success(f"💬 {target} 的回应：\n\n{last['dialogue']}")
+        st.write("---")
+        
+    st.write("👉 **请做出你的回应选择：**")
+    for idx, choice in enumerate(act_data["choices"]):
+        if st.button(choice["label"], key=f"act_{act}_btn_{idx}", use_container_width=True):
+            st.session_state.score += choice["score"]
+            st.session_state.history.append({"choice": choice["label"], "dialogue": choice["dialogue"]})
+            st.session_state.act += 1
             st.rerun()
 
-# 🎲 随机抽卡特殊页面
-elif st.session_state.step == 999:
-    st.subheader("🎲 每日运势抽卡")
-    selected = random.choice(MEMBERS)
-    st.balloons()
-    st.success(f"🎉 恭喜你抽中了今天最心动的成员：**{selected}**！")
-    safe_image(MEMBER_IMAGES.get(selected), caption=f"✨ {selected} 的专属时刻")
-    if st.button("🔄 返回首页"):
-        st.session_state.step = 0
+# 结局结算界面
+else:
+    target = st.session_state.target
+    score = st.session_state.score
+    role = st.session_state.role
+    m_info = MEMBERS[target]
+    
+    st.header("🏆 最终结局结算")
+    safe_image(m_info["img"], caption=f"✨ {target} ({m_info['trait']})")
+    st.write(f"在【{role}】的故事中，你与 **{target}** 的最终心动指数为：**{score} 分**（满分 60 分）。")
+    st.write("---")
+    
+    # HE / TE / BE 判定
+    if score >= 45:
+        st.balloons()
+        st.subheader("💖 【HE 甜蜜告白结局】")
+        st.success(f"『好不容易在人群中找到了你……这次我再也不想松开你的手了！无论别人怎么看，你才是我最重要的选择！』\n\n—— **{target}** 在灯光暗下的角落里，紧紧牵住了你的手，开启了只属于你们的甜蜜恋情。")
+    elif score >= 20:
+        st.subheader("🤝 【TE 默契搭档结局】")
+        st.info(f"『今天真的多亏有你在……每次看到你，我都觉得心里很踏实。以后也请一直在身边支持我，好吗？』\n\n—— 你与 **{target}** 建立了极其深厚的信任与默契，成为了彼此生命中最不可或缺的灵魂陪伴。")
+    else:
+        st.subheader("💔 【BE 遗憾错失结局】")
+        st.error(f"『今天辛苦你了……我待会儿还有通告，就先走一步了。』\n\n—— **{target}** 对你客套地微笑了笑，便转身跟随人群离开。两人的距离似乎在不知不觉中渐行渐远……")
+        
+    st.write("---")
+    if st.button("🔄 重新选择角色 / 身份", use_container_width=True):
+        st.session_state.role = None
+        st.session_state.target = None
+        st.session_state.act = 1
+        st.session_state.score = 0
+        st.session_state.history = []
         st.rerun()
-
-# 💼 路线 A：经纪人专属线 (100 ~ 110)
-elif st.session_state.step == 100: render_choice_step("经纪人", 1, 101)
-elif st.session_state.step == 101: render_display_step(102)
-elif st.session_state.step == 102: render_choice_step("经纪人", 2, 103)
-elif st.session_state.step == 103: render_display_step(104)
-elif st.session_state.step == 104: render_choice_step("经纪人", 3, 105)
-elif st.session_state.step == 105: render_display_step(106)
-elif st.session_state.step == 106: render_choice_step("经纪人", 4, 107)
-elif st.session_state.step == 107: render_display_step(108)
-elif st.session_state.step == 108: render_choice_step("经纪人", 5, 109)
-elif st.session_state.step == 109: render_display_step(110, is_final=True)
-elif st.session_state.step == 110: render_ending_step()
-
-# 💌 路线 B：粉丝/地下恋专属线 (200 ~ 210)
-elif st.session_state.step == 200: render_choice_step("粉丝/地下恋", 1, 201)
-elif st.session_state.step == 201: render_display_step(202)
-elif st.session_state.step == 202: render_choice_step("粉丝/地下恋", 2, 203)
-elif st.session_state.step == 203: render_display_step(204)
-elif st.session_state.step == 204: render_choice_step("粉丝/地下恋", 3, 205)
-elif st.session_state.step == 205: render_display_step(206)
-elif st.session_state.step == 206: render_choice_step("粉丝/地下恋", 4, 207)
-elif st.session_state.step == 207: render_display_step(208)
-elif st.session_state.step == 208: render_choice_step("粉丝/地下恋", 5, 209)
-elif st.session_state.step == 209: render_display_step(210, is_final=True)
-elif st.session_state.step == 210: render_ending_step()
-
-# 🌸 路线 C：青梅竹马专属线 (300 ~ 310)
-elif st.session_state.step == 300: render_choice_step("青梅竹马", 1, 301)
-elif st.session_state.step == 301: render_display_step(302)
-elif st.session_state.step == 302: render_choice_step("青梅竹马", 2, 303)
-elif st.session_state.step == 303: render_display_step(304)
-elif st.session_state.step == 304: render_choice_step("青梅竹马", 3, 305)
-elif st.session_state.step == 305: render_display_step(306)
-elif st.session_state.step == 306: render_choice_step("青梅竹马", 4, 307)
-elif st.session_state.step == 307: render_display_step(308)
-elif st.session_state.step == 308: render_choice_step("青梅竹马", 5, 309)
-elif st.session_state.step == 309: render_display_step(310, is_final=True)
-elif st.session_state.step == 310: render_ending_step()
-
-# ✈️ 路线 D：在日留学生or打工人专属线 (400 ~ 410)
-elif st.session_state.step == 400: render_choice_step("在日留学生or打工人", 1, 401)
-elif st.session_state.step == 401: render_display_step(402)
-elif st.session_state.step == 402: render_choice_step("在日留学生or打工人", 2, 403)
-elif st.session_state.step == 403: render_display_step(404)
-elif st.session_state.step == 404: render_choice_step("在日留学生or打工人", 3, 405)
-elif st.session_state.step == 405: render_display_step(406)
-elif st.session_state.step == 406: render_choice_step("在日留学生or打工人", 4, 407)
-elif st.session_state.step == 407: render_display_step(408)
-elif st.session_state.step == 408: render_choice_step("在日留学生or打工人", 5, 409)
-elif st.session_state.step == 409: render_display_step(410, is_final=True)
-elif st.session_state.step == 410: render_ending_step()
