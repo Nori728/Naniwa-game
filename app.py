@@ -3,7 +3,7 @@ import random
 import os
 
 # -----------------------------------------------------------------------------
-# 1. 页面基本配置与安全加载
+# 1. 页面配置与绝对路径安全加载
 # -----------------------------------------------------------------------------
 st.set_page_config(page_title="浪花男子心动日常", page_icon="💖", layout="centered")
 
@@ -29,19 +29,54 @@ def safe_audio(audio_path):
                 pass
 
 # -----------------------------------------------------------------------------
-# 2. 数据库与配置 (可以使用本地路径，也可以直接换成 https:// 网络图片链接)
+# 2. 浪花男子人物设定与角色配置
 # -----------------------------------------------------------------------------
 MEMBERS = {
-    "丈君": {"nick": "丈君", "trait": "搞笑又可靠的大哥哥", "img": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRRxeLPXR2kAxnf8Z0uNFWIH7j_vjPcrr8Eg1qWtaTSoPKTvTMcZtXXX6Kn&s=10", "color": "💙 蓝色"},
-    "大西": {"nick": "大西", "trait": "热情太阳般的 C 位", "img": "images/da_jiang.gif", "color": "🧡 橙色"},
-    "布丁": {"nick": "布丁", "trait": "温柔体贴又吃得超香的队长", "img": "images/bu_ding.gif", "color": "💚 绿色"},
-    "高恭": {"nick": "高恭", "trait": "自恋又亚撒西的八嘎帅哥，实则运动超强", "img": "images/gao_gong.gif", "color": "💜 紫色"},
-    "流星": {"nick": "流星", "trait": "眼睛会闪光的小恶魔", "img": "images/liu_xing.gif", "color": "🧡 橙色"},
-    "道枝": {"nick": "道枝", "trait": "高挑帅气的长腿王子", "img": "images/mi_qi.gif", "color": "💖 粉色"},
-    "谦杜": {"nick": "谦杜", "trait": "时尚又有主见的小恶魔末子", "img": "images/qian_du.gif", "color": "💛 黄色"}
+    "丈君": {
+        "nick": "丈君",
+        "trait": "搞笑又可靠的大哥哥",
+        "img": "images/zhang_jun.gif",
+        "color": "💙 蓝色"
+    },
+    "大西": {
+        "nick": "大西",
+        "trait": "热情太阳般的 C 位",
+        "img": "images/da_jiang.gif",
+        "color": "🔴 红色"
+    },
+    "布丁": {
+        "nick": "布丁",
+        "trait": "温柔体贴又吃得超香的队长",
+        "img": "images/bu_ding.gif",
+        "color": "💚 绿色"
+    },
+    "高恭": {
+        "nick": "高恭",
+        "trait": "自恋又亚撒西的八嘎帅哥，实则运动超强",
+        "img": "images/gao_gong.gif",
+        "color": "💜 紫色"
+    },
+    "流星": {
+        "nick": "流星",
+        "trait": "眼睛会闪光的小恶魔",
+        "img": "images/liu_xing.gif",
+        "color": "🧡 橙色"
+    },
+    "道枝": {
+        "nick": "道枝",
+        "trait": "高挑帅气的长腿王子",
+        "img": "images/mi_qi.gif",
+        "color": "💖 粉色"
+    },
+    "谦杜": {
+        "nick": "谦杜",
+        "trait": "时尚又有主见的小恶魔末子",
+        "img": "images/qian_du.gif",
+        "color": "💛 黄色"
+    }
 }
 
-USER_ROLES = ["初入职场的助理妹子", "在日留学生or打工人"]
+USER_ROLES = ["初入职场的助理妹子", "粉丝", "青梅竹马", "在日留学生or打工人"]
 
 # -----------------------------------------------------------------------------
 # 3. Session State 状态初始化
@@ -62,7 +97,7 @@ if "story_history" not in st.session_state:
     st.session_state.story_history = []
 
 # -----------------------------------------------------------------------------
-# 4. 剧情逻辑定义
+# 4. 3幕分段剧情定义
 # -----------------------------------------------------------------------------
 def get_act_data(member, act, role):
     if act == 1:
@@ -103,9 +138,8 @@ def get_act_data(member, act, role):
         }
 
 # -----------------------------------------------------------------------------
-# 5. 页面渲染
+# 5. 页面渲染逻辑
 # -----------------------------------------------------------------------------
-# 页面 A: 首页/抽卡
 if st.session_state.page == "home":
     st.title("💖 浪花男子心动日常")
     st.write("欢迎来到与浪花男子的互动世界！请设置你的角色并抽取今天的男主角吧！")
@@ -139,7 +173,6 @@ if st.session_state.page == "home":
             st.session_state.page = "story"
             st.rerun()
 
-# 页面 B: 剧情互动
 elif st.session_state.page == "story":
     member = st.session_state.selected_member
     act = st.session_state.current_act
@@ -149,7 +182,6 @@ elif st.session_state.page == "story":
     st.title(f"📖 {act_data['title']}")
     st.caption(f"当前与 **{member}** 的好感度：{st.session_state.favorability} ❤️")
     
-    # 加载图片与音频
     safe_image(act_data["img"])
     safe_audio(act_data["bgm"])
     
@@ -171,7 +203,6 @@ elif st.session_state.page == "story":
                 st.session_state.page = "result"
                 st.rerun()
 
-# 页面 C: 最终结局
 elif st.session_state.page == "result":
     member = st.session_state.selected_member
     fav = st.session_state.favorability
@@ -181,9 +212,9 @@ elif st.session_state.page == "result":
     
     if fav >= 80:
         st.balloons()
-        st.success(f"✨ **【 Perfect Ending 】心有灵犀！**\n\n{member} 轻轻拉住你的手：『以后所有的舞台和日常，我都希望有你在身边。』")
+        st.success(f"✨ **【 Happy Ending 】心有灵犀！**\n\n{member} 轻轻拉住你的手：『以后所有的舞台和日常，我都希望有你在身边。』")
     elif fav >= 50:
-        st.info(f"🌸 **【 Normal Ending 】默契搭档！**\n\n{member} 对你笑着挥手：『今天合作很愉快，下次也要加油哦！』")
+        st.info(f"🌸 **【 True Ending 】默契搭档！**\n\n{member} 对你笑着挥手：『今天合作很愉快，下次也要加油哦！』")
     else:
         st.warning(f"🌧️ **【 Bad Ending 】有些疏离……**\n\n{member} 礼貌地告别：『今天辛苦了，早点休息吧。』")
         
