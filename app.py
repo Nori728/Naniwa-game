@@ -1328,7 +1328,7 @@ CHARACTER_SCRIPTS = {
                     "B": {"text": "『打工族都很酷的！在异国打拼更是酷爆了！加油！』", "score": 15},
                     "AB": {"text": "『别气馁啊！如果觉得孤单，我带你去逛日本最潮的街道散心！』", "score": 5}
                 }
-            }，
+            },
                 # ==========================================
 # 5. 主界面渲染与剧情推进循环
 # ==========================================
@@ -1415,4 +1415,3 @@ elif st.session_state.story_stage == 3:
         st.session_state.scores = {"heart": 0, "trust": 0}
         st.session_state.last_feedback = ""
         st.rerun()
- 
