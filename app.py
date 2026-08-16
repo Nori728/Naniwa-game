@@ -32,7 +32,7 @@ def safe_audio(audio_path):
 # 2. 数据库与配置 (可以使用本地路径，也可以直接换成 https:// 网络图片链接)
 # -----------------------------------------------------------------------------
 MEMBERS = {
-    "丈君": {"nick": "丈君", "trait": "搞笑又可靠的大哥哥", "img": "images/zhang_jun.gif", "color": "💙 蓝色"},
+    "丈君": {"nick": "丈君", "trait": "搞笑又可靠的大哥哥", "img": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRRxeLPXR2kAxnf8Z0uNFWIH7j_vjPcrr8Eg1qWtaTSoPKTvTMcZtXXX6Kn&s=10", "color": "💙 蓝色"},
     "大西": {"nick": "大西", "trait": "热情太阳般的 C 位", "img": "images/da_jiang.gif", "color": "🧡 橙色"},
     "布丁": {"nick": "布丁", "trait": "温柔体贴又吃得超香的队长", "img": "images/bu_ding.gif", "color": "💚 绿色"},
     "高恭": {"nick": "高恭", "trait": "自恋又亚撒西的八嘎帅哥，实则运动超强", "img": "images/gao_gong.gif", "color": "💜 紫色"},
