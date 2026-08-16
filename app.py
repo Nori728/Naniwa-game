@@ -3,13 +3,20 @@ import random
 import os
 
 # -----------------------------------------------------------------------------
-# 1. 页面基本配置与安全加载
+# 1. 页面基本配置与安全加载 (已修改: safe_image 支持网址)
 # -----------------------------------------------------------------------------
 st.set_page_config(page_title="浪花男子心动日常", page_icon="💖", layout="centered")
 
 def safe_image(img_path, caption=None):
-    if img_path and os.path.exists(img_path):
+    if not img_path:
+        return
+    # 如果是网址，直接加载；如果是本地路径，先检查是否存在
+    if img_path.startswith("http"):
         st.image(img_path, caption=caption, use_column_width=True)
+    elif os.path.exists(img_path):
+        st.image(img_path, caption=caption, use_column_width=True)
+    else:
+        st.warning(f"图片路径或网址无法加载: {img_path}")
 
 def safe_audio(audio_path):
     if audio_path and os.path.exists(audio_path):
