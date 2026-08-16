@@ -297,6 +297,25 @@ elif st.session_state.stage == "menu":
     st.subheader("🛠️ 请定制你的心动企划档案")
     
     selected_member = st.selectbox("💖 选择你的心动男主角：", list(MEMBERS.keys()))
+    
+    # 💡 在这里加上这行代码，就能根据你选的人物实时显示他的图片！
+    st.image(MEMBERS[selected_member]["img"], width=200)
+    
+    selected_role = st.selectbox("🎭 选择你的专属身份：", ROLES)
+    
+    st.markdown(f"**当前角色特色：** {MEMBERS[selected_member]['trait']}")
+    
+    if st.button("🚀 开始心动企划", use_container_width=True):
+        st.session_state.target_member = selected_member
+        st.session_state.player_role = selected_role
+        st.session_state.current_act = 1
+        st.session_state.total_score = 30
+        st.session_state.stage = "playing"
+        st.session_state.dialogue_history = []
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    selected_member = st.selectbox("💖 选择你的心动男主角：", list(MEMBERS.keys()))
     selected_role = st.selectbox("🎭 选择你的专属身份：", ROLES)
     
     st.markdown(f"**当前角色特色：** {MEMBERS[selected_member]['trait']}")
