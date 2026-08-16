@@ -19,16 +19,16 @@ def safe_audio(audio_path):
             pass
 
 # -----------------------------------------------------------------------------
-# 2. 成员与身份数据配置
+# 2. 成员与身份数据配置（更新后）
 # -----------------------------------------------------------------------------
 MEMBERS = {
     "丈君": {"nick": "丈君", "trait": "搞笑又可靠的大哥哥", "img": "images/zhang_jun.gif", "color": "💙 蓝色"},
     "大酱": {"nick": "大酱", "trait": "热情太阳般的 C 位", "img": "images/da_jiang.gif", "color": "🔴 红色"},
-    "布丁": {"nick": "布丁", "trait": "甜美可爱又贴心的甜妹", "img": "images/bu_ding.gif", "color": "💛 黄色"},
-    "高恭": {"nick": "高恭", "trait": "温柔包容的队长", "img": "images/gao_gong.gif", "color": "💜 紫色"},
-    "流星": {"nick": "流星", "trait": "眼睛会闪光的小恶魔", "img": "images/liu_xing.gif", "color": "🧡 橙色"},
+    "布丁": {"nick": "布丁", "trait": "温柔体贴又吃得超香的队长", "img": "images/bu_ding.gif", "color": "💚 绿色"},
+    "高恭": {"nick": "高恭", "trait": "自恋又亚撒西的八嘎帅哥，实则运动超强", "img": "images/gao_gong.gif", "color": "💜 紫色"},
+    "流星": {"nick": "流星", "trait": "无人能敌的可爱心机小恶魔", "img": "images/liu_xing.gif", "color": "🧡 橙色"},
     "米七": {"nick": "米七", "trait": "高挑帅气的长腿王子", "img": "images/mi_qi.gif", "color": "💖 粉色"},
-    "谦杜": {"nick": "谦杜", "trait": "时尚又有主见的末子", "img": "images/qian_du.gif", "color": "💚 绿色"},
+    "谦杜": {"nick": "谦杜", "trait": "时尚又有主见的小恶魔末子", "img": "images/qian_du.gif", "color": "💛 黄色"},
 }
 
 ROLES = ["经纪人", "粉丝/地下恋", "青梅竹马", "在日留学生or打工人"]
@@ -168,7 +168,7 @@ def get_act_data(role, target, act):
                 "title": "🎬 第二幕：异国文化交流",
                 "desc": f"休息时间，{t} 好奇地问起你在日本的打工生活。",
                 "choices": [
-                    {"label": "🅰️ 分享家乡零食，聊起异国趣事。", "dialogue": f"『真好吃！以后有机会，你一定要当我的导游带我去你的家乡！』", "score": 20},
+                    {"label": "🅰️ 分享家乡零食，聊起异国趣事。", "dialogue": f"『真好吃！以后有机会，你一定要当我的导游带 me 去你的家乡！』", "score": 20},
                     {"label": "🅱️ 聊起打工：『虽然有点累，但很充实。』", "dialogue": f"『一个人在异国打拼真不简单，有困难随时找我！』", "score": 10},
                     {"label": "🆎 倒苦水：『语言不通，真想回国了。』", "dialogue": f"『别气馁啊……如果你走了，我会非常舍不得你的。』", "score": -10}
                 ]
