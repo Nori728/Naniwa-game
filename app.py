@@ -6,6 +6,20 @@ import os
 # 1. 页面基本配置与自定义背景 CSS
 # -----------------------------------------------------------------------------
 st.set_page_config(page_title="浪花男子心动日常", page_icon="💖", layout="centered")
+# -----------------------------------------------------------------------------
+# 初始化 Session State 状态管理（防止键不存在报错）
+# -----------------------------------------------------------------------------
+if "current_role" not in st.session_state:
+    st.session_state.current_role = "经纪人"
+if "current_member" not in st.session_state:
+    st.session_state.current_member = "丈君"
+if "story_stage" not in st.session_state:
+    st.session_state.story_stage = 1
+if "total_score" not in st.session_state:
+    st.session_state.total_score = 0
+if "last_feedback" not in st.session_state:
+    st.session_state.last_feedback = ""
+
 
 st.markdown(
     """
