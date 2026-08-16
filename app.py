@@ -7,8 +7,6 @@ import os
 # -----------------------------------------------------------------------------
 st.set_page_config(page_title="浪花男子心动日常", page_icon="💖", layout="centered")
 
-# 设置网页全屏背景（默认使用柔和浪漫的粉紫梦幻渐变色）
-# 如果想换成具体的网络背景图片，可以将 background 的值改为：url("你的背景图片网址")
 st.markdown(
     """
     <style>
@@ -17,7 +15,6 @@ st.markdown(
         background-attachment: fixed;
         background-size: cover;
     }
-    /* 让内容区域半透明白底，保证文字清晰可读 */
     .stMainBlockContainer {
         background-color: rgba(255, 255, 255, 0.85);
         padding: 2rem;
@@ -48,7 +45,7 @@ def safe_audio(audio_path):
             pass
 
 # -----------------------------------------------------------------------------
-# 2. 成员与身份数据配置 (保留成员专属照片)
+# 2. 成员与身份数据配置 (已全面修复大酱等所有成员的图片直链)
 # -----------------------------------------------------------------------------
 MEMBERS = {
     "丈君": {
@@ -116,7 +113,7 @@ if "fortune_result" not in st.session_state:
     st.session_state.fortune_result = None
 
 # -----------------------------------------------------------------------------
-# 4. 动态多分支剧情数据生成（已移除图片配置）
+# 4. 动态多分支剧情数据生成
 # -----------------------------------------------------------------------------
 def get_act_data(role, target, act):
     t = target
@@ -317,7 +314,6 @@ elif st.session_state.page == "story" and st.session_state.act <= 3:
     
     st.subheader(f"【{role} 线】{act_data['title']}")
     
-    # 剧情描述
     st.info(act_data["desc"])
     
     if st.session_state.history:
