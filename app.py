@@ -412,7 +412,7 @@ CHARACTER_SCRIPTS = {
 # ==========================================
 # 5. 主界面渲染与剧情推进循环
 # ==========================================
-char_info = CHARACTERS[st.session_state.current_char]
+char_char_info = CHARACTER_SCRIPTS[st.session_state.current_role][st.session_state.current_member]
 st.title("💖 浪花男子心动日常")
 st.caption(f"当前互动对象：**{st.session_state.current_char}**（{char_info['tag']}）")
 st.write(f"_{char_info['desc']}_")
