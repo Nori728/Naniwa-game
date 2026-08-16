@@ -1,92 +1,15 @@
 import streamlit as st
-import random
-import os
-
-# -----------------------------------------------------------------------------
-# 1. 页面基本配置与自定义背景 CSS
-# -----------------------------------------------------------------------------
-st.set_page_config(page_title="浪花男子心动日常", page_icon="💖", layout="centered")
-
-st.markdown(
-    """
-    <style>
-    .stApp {
-        background-color: #f0f2f6;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
-def safe_image(img_path, caption=None):
-    if not img_path:
-        return
-    if str(img_path).startswith("http"):
-        st.image(img_path, caption=caption, use_container_width=True)
-    elif os.path.exists(img_path):
-        st.image(img_path, caption=caption, use_container_width=True)
-    else:
-        st.warning(f"图片路径或网址无法加载: {img_path}")
-
-def safe_audio(audio_path):
-    if audio_path and os.path.exists(audio_path):
-        try:
-            st.audio(audio_path, loop=True, autoplay=True)
-        except Exception:
-            pass
-
-# -----------------------------------------------------------------------------
-# 2. 成员数据配置
-# -----------------------------------------------------------------------------
-MEMBERS = {
-    "丈君": {
-        "nick": "丈君",
-        "trait": "搞笑又可靠的大哥哥",
-        "img": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRRxeLPXR2kAxnf8Z0uNFWIH7j_vjPcrr8Eg1qWtaTSoPKTvTMcZtXXX6Kn&s=10",
-        "color": "💙 蓝色"
-    },
-    "大酱": {
-        "nick": "大酱",
-        "trait": "热情太阳般的 C 位",
-        "img": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEiQYHWo7za_O6O-FerVkj5mA2s49UBL3hj_Tfmu-npd2yfIz1OJSCHD8n&s=10",
-        "color": "🔴 红色"
-    },
-    "布丁": {
-        "nick": "布丁",
-        "trait": "温柔体贴又吃得超香的队长",
-        "img": "https://img-mdpr.freetls.fastly.net/article/H0CW/nm/H0CW_-CrOagXoRlSyQPOD6_zSqLjGNjyrfLRLWlqECw.jpg?width=750&disable=upscale&auto=webp&quality=80",
-        "color": "💚 绿色"
-    },
-    "高恭": {
-        "nick": "高恭",
-        "trait": "自恋又亚撒西的八嘎帅哥",
-        "img": "https://img-mdpr.freetls.fastly.net/article/d4sb/nm/d4sbe7H-P8R6sUQpAshcntVT8-h0ZPcuMe3icV8aOm4.jpg?width=750&disable=upscale&auto=webp&quality=80",
-        "color": "💜 紫色"
-    },
-    "流星": {
-        "nick": "流星",
-        "trait": "眼睛会闪光的小恶魔",
-        "img": "https://oggi.jp/wp-content/uploads/2023/03/DMA-DSC00151_2-2.jpg",
-        "color": "🧡 橙色"
-    },
-    "米七": {
-        "nick": "米七",
-        "trait": "高挑帅气的长腿王子",
-        "img": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSvYWZ1rSHkldisNtmwbvxSYNjR8FWjj4_wdyKxw84_h0SabJN81yYpsGXL&s=10",
-        "color": "💖 粉色"
-    },
-    "谦杜": {
-        "nick": "谦杜",
-        "trait": "时尚又有主见的小恶魔末子",
-        "img": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRs8ILDomyP9A6WZPtgig1e6IyPPmSpxS8HSYiRImU0uSqXicpvyNrHV8A&s=10",
-        "color": "💛 黄色"
-    },
-}
-
-ROLES = ["经纪人", "粉丝/地下恋", "青梅竹马", "在日留学生or打工人"]
-
-# -----------------------------------------------------------------------------
-# 3. 超完整数据库：7 人 × 4 身份 × 3 幕
+==================== 1. 页面配置与 CSS 动画 ====================
+st.set_page_config(page_title="偶像乙女游戏", page_icon="💖", layout="centered")
+==================== 2. 全局背景音乐 (BGM) ====================
+st.audio("audio/bgm.mp3", autoplay=True, loop=True)
+==================== 3. 成员定义与状态初始化 ====================
+MEMBERS = ["丈君", "大酱", "布丁", "高恭", "流星", "米七", "谦杜"]
+if "step" not in st.session_state:st.session_state.step = 0if "affection" not in st.session_state:st.session_state.affection = {m: 0 for m in MEMBERS}if "current_dialogue" not in st.session_state:st.session_state.current_dialogue = ""if "current_img" not in st.session_state:st.session_state.current_img = ""if "player_role" not in st.session_state:st.session_state.player_role = ""
+结算立绘图片映射表
+MEMBER_IMAGES = {"丈君": "images/zhang_jun.gif","大酱": "images/da_jiang.gif","布丁": "images/bu_ding.gif","高恭": "images/gao_gong.gif","流星": "images/liu_xing.gif","米七": "images/mi_qi.gif","谦杜": "images/qian_du.gif"}
+==================== 4. 剧情数据库 (4身份 x 7人 x 5幕) ====================
+结构：(选项文本, 角色台词, 场景专属图片路径)
 # -----------------------------------------------------------------------------
 GAME_DATABASE = {
     # -------------------------------------------------------------------------
