@@ -1,11 +1,12 @@
 import streamlit as st
+import random
 import os
 
-st.set_page_config(page_title="浪花男子：心动抉择（全角色全结局版）", page_icon="💖", layout="centered")
+# -----------------------------------------------------------------------------
+# 1. 页面基本配置与安全加载
+# -----------------------------------------------------------------------------
+st.set_page_config(page_title="浪花男子心动日常", page_icon="💖", layout="centered")
 
-# -----------------------------------------------------------------------------
-# 1. 基础资源与辅助函数
-# -----------------------------------------------------------------------------
 def safe_image(img_path, caption=None):
     if img_path and os.path.exists(img_path):
         st.image(img_path, caption=caption, use_column_width=True)
@@ -18,21 +19,25 @@ def safe_audio(audio_path):
             pass
 
 # -----------------------------------------------------------------------------
-# 2. 全员与全身份数据配置
+# 2. 成员与身份数据配置
 # -----------------------------------------------------------------------------
 MEMBERS = {
-    "丈君": {"nick": "丈君", "trait": "搞笑又可靠的大哥哥", "img": "images/zhang_jun.gif"},
-    "大酱": {"nick": "大酱", "trait": "热情太阳般的 C 位", "img": "images/da_jiang.gif"},
-    "布丁": {"nick": "布丁", "trait": "甜美可爱又贴心的甜妹", "img": "images/bu_ding.gif"},
-    "高恭": {"nick": "高恭", "trait": "温柔包容的队长", "img": "images/gao_gong.gif"},
-    "流星": {"nick": "流星", "trait": "眼睛会闪光的小恶魔", "img": "images/liu_xing.gif"},
-    "米七": {"nick": "米七", "trait": "高挑帅气的长腿王子", "img": "images/mi_qi.gif"},
-    "谦杜": {"nick": "谦杜", "trait": "时尚又有主见的末子", "img": "images/qian_du.gif"},
+    "丈君": {"nick": "丈君", "trait": "搞笑又可靠的大哥哥", "img": "images/zhang_jun.gif", "color": "💙 蓝色"},
+    "大酱": {"nick": "大酱", "trait": "热情太阳般的 C 位", "img": "images/da_jiang.gif", "color": "🔴 红色"},
+    "布丁": {"nick": "布丁", "trait": "甜美可爱又贴心的甜妹", "img": "images/bu_ding.gif", "color": "💛 黄色"},
+    "高恭": {"nick": "高恭", "trait": "温柔包容的队长", "img": "images/gao_gong.gif", "color": "💜 紫色"},
+    "流星": {"nick": "流星", "trait": "眼睛会闪光的小恶魔", "img": "images/liu_xing.gif", "color": "🧡 橙色"},
+    "米七": {"nick": "米七", "trait": "高挑帅气的长腿王子", "img": "images/mi_qi.gif", "color": "💖 粉色"},
+    "谦杜": {"nick": "谦杜", "trait": "时尚又有主见的末子", "img": "images/qian_du.gif", "color": "💚 绿色"},
 }
 
 ROLES = ["经纪人", "粉丝/地下恋", "青梅竹马", "在日留学生or打工人"]
 
-# 初始化 Session State
+# -----------------------------------------------------------------------------
+# 3. Session State 状态初始化
+# -----------------------------------------------------------------------------
+if "page" not in st.session_state:
+    st.session_state.page = "home" # 页面状态: home(首页/抽卡) | story(剧情) | result(结局)
 if "role" not in st.session_state:
     st.session_state.role = None
 if "target" not in st.session_state:
@@ -43,15 +48,14 @@ if "score" not in st.session_state:
     st.session_state.score = 0
 if "history" not in st.session_state:
     st.session_state.history = []
+if "fortune_result" not in st.session_state:
+    st.session_state.fortune_result = None
 
 # -----------------------------------------------------------------------------
-# 3. 动态全角色多分支剧情生成器
+# 4. 动态多分支剧情数据生成
 # -----------------------------------------------------------------------------
 def get_act_data(role, target, act):
-    """根据身份、角色和当前幕数，生成对应的分支选项与剧情对话"""
     t = target
-    
-    # 【经纪人线】
     if role == "经纪人":
         if act == 1:
             return {
@@ -84,7 +88,6 @@ def get_act_data(role, target, act):
                 ]
             }
 
-    # 【粉丝/地下恋线】
     elif role == "粉丝/地下恋":
         if act == 1:
             return {
@@ -117,7 +120,6 @@ def get_act_data(role, target, act):
                 ]
             }
 
-    # 【青梅竹马线】
     elif role == "青梅竹马":
         if act == 1:
             return {
@@ -150,7 +152,6 @@ def get_act_data(role, target, act):
                 ]
             }
 
-    # 【留学生/打工人线】
     else:
         if act == 1:
             return {
@@ -184,13 +185,33 @@ def get_act_data(role, target, act):
             }
 
 # -----------------------------------------------------------------------------
-# 4. 界面绘制与游戏主流程
+# 5. 界面绘制
 # -----------------------------------------------------------------------------
-st.title("💖 浪花男子：心动抉择（全员全结局版）")
+st.title("💖 浪花男子心动日常")
 safe_audio("audio/bgm.mp3")
 
-# 选择界面
-if st.session_state.role is None:
+# -----------------------------------------------------------------------------
+# A. 首页：每日运势抽卡 + 开启多分支剧情入口
+# -----------------------------------------------------------------------------
+if st.session_state.page == "home":
+    
+    st.header("🎲 每日运势抽卡")
+    
+    if st.button("✨ 测测今天最心动的成员", use_container_width=True):
+        st.session_state.fortune_result = random.choice(list(MEMBERS.keys()))
+        
+    if st.session_state.fortune_result:
+        m = st.session_state.fortune_result
+        st.success(f"🎉 恭喜你抽中了今天最心动的成员：**{m}** ！")
+        safe_image(MEMBERS[m]["img"], caption=f"✨ {m}")
+        
+        if st.button("🔄 返回首页"):
+            st.session_state.fortune_result = None
+            st.rerun()
+
+    st.write("---")
+    st.header("📖 开启心动互动剧情")
+    
     st.subheader("1️⃣ 请选择你的身份：")
     role_choice = st.selectbox("身份列表", ROLES)
     
@@ -198,32 +219,33 @@ if st.session_state.role is None:
     target_choice = st.selectbox("成员列表", list(MEMBERS.keys()))
     
     m_info = MEMBERS[target_choice]
-    st.caption(f"✨ 成员特征：{m_info['trait']}")
+    st.caption(f"✨ 成员特征：{m_info['trait']} | 专属颜色：{m_info['color']}")
     
-    st.write("---")
-    if st.button("🌟 开启心动之旅 🌟", use_container_width=True):
+    if st.button("🌟 进入多分支剧情 🌟", use_container_width=True):
         st.session_state.role = role_choice
         st.session_state.target = target_choice
         st.session_state.act = 1
         st.session_state.score = 0
         st.session_state.history = []
+        st.session_state.page = "story"
         st.rerun()
 
-# 剧情互动界面（1~3幕）
-elif st.session_state.act <= 3:
+# -----------------------------------------------------------------------------
+# B. 剧情互动 (1~3幕多选项分支)
+# -----------------------------------------------------------------------------
+elif st.session_state.page == "story" and st.session_state.act <= 3:
     act = st.session_state.act
     role = st.session_state.role
     target = st.session_state.target
     
     act_data = get_act_data(role, target, act)
     
-    st.sidebar.metric("攻略对象", target)
-    st.sidebar.metric("心动指数", st.session_state.score)
+    st.sidebar.metric("当前攻略", target)
+    st.sidebar.metric("当前心动指数", st.session_state.score)
     
     st.subheader(f"【{role} 线】{act_data['title']}")
     st.info(act_data["desc"])
     
-    # 展示前一幕的选择反馈
     if st.session_state.history:
         last = st.session_state.history[-1]
         st.success(f"💬 {target} 的回应：\n\n{last['dialogue']}")
@@ -237,19 +259,20 @@ elif st.session_state.act <= 3:
             st.session_state.act += 1
             st.rerun()
 
-# 结局结算界面
+# -----------------------------------------------------------------------------
+# C. 结局判定 (HE/TE/BE)
+# -----------------------------------------------------------------------------
 else:
     target = st.session_state.target
     score = st.session_state.score
     role = st.session_state.role
     m_info = MEMBERS[target]
     
-    st.header("🏆 最终结局结算")
+    st.header("🏆 最终心动结局结算")
     safe_image(m_info["img"], caption=f"✨ {target} ({m_info['trait']})")
     st.write(f"在【{role}】的故事中，你与 **{target}** 的最终心动指数为：**{score} 分**（满分 60 分）。")
     st.write("---")
     
-    # HE / TE / BE 判定
     if score >= 45:
         st.balloons()
         st.subheader("💖 【HE 甜蜜告白结局】")
@@ -262,7 +285,8 @@ else:
         st.error(f"『今天辛苦你了……我待会儿还有通告，就先走一步了。』\n\n—— **{target}** 对你客套地微笑了笑，便转身跟随人群离开。两人的距离似乎在不知不觉中渐行渐远……")
         
     st.write("---")
-    if st.button("🔄 重新选择角色 / 身份", use_container_width=True):
+    if st.button("🔄 返回首页 / 重新体验", use_container_width=True):
+        st.session_state.page = "home"
         st.session_state.role = None
         st.session_state.target = None
         st.session_state.act = 1
