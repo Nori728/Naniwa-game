@@ -51,11 +51,11 @@ MEMBERS = {
 
 ROLES = ["经纪人", "青梅竹马", "在日留学生or打工人"]
 
-# 总幕数（可在此自由修改，比如改成 5 代表 5 幕）
+# 总幕数
 MAX_ACT = 4
 
 # -----------------------------------------------------------------------------
-# 3. 核心全员精细化剧情数据库 (支持扩展到 4 幕)
+# 3. 核心全员精细化剧情数据库
 # -----------------------------------------------------------------------------
 DETAILED_STORIES = {
     "经纪人": {
@@ -79,7 +79,7 @@ DETAILED_STORIES = {
             3: {
                 "title": "🎬 第三幕：清晨事务所天台的对峙",
                 "choices": [
-                    ("迎上他的目光：『怎么了？是有新的通告安排吗？』", "『以后不只是工作上的搭档……我的余生，我也想申请做你专属的唯一伴侣。』", 30),
+                    ("迎上他的目光：『怎么了？是有新的通告安排吗？』", "『以后不只是工作上的搭档……你的余生，我也想申请做你专属的唯一伴侣。』", 30),
                     ("有些害羞地别过头去", "『别把脸转过去嘛……我好不容易鼓起勇气对你表白，给点面子笑一笑好不好？』", 25)
                 ]
             },
@@ -281,9 +281,6 @@ DETAILED_STORIES = {
     }
 }
 
-# 青梅竹马与打工人群组若无第4幕，系统会自动提供动态兜底，无需担心报错！
-# (你可以参照上面经纪人的格式，在其它身份里任意补充第 4 幕)
-
 # -----------------------------------------------------------------------------
 # 4. Session State 初始化
 # -----------------------------------------------------------------------------
@@ -299,12 +296,46 @@ if "total_score" not in st.session_state:
     st.session_state.total_score = 0
 if "dialogue_history" not in st.session_state:
     st.session_state.dialogue_history = []
+if "gacha_inventory" not in st.session_state:
+    st.session_state.gacha_inventory = []  # 抽卡背包
 
 # -----------------------------------------------------------------------------
-# 5. 页面核心逻辑与渲染
+# 5. 侧边栏：心动抽卡系统
+# -----------------------------------------------------------------------------
+with st.sidebar:
+    st.markdown("### 🎁 偶像心动扭蛋机")
+    st.write("消耗心动值抽取限定写真与羁绊道具！")
+    
+    if st.button("✨ 抽一次卡 (消耗 10 积分)", use_container_width=True):
+        if st.session_state.total_score >= 10:
+            st.session_state.total_score -= 10
+            # 随机抽出一张卡牌奖励
+            rewards = [
+                "【SSR限定】丈君·后台专属对视签名照 📸",
+                "【SSR限定】大酱·舞台C位闪耀拍立得 ✨",
+                "【SR稀有】布丁·亲手做的爱心铜锣烧 🍪",
+                "【SR稀有】高恭·傲娇的后台解暑冰饮 🥤",
+                "【SSR限定】流星·眨眼Wink限定小卡 💖",
+                "【SSR限定】米七·长腿王子私服私密写真 📘",
+                "【SR稀有】谦杜·吉他弹唱手写简谱 🎶"
+            ]
+            get_card = random.choice(rewards)
+            st.session_state.gacha_inventory.append(get_card)
+            st.success(f"恭喜抽中：{get_card}")
+        else:
+            st.warning("当前心动积分不足 10 分，快去剧情里增加好感吧！")
+            
+    if st.session_state.gacha_inventory:
+        st.markdown("---")
+        st.markdown(f"**🎒 我的抽卡背包 ({len(st.session_state.gacha_inventory)}张)**")
+        for idx, card in enumerate(st.session_state.gacha_inventory):
+            st.caption(f"{idx+1}. {card}")
+
+# -----------------------------------------------------------------------------
+# 6. 页面核心逻辑与渲染
 # -----------------------------------------------------------------------------
 st.markdown('<p class="main-header">💖 偶像专属心动企划</p>', unsafe_allow_html=True)
-st.markdown(f'<p class="sub-header">全员 7 人满配 ＋ 三大身份分支 ＋ 多幕沉浸式剧情 (当前共 {MAX_ACT} 幕)</p>', unsafe_allow_html=True)
+st.markdown(f'<p class="sub-header">全员 7 人满配 ＋ 三大身份 ＋ 抽卡扭蛋系统 (当前共 {MAX_ACT} 幕)</p>', unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
 # 阶段 0：选择身份
@@ -346,13 +377,13 @@ elif st.session_state.step == 1:
         if st.button("开启专属恋爱剧情 ➔", type="primary"):
             st.session_state.target_member = chosen_member
             st.session_state.current_act = 1
-            st.session_state.total_score = 0
+            st.session_state.total_score = 30  # 初始赠送点数，方便玩家去左侧抽卡玩！
             st.session_state.dialogue_history = []
             st.session_state.step = 2  # 进入第一幕
             st.rerun()
 
 # -----------------------------------------------------------------------------
-# 阶段 2 及以后：动态剧情幕推进 (自动支持 MAX_ACT 幕数)
+# 阶段 2 及以后：动态剧情幕推进
 # -----------------------------------------------------------------------------
 elif st.session_state.step >= 2 and st.session_state.step < 5:
     role = st.session_state.player_role
@@ -361,7 +392,6 @@ elif st.session_state.step >= 2 and st.session_state.step < 5:
     
     m_info = MEMBERS[member]
     
-    # 动态获取当前身份、当前成员、当前幕的剧本（若没写该幕，自动兜底生成）
     role_stories = DETAILED_STORIES.get(role, {})
     member_story = role_stories.get(member, {})
     scene_data = member_story.get(act, {
@@ -374,6 +404,8 @@ elif st.session_state.step >= 2 and st.session_state.step < 5:
     })
     
     st.markdown(f"### 🎭 当前身份：【{role}】 | 攻略对象：**{member}** (第 {act}/{MAX_ACT} 幕)")
+    st.info(f"💡 当前心动积分：**{st.session_state.total_score} 分**（快去左侧边栏使用扭蛋机抽卡吧！）")
+    
     st.markdown(
         f"""
         <div style="text-align: center; margin-bottom: 15px;">
@@ -385,7 +417,6 @@ elif st.session_state.step >= 2 and st.session_state.step < 5:
     
     st.subheader(scene_data["title"])
     
-    # 展示历史对话记录
     if st.session_state.dialogue_history:
         st.markdown("---")
         for item in st.session_state.dialogue_history:
@@ -402,7 +433,6 @@ elif st.session_state.step >= 2 and st.session_state.step < 5:
             })
             st.session_state.total_score += score_val
             
-            # 核心判定：如果还没到最高幕数，就继续推进；如果到了，就进入最终结局结算
             if act < MAX_ACT:
                 st.session_state.current_act += 1
             else:
@@ -410,7 +440,7 @@ elif st.session_state.step >= 2 and st.session_state.step < 5:
             st.rerun()
 
 # -----------------------------------------------------------------------------
-# 阶段 5：专属结局结算 (全员 7 人独立专属告白)
+# 阶段 5：专属结局结算
 # -----------------------------------------------------------------------------
 elif st.session_state.step == 5:
     role = st.session_state.player_role
@@ -432,7 +462,6 @@ elif st.session_state.step == 5:
         unsafe_allow_html=True
     )
     
-    # 7人全员独立的专属告白情话
     ENDING_QUOTES = {
         "丈君": "『无论是聚光灯下的万人瞩目，还是狭窄后台的疲惫时刻……只要你在我身旁，我就是最闪耀的那个。做我唯一的专属偏爱，好吗？』",
         "大酱": "『这些日子谢谢你一直包容我、陪在我身旁。比起那些遥不可及的奖杯，我现在最想拥抱和拥有的，只有你一个。』",
@@ -457,7 +486,7 @@ elif st.session_state.step == 5:
     with col_r1:
         if st.button("🔄 重新攻略当前角色", use_container_width=True):
             st.session_state.current_act = 1
-            st.session_state.total_score = 0
+            st.session_state.total_score = 30
             st.session_state.dialogue_history = []
             st.session_state.step = 2
             st.rerun()
@@ -469,4 +498,5 @@ elif st.session_state.step == 5:
             st.session_state.current_act = 1
             st.session_state.total_score = 0
             st.session_state.dialogue_history = []
+            st.session_state.gacha_inventory = []
             st.rerun()
