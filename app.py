@@ -1,109 +1,125 @@
 import streamlit as st
+import random
+import os
 
-# ==================== 1. 页面配置与 CSS 动画 ====================
-st.set_page_config(page_title="偶像乙女游戏", page_icon="💖", layout="centered")
+# -----------------------------------------------------------------------------
+# 1. 页面基本配置
+# -----------------------------------------------------------------------------
+st.set_page_config(page_title="浪花男子互动小游戏", page_icon="🎬", layout="centered")
 
-# ==================== 2. 全局背景音乐 (BGM) ====================
-st.audio("audio/bgm.mp3", autoplay=True, loop=True)
+# 辅助函数：安全加载图片（找不到文件时自动隐藏，不让程序报错）
+def safe_image(img_path, caption=None, use_column_width=True):
+    if img_path and os.path.exists(img_path):
+        st.image(img_path, caption=caption, use_column_width=use_column_width)
 
-# ==================== 3. 成员定义与状态初始化 ====================
-MEMBERS = ["丈君", "大酱", "布丁", "高恭", "流星", "米七", "谦杜"]
+# 辅助函数：安全加载音频
+def safe_audio(audio_path, loop=True, autoplay=True):
+    if audio_path and os.path.exists(audio_path):
+        try:
+            st.audio(audio_path, loop=loop, autoplay=autoplay)
+        except Exception:
+            pass
 
-if "step" not in st.session_state:
-    st.session_state.step = 0
-if "affection" not in st.session_state:
-    st.session_state.affection = {m: 0 for m in MEMBERS}
-if "current_dialogue" not in st.session_state:
-    st.session_state.current_dialogue = ""
-if "current_img" not in st.session_state:
-    st.session_state.current_img = ""
-if "player_role" not in st.session_state:
-    st.session_state.player_role = ""
+# -----------------------------------------------------------------------------
+# 2. 游戏数据设定
+# -----------------------------------------------------------------------------
+MEMBERS = ["丈君", "大酱", "布丁", "高恭", "流星", "米t", "谦杜"]
 
-# 结算立绘图片映射表
+# 结局立绘路径设定（没有文件会自动跳过）
 MEMBER_IMAGES = {
     "丈君": "images/zhang_jun.gif",
     "大酱": "images/da_jiang.gif",
     "布丁": "images/bu_ding.gif",
     "高恭": "images/gao_gong.gif",
     "流星": "images/liu_xing.gif",
-    "米七": "images/mi_qi.gif",
-    "谦杜": "images/qian_du.gif"
+    "米t": "images/mi_qi.gif",
+    "谦杜": "images/qian_du.gif",
 }
 
-# ==================== 4. 剧情数据库 (4身份 x 7人 x 5幕) ====================
-# 结构：(选项文本, 角色台词, 场景专属图片路径)
+# 剧情节点数据
 STORY_DATA = {
-    "经纪人": {
-        1: {
-            "title": "🎬 第一幕：后台行程与考勤Check",
-            "opts": {
-                "丈君": ("确认走位：『核对一下待会儿的走位和麦克风。』", "『有你这个金牌经纪人在，我完全不担心！』", "images/manager_act1_zhang.gif"),
-                "大酱": ("递上行程表：『等下的联访流程看过了吗？』", "『看过了！放心，我回答绝对得体！』", "images/manager_act1_da.gif"),
-                "布丁": ("检查服装：『服装领结稍微偏了，我帮你整整。』", "『嘿嘿，谢谢你～多亏你这么细心！』", "images/manager_act1_buding.gif"),
-                "高恭": ("确认状态：『嗓子怎么样？要不要喝润喉茶？』", "『刚刚好，听到你的声音我就踏实了。』", "images/manager_act1_gaogong.gif"),
-                "流星": ("提醒走位：『等下第 3 首歌记得从升降台走。』", "『收到！我会用最帅的姿势上台的！』", "images/manager_act1_liuxing.gif"),
-                "米七": ("沟通休息时间：『再等 10 分钟就可以休息了。』", "『没关系，只要能看着你忙碌就很满足。』", "images/manager_act1_miqi.gif"),
-                "谦杜": ("调试器材：『吉他音轨我已经和音响师对接好了。』", "『太靠谱了！待会的第一音符为你而弹！』", "images/manager_act1_qiandu.gif")
-            }
-        },
-        2: {
-            "title": "🎬 第二幕：舞台中场紧急应变",
-            "opts": {
-                "丈君": ("递上毛巾：『中场休息只有 3 分钟，快补水！』", "『呼……幸好有你在台侧接住我！』", "images/manager_act2_zhang.gif"),
-                "大酱": ("帮忙换装：『外套袖口有点卡，我拉开一下。』", "『离我这么近……我会心跳加速打乱呼吸的。』", "images/manager_act2_da.gif"),
-                "布丁": ("递上能量棒：『吃一口补充血糖！』", "『好甜！感觉又有体力在台上蹦蹦跳跳了！』", "images/manager_act2_buding.gif"),
-                "高恭": ("拭去汗水：『跳得太卖力了，别脱水。』", "『有你照顾我，这点累根本不算什么。』", "images/manager_act2_gaogong.gif"),
-                "流星": ("打气加油：『刚才的舞段引爆全场了！』", "『那是当然！因为我的眼光一直在你身上！』", "images/manager_act2_liuxing.gif"),
-                "米七": ("递上冰镇饮料：『凉一下降降温。』", "『谢谢……手贴在一起的温度比饮料还冰呢。』", "images/manager_act2_miqi.gif"),
-                "谦杜": ("调整耳返：『听得清伴奏吗？』", "『耳返里最清晰的，始终是你叮嘱我的声音。』", "images/manager_act2_qiandu.gif")
-            }
-        },
-        3: {
-            "title": "🎬 第三幕：演出成功后的发布会后台",
-            "opts": {
-                "丈君": ("递上答记问提纲：『记者提问别紧张。』", "『只要你在镜头后陪着我，我就能对答如流。』", "images/manager_act3_zhang.gif"),
-                "大酱": ("赞许微笑了：『今天表现给满分！』", "『得到你的夸奖，比拿大奖还开心！』", "images/manager_act3_da.gif"),
-                "布丁": ("做偷偷打气手势：『等下采访结束吃大餐！』", "『好耶！我要坐在你旁边吃！』", "images/manager_act3_buding.gif"),
-                "高恭": ("整理发型：『碎发理一下，上镜更好看。』", "『嗯……你想怎么理都听你的。』", "images/manager_act3_gaogong.gif"),
-                "流星": ("比赞：『刚才临场反应太棒了！』", "『全靠你平时训练有方嘛！夸我不如多陪我聊会～』", "images/manager_act3_liuxing.gif"),
-                "米七": ("轻声提醒：『累的话眼神可以少看镜头。』", "『那我只看着你，可以吗？』", "images/manager_act3_miqi.gif"),
-                "谦杜": ("递上手帕：『记者问完就去休息。』", "『嗯，等结束了我有话想单独对你说。』", "images/manager_act3_qiandu.gif")
-            }
-        },
-        4: {
-            "title": "🎬 第四幕：深夜庆功宴后的专车上",
-            "opts": {
-                "丈君": ("调低空调：『别吹风感冒了。』", "『今晚别把我当明星，只当普通男孩子好吗？』", "images/manager_act4_zhang.gif"),
-                "大酱": ("肩靠肩坐着：『累了就闭眼眯会儿。』", "『你的肩膀比任何枕头都要让人安心。』", "images/manager_act4_da.gif"),
-                "布丁": ("递上热饮：『暖暖胃再睡。』", "『今天辛苦你陪我们跑一天了，快喝一口。』", "images/manager_act4_buding.gif"),
-                "高恭": ("看着车窗外的夜景：『明天有一整天假。』", "『那明天……能把时间私心留给我吗？』", "images/manager_act4_gaogong.gif"),
-                "流星": ("分享耳机：『听听今天的现场音频吧。』", "『这首歌我的高音，是想着你才唱出来的。』", "images/manager_act4_liuxing.gif"),
-                "米七": ("牵起你的手：『今天太忙，都没怎么好好说话。』", "『别抽开手……就让我握一会儿就好。』", "images/manager_act4_miqi.gif"),
-                "谦杜": ("侧头看你：『辛苦你了，经纪人小姐。』", "『比起经纪人，我更想听你只叫我的名字。』", "images/manager_act4_qiandu.gif")
-            }
-        },
-        5: {
-            "title": "🎬 第五幕：清晨事务所的清晨告白",
-            "opts": {
-                "丈君": ("走向丈君：『早安，今天也要一起加油！』", "『以后不只是工作，你的余生我也想一起加油！』", "images/manager_act5_zhang.gif"),
-                "大酱": ("走向大酱：『这是今天的行程安排。』", "『相比行程，我更关心我的心什么时候能住进你心里。』", "images/manager_act5_da.gif"),
-                "布丁": ("走向布丁：『早安！给你带了早餐。』", "『以后每天的早餐，我都想跟你一起吃！』", "images/manager_act5_buding.gif"),
-                "高恭": ("走向高恭：『昨晚睡得好吗？』", "『梦里全是你，你说我睡得好不好？』", "images/manager_act5_gaogong.gif"),
-                "流星": ("走向流星：『今天有新歌录制哦。』", "『我想写一首只属于我们俩的情感！』", "images/manager_act5_liuxing.gif"),
-                "米七": ("走向米七：『早安，看起来精神不错。』", "『因为一想到早起能见到你，我就睡不着了。』", "images/manager_act5_miqi.gif"),
-                "谦杜": ("走向谦杜：『准备好开启新一天了吗？』", "『只要你在我身边，每一天都是最美好的开端。』", "images/manager_act5_qiandu.gif")
-            }
-        }
+    "start": {
+        "text": "今天是浪花男子的休息日，你准备去哪里度过这个下午？",
+        "image": "images/bg_start.jpg",
+        "choices": [
+            {"text": "去练习室看大家排练", "next": "practice_room"},
+            {"text": "去甜品店吃下午茶", "next": "dessert_shop"},
+            {"text": "留在家里抽卡看运势", "next": "gacha"}
+        ]
     },
-    "粉丝/地下恋": {
-        1: {
-            "title": "🎬 第一幕：后台休息室的秘密碰面",
-            "opts": {
-                "丈君": ("悄悄递手幅：『只属于你的独家应援！』", "『嘘……被看到就糟糕了，但你能来我超开心！』", "images/fan_act1_zhang.gif"),
-                "大酱": ("塞私房零食：『辛苦啦，偷偷给你带的。』", "『只有你还记得我最爱吃这个，真想抱抱你。』", "images/fan_act1_da.gif"),
-                "布丁": ("拿出周边请他签名：『能帮我签在这个位置吗？』", "『签这里不够，我想在你的心上盖个章！』", "images/fan_act1_buding.gif"),
-                "高恭": ("戴着帽子低头过去：『没被狗仔发现吧？』", "『放心，我安排了工作人员避开镜头，快坐下。』", "images/fan_act1_gaogong.gif"),
+    "practice_room": {
+        "text": "来到练习室，门虚掩着，里面传来欢声笑语和音乐声。",
+        "image": "images/bg_practice.jpg",
+        "choices": [
+            {"text": "推门进去送饮料", "next": "ending_member"},
+            {"text": "在门口偷看一会儿", "next": "ending_member"}
+        ]
+    },
+    "dessert_shop": {
+        "text": "你在甜品店刚坐下，居然巧遇了成员！",
+        "image": "images/bg_cafe.jpg",
+        "choices": [
+            {"text": "坐过去打招呼", "next": "ending_member"},
+            {"text": "悄悄帮他们买单", "next": "ending_member"}
+        ]
+    }
+}
+
+# -----------------------------------------------------------------------------
+# 3. 状态初始化
+# -----------------------------------------------------------------------------
+if "current_node" not in st.session_state:
+    st.session_state.current_node = "start"
+
+# -----------------------------------------------------------------------------
+# 4. 界面绘制
+# -----------------------------------------------------------------------------
+st.title("💖 浪花男子心动日常")
+
+# 侧边栏：播放背景音乐（找不到文件时自动隐藏）
+safe_audio("audio/bgm.mp3", loop=True, autoplay=True)
+
+node = STORY_DATA.get(st.session_state.current_node)
+
+# 抽卡特殊分支逻辑
+if st.session_state.current_node == "gacha":
+    st.subheader("🎲 每日运势抽卡")
+    st.write("点击下方按钮，抽取今天与你最有缘的成员吧！")
+    
+    if st.button("🌟 开始抽卡 🌟"):
+        selected = random.choice(MEMBERS)
+        st.balloons()
+        st.success(f"🎉 恭喜你抽中了：**{selected}**！")
+        safe_image(MEMBER_IMAGES.get(selected), caption=f"✨ {selected} 的专属时刻")
+        
+    if st.button("🔄 返回开头"):
+        st.session_state.current_node = "start"
+        st.rerun()
+
+# 结局判定逻辑
+elif st.session_state.current_node == "ending_member":
+    selected_member = random.choice(MEMBERS)
+    st.subheader("🎉 专属遭遇结局！")
+    st.write(f"在这个特别的日子里，你和 **{selected_member}** 度过了非常愉快的时光！")
+    
+    # 尝试展示成员立绘
+    safe_image(MEMBER_IMAGES.get(selected_member), caption=selected_member)
+    
+    if st.button("🔄 再玩一次"):
+        st.session_state.current_node = "start"
+        st.rerun()
+
+# 普通剧情分支
+else:
+    if node:
+        safe_image(node.get("image"))
+        st.write(node["text"])
+        st.markdown("---")
+        
+        for idx, choice in enumerate(node["choices"]):
+            if st.button(choice["text"], key=f"btn_{idx}"):
+                st.session_state.current_node = choice["next"]
+                st.rerun()                "高恭": ("戴着帽子低头过去：『没被狗仔发现吧？』", "『放心，我安排了工作人员避开镜头，快坐下。』", "images/fan_act1_gaogong.gif"),
                 "流星": ("拉拉衣服：『今天的舞台造型太帅了！』", "『是吗？那为了你，我待会台上再帅一点！』", "images/fan_act1_liuxing.gif"),
                 "米七": ("角落小声说话：『后台人好多，好紧张。』", "『握住我的手就不紧张了，别松开哦。』", "images/fan_act1_miqi.gif"),
                 "谦杜": ("递上手写信：『给你的信，回家再看。』", "『我现在就想看，因为里面一定写满了爱意！』", "images/fan_act1_qiandu.gif")
