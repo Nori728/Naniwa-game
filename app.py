@@ -2,107 +2,207 @@ import streamlit as st
 import random
 
 # -----------------------------------------------------------------------------
-# 1. 页面配置与样式
+# 1. 页面基本配置与样式
 # -----------------------------------------------------------------------------
-st.set_page_config(page_title="浪花男子心动日常", page_icon="💖", layout="centered")
+st.set_page_config(page_title="偶像专属心动企划", page_icon="💖", layout="centered")
 
-st.markdown("""
+st.markdown(
+    """
     <style>
-    .stApp { background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 50%, #fce7f3 100%); }
-    .main-header { font-size: 2.2rem; color: #e11d48; text-align: center; font-weight: bold; }
-    .card-box { background: rgba(255, 255, 255, 0.95); padding: 20px; border-radius: 16px; border: 1px solid #fbcfe8; }
+    .stApp {
+        background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 50%, #fce7f3 100%);
+    }
+    .main-header {
+        font-size: 2.2rem;
+        color: #e11d48;
+        text-align: center;
+        font-weight: bold;
+        margin-bottom: 0;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+    }
+    .sub-header {
+        text-align: center;
+        color: #64748b;
+        margin-bottom: 1.5rem;
+    }
+    .card-box {
+        background: rgba(255, 255, 255, 0.95);
+        padding: 20px;
+        border-radius: 16px;
+        box-shadow: 0 8px 16px rgba(225, 29, 72, 0.08);
+        margin-bottom: 20px;
+        border: 1px solid #fbcfe8;
+    }
+    .gacha-box {
+        background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+        padding: 15px;
+        border-radius: 12px;
+        border: 1px solid #fde68a;
+        margin-bottom: 15px;
+    }
     </style>
-""", unsafe_allow_html=True)
+    """,
+    unsafe_allow_html=True
+)
 
 # -----------------------------------------------------------------------------
-# 2. 数据定义 (成员、道具、剧情)
+# 2. 基础数据源 (7人全员数据)
 # -----------------------------------------------------------------------------
 MEMBERS = {
-    "丈君": {"trait": "搞笑又可靠", "img": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRRxeLPXR2kAxnf8Z0uNFWIH7j_vjPcrr8Eg1qWtaTSoPKTvTMcZtXXX6Kn&s=10"},
-    "大酱": {"trait": "热情太阳", "img": "https://gingerweb.jp/wp-content/uploads/2023/06/nishihatadaigo.jpg"},
-    "布丁": {"trait": "温柔队长", "img": "https://img-mdpr.freetls.fastly.net/article/H0CW/nm/H0CW_-CrOagXoRlSyQPOD6_zSqLjGNjyrfLRLWlqECw.jpg?width=750"},
-    "高恭": {"trait": "傲娇少年", "img": "https://img-mdpr.freetls.fastly.net/article/d4sb/nm/d4sbe7H-P8R6sUQpAshcntVT8-h0ZPcuMe3icV8aOm4.jpg?width=750"},
-    "流星": {"trait": "小恶魔", "img": "https://oggi.jp/wp-content/uploads/2023/03/DMA-DSC00151_2-2.jpg"},
-    "米七": {"trait": "长腿王子", "img": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSvYWZ1rSHkldisNtmwbvxSYNjR8FWjj4_wdyKxw84_h0SabJN81yYpsGXL&s=10"},
-    "谦杜": {"trait": "时尚末子", "img": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRs8ILDomyP9A6WZPtgig1e6IyPPmSpxS8HSYiRImU0uSqXicpvyNrHV8A&s=10"},
+    "丈君": {"trait": "搞笑又可靠的大哥哥", "color": "蓝色", "img": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRRxeLPXR2kAxnf8Z0uNFWIH7j_vjPcrr8Eg1qWtaTSoPKTvTMcZtXXX6Kn&s=10"},
+    "大酱": {"trait": "热情太阳般的 C 位", "color": "红色", "img": "https://gingerweb.jp/wp-content/uploads/2023/06/nishihatadaigo.jpg"},
+    "布丁": {"trait": "温柔体贴又元气的队长", "color": "绿色", "img": "https://img-mdpr.freetls.fastly.net/article/H0CW/nm/H0CW_-CrOagXoRlSyQPOD6_zSqLjGNjyrfLRLWlqECw.jpg?width=750"},
+    "高恭": {"trait": "自恋又帅气的傲娇少年", "color": "紫色", "img": "https://img-mdpr.freetls.fastly.net/article/d4sb/nm/d4sbe7H-P8R6sUQpAshcntVT8-h0ZPcuMe3icV8aOm4.jpg?width=750"},
+    "流星": {"trait": "眼睛会闪光的小恶魔", "color": "橙色", "img": "https://oggi.jp/wp-content/uploads/2023/03/DMA-DSC00151_2-2.jpg"},
+    "米七": {"trait": "高挑清纯的长腿王子", "color": "粉色", "img": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSvYWZ1rSHkldisNtmwbvxSYNjR8FWjj4_wdyKxw84_h0SabJN81yYpsGXL&s=10"},
+    "谦杜": {"trait": "时尚又有主见的末子", "color": "黄色", "img": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRs8ILDomyP9A6WZPtgig1e6IyPPmSpxS8HSYiRImU0uSqXicpvyNrHV8A&s=10"},
 }
 
-ITEMS = ["恋爱幸运符", "草莓牛奶", "应援荧光棒"]
-
-# 剧情库 (10幕)
-def get_story(member, act):
-    scenarios = {
-        1: ("后台初遇", "他在练习中文台词，看到你进来……"),
-        2: ("异国茶歇", "休息间隙，他递给你一块抹茶饼干。"),
-        3: ("深夜电车", "末班车上，你们并排坐在窗边。"),
-        4: ("清晨关怀", "你感冒了，他特意为你带了咖啡。"),
-        5: ("手作便当", "他拿出亲手做的饭菜，有点害羞。"),
-        6: ("排练余温", "练习室只剩你们两人，空气微醺。"),
-        7: ("大雨屋檐", "雨太大困在门前，伞只有一把。"),
-        8: ("心声长谈", "深夜聊起对未来的不安与期许。"),
-        9: ("离别时刻", "最后一天打工，到了要道别的时候。"),
-        10: ("最终告白", "无论结果如何，这是最重要的时刻。")
-    }
-    return scenarios.get(act, ("日常", "平静的一天"))
+ROLES = ["经纪人", "青梅竹马", "在日学生or打工人"]
+MAX_ACT = 4
 
 # -----------------------------------------------------------------------------
-# 3. Session State 管理
+# 3. 7人 × 3身份 全21条完整独立剧情库 (4幕全覆盖，绝不雷同)
 # -----------------------------------------------------------------------------
-if "stage" not in st.session_state: st.session_state.stage = "draw"
-if "score" not in st.session_state: st.session_state.score = 0
-if "act" not in st.session_state: st.session_state.act = 1
-if "member" not in st.session_state: st.session_state.member = None
-if "inventory" not in st.session_state: st.session_state.inventory = []
+STORIES = {
+    # ---------------- 丈君 ----------------
+    "丈君": {
+        "经纪人": {
+            1: {"title": "🎬 丈君·后台初遇：大阪式的幽默开场", "choices": [
+                ("配合他的梗吐槽：『别耍宝了，快把台词对完！』", "『哈哈，不愧是我的专属经纪人，这接梗速度满分！』", 20),
+                ("递上一杯热茶：『辛苦啦，润润嗓子。』", "『有你在，比喝什么都甜！不过……笑话还是要继续讲的～』", 25),
+                ("严肃地看手表：『距离上台还有5分钟，认真点。』", "『遵命大总管！为了不让你生气，我马上进入帅气模式！』", 15)
+            ]},
+            2: {"title": "🎬 丈君·深夜对谈：卸下防备的温柔", "choices": [
+                ("听他讲搞笑背后的压力，拍拍他肩膀", "『哎呀，突然这么温柔我会不习惯的……不过，有你真好。』", 20),
+                ("笑他刚才在台上滑稽的动作", "『喂！那叫舞台表现力！不许笑话我！』", 15),
+                ("默默陪着他看夜景，递上热咖啡", "『累的时候只要转头看到你在，我就充满电了。』", 25)
+            ]},
+            3: {"title": "🎬 丈君·近距离对峙：大阪男人的直球", "choices": [
+                ("假装板起脸：『身为艺人要稳重！』", "『对别人我稳重，对你嘛……我只想做最真实的自己。』", 25),
+                ("被逗笑：『好啦，不跟你贫嘴了。』", "『别走嘛，多看看我，今天我可是特意为你练习了帅气眼神。』", 20),
+                ("调侃他：『今天表现不错，给个好评。』", "『光有好评不够，得加个“一辈子专属”的长期契约才行！』", 15)
+            ]},
+            4: {"title": "🎬 丈君·告白结局：笑声与眼泪交织的浪漫", "choices": [
+                ("主动握住他的手：『以后的笑声，我都承包了。』", "『太赖皮了！明明这句话应该由我这个大哥哥先说出口的……』", 30),
+                ("眼眶微热地笑出来", "『不许哭哦！从今以后，我的搞笑段子里全部都是关于你的爱情故事。』", 25),
+                ("深情靠进他怀里", "『嗯！不管未来多远，我们都要手拉手一直笑下去。』", 35)
+            ]}
+        },
+        "青梅竹马": {
+            1: {"title": "🎬 丈君·放学路：从小打到大的欢喜冤家", "choices": [
+                ("抢过他的书包：『大明星走路还敢玩手机！』", "『喂！快还给我！青梅竹马也不能在大街上损我面子啊！』", 20),
+                ("买了两支冰淇淋分他一只", "『还是你最懂我！不过这支化得比你笑得还快！』", 25),
+                ("像小时候一样揪他耳朵：『放学不准乱跑！』", "『痛痛痛！遵命青梅大人，小的马上乖乖跟你回家。』", 15)
+            ]},
+            2: {"title": "🎬 丈君·秘密基地：童年树下的真心话", "choices": [
+                ("翻出以前写给彼此的幼稚信件", "『天呐快烧掉！黑历史绝对不能让你看见！』", 15),
+                ("认真听他讲梦想与成名的迷茫", "『不管我以后走得多远，你永远是我第一个想分享喜悦的人。』", 25),
+                ("把零食分给他吃", "『从小到大都是你在照顾我……以后换我来保护你啦。』", 20)
+            ]},
+            3: {"title": "🎬 丈君·近距离对视：心跳加速的瞬间", "choices": [
+                ("戳戳他的脸：『什么时候才能真正成熟点？』", "『在你面前，我一辈子都只想当个可以撒娇的小男孩。』", 20),
+                ("认真看进他的眼睛：『不管你变成什么样，我都一直在。』", "『……突然这么认真干嘛，搞得我心跳快得要命。』", 25),
+                ("把话题岔开：『好啦，作业写完了没？』", "『怎么一到关键时刻你就催作业！不理你了（耳根通红）。』", 15)
+            ]},
+            4: {"title": "🎬 丈君·告白结局：青梅到恋人的华丽转身", "choices": [
+                ("笑着用额头抵住他的额头：『以后不准再叫我大姐头了。』", "『遵命！我的恋人大人，从今天起换我来宠你。』", 30),
+                ("红着脸接受他的拥抱", "『太好了……青梅竹马什么的太慢了，我早就想成为你的唯一了！』", 25),
+                ("十指相扣：『走吧，去见我们的未来。』", "『嗯！手牵手，一辈子都不放开！』", 35)
+            ]}
+        },
+        "在日学生or打工人": {
+            1: {"title": "🎬 丈君·异国偶遇：电车站的关西腔问候", "choices": [
+                ("用关西腔开玩笑打招呼：『元气吗大叔！』", "『哇！居然比我还地道！异国他乡听到这个太感动了！』", 20),
+                ("塞给他一块家乡带的糖果", "『甜到心里去了！今天打工的疲惫瞬间一扫而空。』", 25),
+                ("帮他指路：『那边车快开了，快跑！』", "『多亏有你！不然我在东京真的要变成路痴了。』", 15)
+            ]},
+            2: {"title": "🎬 丈君·异国互助：居酒屋的深夜畅谈", "choices": [
+                ("听他抱怨异国生活的不易", "『幸好在东京能遇见你，不然我真的要撑不下去了。』", 20),
+                ("抢着付账：『今天这顿我请！』", "『那怎么行！说好下次我发工资请你的，不许抢！』", 15),
+                ("笑着递上热毛巾", "『每次看你笑，我就觉得异国他乡也没那么冷了。』", 25)
+            ]},
+            3: {"title": "🎬 丈君·异国并肩：末班车前的约定", "choices": [
+                ("开玩笑：『大明星回国后可别把我忘了哦！』", "『怎么会！我恨不得把你打包带回大阪见我爸妈呢！』", 25),
+                ("默默把围巾分他一半", "『好暖……不仅是围巾，连我的心都被你填满了。』", 20),
+                ("假装正经：『快赶不上末班车了。』", "『误了末班车也没关系，因为我想和你多待一会儿。』", 15)
+            ]},
+            4: {"title": "🎬 丈君·告白结局：异国星空下的真情告白", "choices": [
+                ("紧紧握住他的手：『不管回国后多远，我都在。』", "『嗯！回国后我们就公开，我的未来里绝对不能没有你！』", 30),
+                ("笑着流下眼泪", "『不许哭！以后在我的个人演唱会上，你必须坐在最中间的位置看我。』", 25),
+                ("靠在他怀里看着东京铁塔", "『好，一言为定，我们要永远在一起。』", 35)
+            ]}
+        }
+    },
 
-# -----------------------------------------------------------------------------
-# 4. 逻辑处理
-# -----------------------------------------------------------------------------
-st.markdown('<p class="main-header">💖 浪花男子心动日常</p>', unsafe_allow_html=True)
+    # ---------------- 大酱 ----------------
+    "大酱": {
+        "经纪人": {
+            1: {"title": "🎬 大酱·后台初遇：C位的完美自我要求", "choices": [
+                ("帮他整理话筒线：『C位要有C位的气场，加油！』", "『有你在身边盯着，我绝对不会让自己有一丝懈怠的！』", 20),
+                ("递上荧光棒：『台下我永远是你的头号粉丝！』", "『有你这句话，我在台上跳得再累也觉得超级幸福！』", 25),
+                ("冷静核对通告表：『下一个采访要开始了。』", "『收到！不过采访结束后，能不能奖励我一个单独的夸奖？』", 15)
+            ]},
+            2: {"title": "🎬 大酱·深夜对谈：太阳背后的疲惫与温柔", "choices": [
+                ("轻轻摸摸他的头：『今天真的很完美，辛苦啦。』", "『……被你这么一摸，我好不容易忍住的眼泪差点掉下来。』", 25),
+                ("开玩笑：『堂堂C位也会露出这种小狗表情呀？』", "『才不是小狗！这叫只有对你才会展露的真实心情。』", 20),
+                ("默默递上一杯热牛奶", "『谢谢你……在所有人只关心我飞得高不高时，只有你关心我累不累。』", 25)
+            ]},
+            3: {"title": "🎬 大酱·近距离对峙：闪光灯外的炽热视线", "choices": [
+                ("避开他的目光：『别靠这么近，会被别人看见。』", "『看见就看见，我恨不得让全世界知道你对我的重要性。』", 25),
+                ("笑着捏他脸：『好啦，大明星要注意形象。』", "『在你面前我才不要什么形象，我只想做你的专属小太阳。』", 20),
+                ("公事公办：『明早还有早班飞机，快休息。』", "『那你今晚必须得陪我多聊十分钟，当作补偿！』", 15)
+            ]},
+            4: {"title": "🎬 大酱·告白结局：C位最耀眼的唯一的星", "choices": [
+                ("双手环住他的脖子：『你永远是我心里唯一的C位。』", "『太犯规了……这句话明明应该由我先说。我爱你！』", 30),
+                ("眼眶湿润地笑：『恭喜演出大获成功。』", "『谢谢你成为我台下最亮的光，余生请一直陪着我。』", 25),
+                ("深情拥抱", "『（脸红到耳根）从今以后，我的每个舞台都是为你而跳。』", 35)
+            ]}
+        },
+        "青梅竹马": {
+            1: {"title": "🎬 大酱·青梅日常：闪闪发光的小太阳", "choices": [
+                ("笑话他海报上的造型：『这也太羞耻了吧！』", "『别看！那次拍摄纯属意外！快把杂志收起来！』", 20),
+                ("陪他练习走位：『这里刚才动作有点同手同脚哦。』", "『有你这个青梅兼专属教练在，我肯定能拿满分！』", 25),
+                ("默默在一旁等他排练结束", "『每次排练抬头看到你在台下，我就觉得格外安心。』", 20)
+            ]},
+            2: {"title": "🎬 大酱·秘密基地：邻家男孩的烦恼", "choices": [
+                ("塞给他一颗薄荷糖：『别给自己太大压力。』", "『嗯……每次吃你给的糖，心里就踏实多了。』", 25),
+                ("笑他小时候尿床的糗事", "『救命！你怎么又提这个！我要跟你绝交三分钟！』", 15),
+                ("拍拍他肩膀：『不管你飞得多高，我都在这。』", "『有你这句话，我就什么都不怕了。』", 20)
+            ]},
+            3: {"title": "🎬 大酱·心跳突击：青梅变质的瞬间", "choices": [
+                ("帮他擦掉额头的汗水：『大明星辛苦啦。』", "『……你突然这么温柔，我心脏快跳出来了啦。』", 25),
+                ("调侃他：『现在粉丝这么多，还记得我这青梅吗？』", "『笨蛋，粉丝再多，我也只想把真心全给你一个人。』", 20),
+                ("推开车门：『好啦快回家吧。』", "『不回去了，我想和你一直待在这条路上。』", 15)
+            ]},
+            4: {"title": "🎬 大酱·告白结局：从青梅到心动恋人", "choices": [
+                ("主动牵起他的手：『走吧，去见证你的梦想。』", "『不，我的梦想里现在只有你。做我女朋友/男朋友好不好？』", 30),
+                ("笑着点头：『好呀，我的大明星。』", "『太棒了！我要把这个好消息写进我下一首歌的歌词里！』", 25),
+                ("深情拥抱", "『青梅竹马的感情，终于在今天开花结果了。』", 35)
+            ]}
+        },
+        "在日学生or打工人": {
+            1: {"title": "🎬 大酱·异国偶遇：便利店的元气充电", "choices": [
+                ("用元气的日语加油：『ファイト！今天也要加油！』", "『听到你的声音，感觉今天东京的太阳都变得更耀眼了！』", 20),
+                ("分给他一半便当", "『太幸福了吧！这绝对是全日本最好吃的便当！』", 25),
+                ("叮嘱他注意安全：『深夜打工别太拼。』", "『嗯！为了能早点见到你，我一定会照顾好自己的。』", 20)
+            ]},
+            2: {"title": "🎬 大酱·异国互助：异国他乡的避风港", "choices": [
+                ("帮他翻译日文文件", "『有你在，这些难懂的日文瞬间变得可爱起来了！』", 25),
+                ("抱怨打工太累想哭", "『别哭别哭，我的肩膀借你靠，想哭多久都行。』", 20),
+                ("笑话他切菜笨拙的样子", "『好啦术业有专攻嘛，等下我负责洗碗总行了吧！』", 15)
+            ]},
+            3: {"title": "🎬 大酱·异国并肩：樱花树下的约定", "choices": [
+                ("看着落下的樱花：『在日本的这段日子真快。』", "『快吗？我觉得只要有你陪着，每一天都长得像一辈子。』", 25),
+                ("提醒他末班车时间", "『不想坐末班车，只想和你一直走在东京的夜里。』", 20),
+                ("递上一罐热咖啡", "『谢谢你给的甜，把异国的苦全中和了。』", 15)
+            ]},
+            4: {"title": "🎬 大酱·告白结局：异国浪漫契约", "choices": [
+                ("坚定地和十指相扣：『不管去哪我都陪你。』", "『太好了！回国也好，异国也罢，只要有你，哪里都是天堂！』", 30),
+                ("笑着流泪", "『不准哭！我们要笑着迎接属于我们的幸福未来！』", 25),
+                ("紧紧拥抱", "『异国他乡的月亮，今天格外温柔，因为你在我身边。』", 35)
+            ]}
+        }
+    },
 
-# 抽卡阶段
-if st.session_state.stage == "draw":
-    if st.button("抽选今日缘分对象"):
-        st.session_state.member = random.choice(list(MEMBERS.keys()))
-        st.session_state.inventory = [random.choice(ITEMS)]
-        st.session_state.stage = "story"
-        st.rerun()
-
-# 剧情阶段
-elif st.session_state.stage == "story":
-    m = st.session_state.member
-    act = st.session_state.act
-    title, desc = get_story(m, act)
-    
-    st.image(MEMBERS[m]["img"], width=200)
-    st.subheader(f"第 {act} 幕：{title}")
-    st.write(desc)
-    st.write(f"💼 拥有道具: {', '.join(st.session_state.inventory)}")
-    
-    # 互动选择
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("积极回应 (+10心动)"):
-            st.session_state.score += 10
-            st.session_state.act += 1
-    with col2:
-        if st.button("害羞回避 (+5心动)"):
-            st.session_state.score += 5
-            st.session_state.act += 1
-            
-    if st.session_state.act > 10:
-        st.session_state.stage = "result"
-        st.rerun()
-
-# 结算阶段
-elif st.session_state.stage == "result":
-    st.success(f"最终心动指数：{st.session_state.score}")
-    if st.session_state.score >= 80:
-        st.write("💖 HE 结局：甜蜜告白！")
-    else:
-        st.write("🌙 BE 结局：遗憾错过。")
-    
-    if st.button("重新开始"):
-        st.session_state.score = 0
-        st.session_state.act = 1
-        st.session_state.stage = "draw"
-        st.rerun()
+    # ---------------- 布丁 ----------------
