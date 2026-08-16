@@ -657,7 +657,10 @@ CHARACTER_SCRIPTS = {
                 ],
                 "feedbacks": {
                     "A": {"text": "『那句“我爱你”的歌词，我是看着你的眼睛唱出来的。』", "score": 25},
-                    "B": {"text": "『看到你的笑容，我紧张的心情一下子全消失了！』", "key": "15},
+                    "B": {"text": "『看到你的笑容，我紧张的心情一下子全消失了！』", "key": "15File "/mount/src/naniwa-game/app.py", line 660
+                      "B": {"text": "『看到你的笑容，我紧张的心情一下子全消失了！』", "key": "15"},
+                                                                      ^
+SyntaxError: unterminated string literal (detected at line 660)},
                     "AB": {"text": "『你躲开的瞬间……我心跳好像停了一拍。』", "score": 5}
                 }
             },
