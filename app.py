@@ -3,20 +3,31 @@ import random
 import os
 
 # -----------------------------------------------------------------------------
-# 1. 页面基本配置与安全加载
+# 1. 页面基本配置与安全加载（更新版）
 # -----------------------------------------------------------------------------
 st.set_page_config(page_title="浪花男子心动日常", page_icon="💖", layout="centered")
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 def safe_image(img_path, caption=None):
-    if img_path and os.path.exists(img_path):
-        st.image(img_path, caption=caption, use_column_width=True)
+    if img_path:
+        full_path = os.path.join(BASE_DIR, img_path) if not img_path.startswith("http") else img_path
+        if img_path.startswith("http"):
+            st.image(img_path, caption=caption, use_container_width=True)
+        elif os.path.exists(full_path):
+            st.image(full_path, caption=caption, use_container_width=True)
+        else:
+            st.warning(f"⚠️ 未找到图片：{img_path}，请检查文件名与路径。")
 
 def safe_audio(audio_path):
-    if audio_path and os.path.exists(audio_path):
-        try:
-            st.audio(audio_path, loop=True, autoplay=True)
-        except Exception:
-            pass
+    if audio_path:
+        full_path = os.path.join(BASE_DIR, audio_path) if not audio_path.startswith("http") else audio_path
+        if audio_path.startswith("http") or os.path.exists(full_path):
+            try:
+                st.audio(full_path, loop=True, autoplay=True)
+            except Exception:
+                pass
+
 
 # -----------------------------------------------------------------------------
 # 2. 成员与身份数据配置
