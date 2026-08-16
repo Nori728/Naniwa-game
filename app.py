@@ -11,16 +11,7 @@ st.markdown(
     """
     <style>
     .stApp {
-        background: linear-gradient(135deg, #ffdde1 0%, #ee9ca7 50%, #a1c4fd 100%);
-        background-attachment: fixed;
-        background-size: cover;
-    }
-    .stMainBlockContainer {
-        background-color: rgba(255, 255, 255, 0.85);
-        padding: 2rem;
-        border-radius: 15px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        margin-top: 1rem;
+        background-color: #f0f2f6;
     }
     </style>
     """,
@@ -49,45 +40,45 @@ def safe_audio(audio_path):
 # -----------------------------------------------------------------------------
 MEMBERS = {
     "丈君": {
-        "nick": "丈君", 
-        "trait": "搞笑又可靠的大哥哥", 
-        "img": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRRxeLPXR2kAxnf8Z0uNFWIH7j_vjPcrr8Eg1qWtaTSoPKTvTMcZtXXX6Kn&s=10", 
+        "nick": "丈君",
+        "trait": "搞笑又可靠的大哥哥",
+        "img": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRRxeLPXR2kAxnf8Z0uNFWIH7j_vjPcrr8Eg1qWtaTSoPKTvTMcZtXXX6Kn&s=10",
         "color": "💙 蓝色"
     },
     "大酱": {
-        "nick": "大酱", 
-        "trait": "热情太阳般的 C 位", 
-        "img": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEiQYHWo7za_O6O-FerVkj5mA2s49UBL3hj_Tfmu-npd2yfIz1OJSCHD8n&s=10", 
+        "nick": "大酱",
+        "trait": "热情太阳般的 C 位",
+        "img": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEiQYHWo7za_O6O-FerVkj5mA2s49UBL3hj_Tfmu-npd2yfIz1OJSCHD8n&s=10",
         "color": "🔴 红色"
     },
     "布丁": {
-        "nick": "布丁", 
-        "trait": "温柔体贴又吃得超香的队长", 
-        "img": "https://img-mdpr.freetls.fastly.net/article/H0CW/nm/H0CW_-CrOagXoRlSyQPOD6_zSqLjGNjyrfLRLWlqECw.jpg?width=750&disable=upscale&auto=webp&quality=80", 
+        "nick": "布丁",
+        "trait": "温柔体贴又吃得超香的队长",
+        "img": "https://img-mdpr.freetls.fastly.net/article/H0CW/nm/H0CW_-CrOagXoRlSyQPOD6_zSqLjGNjyrfLRLWlqECw.jpg?width=750&disable=upscale&auto=webp&quality=80",
         "color": "💚 绿色"
     },
     "高恭": {
-        "nick": "高恭", 
-        "trait": "自恋又亚撒西的八嘎帅哥", 
-        "img": "https://img-mdpr.freetls.fastly.net/article/d4sb/nm/d4sbe7H-P8R6sUQpAshcntVT8-h0ZPcuMe3icV8aOm4.jpg?width=750&disable=upscale&auto=webp&quality=80", 
+        "nick": "高恭",
+        "trait": "自恋又亚撒西的八嘎帅哥",
+        "img": "https://img-mdpr.freetls.fastly.net/article/d4sb/nm/d4sbe7H-P8R6sUQpAshcntVT8-h0ZPcuMe3icV8aOm4.jpg?width=750&disable=upscale&auto=webp&quality=80",
         "color": "💜 紫色"
     },
     "流星": {
-        "nick": "流星", 
-        "trait": "人人都爱的心机小恶魔，无人能敌", 
-        "img": "https://oggi.jp/wp-content/uploads/2023/03/DMA-DSC00151_2-2.jpg", 
+        "nick": "流星",
+        "trait": "眼睛会闪光的小恶魔",
+        "img": "https://oggi.jp/wp-content/uploads/2023/03/DMA-DSC00151_2-2.jpg",
         "color": "🧡 橙色"
     },
     "米七": {
-        "nick": "米七", 
-        "trait": "高挑帅气的长腿王子", 
-        "img": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSvYWZ1rSHkldisNtmwbvxSYNjR8FWjj4_wdyKxw84_h0SabJN81yYpsGXL&s=10", 
+        "nick": "米七",
+        "trait": "高挑帅气的长腿王子",
+        "img": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSvYWZ1rSHkldisNtmwbvxSYNjR8FWjj4_wdyKxw84_h0SabJN81yYpsGXL&s=10",
         "color": "💖 粉色"
     },
     "谦杜": {
-        "nick": "谦杜", 
-        "trait": "时尚又有主见的小恶魔末子", 
-        "img": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRs8ILDomyP9A6WZPtgig1e6IyPPmSpxS8HSYiRImU0uSqXicpvyNrHV8A&s=10", 
+        "nick": "谦杜",
+        "trait": "时尚又有主见的小恶魔末子",
+        "img": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRs8ILDomyP9A6WZPtgig1e6IyPPmSpxS8HSYiRImU0uSqXicpvyNrHV8A&s=10",
         "color": "💛 黄色"
     },
 }
@@ -95,7 +86,7 @@ MEMBERS = {
 ROLES = ["经纪人", "粉丝/地下恋", "青梅竹马", "在日留学生or打工人"]
 
 # -----------------------------------------------------------------------------
-# 3. 超完整数据库：7 人 × 4 身份 × 3 幕（你的个性选项 + 他的专属回应）
+# 3. 超完整数据库：7 人 × 4 身份 × 3 幕
 # -----------------------------------------------------------------------------
 GAME_DATABASE = {
     # -------------------------------------------------------------------------
@@ -165,7 +156,7 @@ GAME_DATABASE = {
                 "title": "🎬 第一幕：后台迎面的压力",
                 "desc": "开场前，队长大桥一边大口喝水一边满头大汗。",
                 "choices": [
-                    {"my_choice": "🅰️ 递上能量饮料和毛巾：『大桥队长！加油呀！完场后请你吃大餐！』", "dialogue": "『嘎哈笑声！吸了一口热茶：『太暖了！感觉元气全满！等会儿演出完我们去吃烧肉吧！』", "score": 20},
+                    {"my_choice": "🅰️ 递上能量饮料和毛巾：『大桥队长！加油呀！完场后请你吃大餐！』", "dialogue": "『嘎哈！吸了一口热茶：『太暖了！感觉元气全满！等会儿演出完我们去吃烧肉吧！』", "score": 20},
                     {"my_choice": "🅱️ 检查装备：『大桥，麦克风试音OK了吗？』", "dialogue": "『好嘞！麦克风准备完毕！队长大桥，准备出发——！』", "score": 10},
                     {"my_choice": "🆎 吐槽：『你慢点喝，等下上台肚子胀怎么办！』", "dialogue": "『哎呀对不起！我刚刚在想等下晚饭吃什么呢，这就来！』", "score": -10}
                 ]
@@ -176,7 +167,7 @@ GAME_DATABASE = {
                 "choices": [
                     {"my_choice": "🅰️ 瞬间拿过备用别针和外套帮你遮挡别好：『相信我，这个造型依旧超级可爱！』", "dialogue": "『哇！你好厉害！你简直是我的超级英雄！爱你哦～！』", "score": 20},
                     {"my_choice": "🅱️ 喊工作人员：『裁缝老师快拿别针来！』", "dialogue": "『老师快来！拉链跟我作对呢！谢谢你帮我叫人！』", "score": 10},
-                    {"my_choice": "🆎 无奈道：『你是不是最近布丁吃太多了！衣服都撑撑坏了！』", "dialogue": "『对不起嘛～可能是我最近布丁吃多了把衣服撑爆了……』", "score": -10}
+                    {"my_choice": "🆎 无奈道：『你是不是最近布丁吃太多了！衣服都撑坏了！』", "dialogue": "『对不起嘛～可能是我最近布丁吃多了把衣服撑爆了……』", "score": -10}
                 ]
             },
             3: {
@@ -212,7 +203,7 @@ GAME_DATABASE = {
                 "title": "🎬 第三幕：深夜保姆车",
                 "desc": "深夜车上，恭平打着哈欠，困得不行。",
                 "choices": [
-                    {"my_choice": "🅰️ 轻轻把外套盖在他身上：『帅哥也需要休养，睡吧。』", "dialogue": "『（别过头）才不是我想靠的……是你的肩膀正好贴过来的而已哦。』", "score": 20},
+                    {"my_choice": "🅰️ 轻轻把外套盖 me 在他身上：『帅哥也需要休养，睡吧。』", "dialogue": "『（别过头）才不是我想靠的……是你的肩膀正好贴过来的而已哦。』", "score": 20},
                     {"my_choice": "🅱️ 递上限量版润喉糖：『诺，吃一颗再睡。』", "dialogue": "『哦，放那吧。看在你这么照顾我的份上，给你打 99 分。』", "score": 10},
                     {"my_choice": "🆎 提醒：『别睡太沉，小心落枕影响明天形象！』", "dialogue": "『知道啦！帅哥也是需要睡眠来养颜的啊！』", "score": -10}
                 ]
@@ -363,7 +354,7 @@ GAME_DATABASE = {
                 "title": "🎬 第三幕：深夜公寓约会",
                 "desc": "深夜私人空间，大吾脱下外套，疲惫地靠在沙发上。",
                 "choices": [
-                    {"my_choice": "🅰️ 坐到他身边，将头靠在他怀里：『大吾，今晚只做我一个人的大吾。』", "dialogue": "『（深深吻你额头）舞台是属于大家的，但大吾……是专属于你的。』", "score": 20},
+                    {"my_choice": "🅰️ 坐到他身边，将头靠 me 在他怀里：『大吾，今晚只做我一个人的大吾。』", "dialogue": "『（深深吻你额头）舞台是属于大家的，但大吾……是专属于你的。』", "score": 20},
                     {"my_choice": "🅱️ 递上热牛奶：『喝点牛奶早点休息吧。』", "dialogue": "『有你的温牛奶和拥抱，这里才是我真正的港湾。』", "score": 10},
                     {"my_choice": "🆎 担忧问：『刚才楼下好像有黑车，没被跟踪吧？』", "dialogue": "『别担心防备狗仔了，我现在只想安安静静看着你。』", "score": -10}
                 ]
@@ -481,7 +472,7 @@ GAME_DATABASE = {
                 "choices": [
                     {"my_choice": "🅰️ 紧紧回抱住他：『骏佑，欢迎回家。』", "dialogue": "『（紧紧把你抱在怀里）今天真的好想你……让我这样抱一会儿，就一小会儿。』", "score": 20},
                     {"my_choice": "🅱️ 递上热牛奶：『喝点热的暖暖身子。』", "dialogue": "『谢谢你的温牛奶，只要有你在身边，这里就是最温暖的地方。』", "score": 10},
-                    {"my_choice": "🆎 紧张检查窗帘：『外面的记者好像越来越多了。』", "dialogue": "『别担心，我很小心的……不要因为这个疏远我好吗？』", "score": -10}
+                    {"my_choice": "🆎 紧张检查窗帘：『外面的记者好像越来越多了。』", "dialogue": "『别担心，我很小心的……不要因为这个疏远我好好吗？』", "score": -10}
                 ]
             }
         },
@@ -510,12 +501,11 @@ GAME_DATABASE = {
                 "choices": [
                     {"my_choice": "🅰️ 揉揉他的脸：『今晚你只是我的长尾谦杜。』", "dialogue": "『（把你圈在沙发角落）今晚不聊什么偶像不偶像的，我只是你的长尾谦杜！』", "score": 20},
                     {"my_choice": "🅱️ 递上饮料：『今天跳舞累了吧？』", "dialogue": "『哇！温牛奶太及时了！今晚我要看电影看个够！』", "score": 10},
-                    {"my_choice": "🆎 担忧问：『明天通告早，今晚要不早点走？』", "dialogue": "『 reporters？没人能打扰我们的二人世界！放心吧！』", "score": -10}
+                    {"my_choice": "🆎 担忧问：『明天通告早，今晚要不早点走？』", "dialogue": "『别扫兴嘛！没人能打扰我们的二人世界！放心吧！』", "score": -10}
                 ]
             }
         }
     },
-
     # -------------------------------------------------------------------------
     # 3. 青梅竹马线
     # -------------------------------------------------------------------------
@@ -556,7 +546,7 @@ GAME_DATABASE = {
                 "choices": [
                     {"my_choice": "🅰️ 递上便当帮他擦汗：『大吾，尝尝看是不是小时候的味道？』", "dialogue": "『（尝了一口便当）还是熟悉的味道！有你在后台，我好像又变回那个无忧无虑的小大吾了。』", "score": 20},
                     {"my_choice": "🅱️ 递过去：『妈妈让我带来的便当。』", "dialogue": "『谢谢阿姨！等忙完这阵我一定登门拜访！』", "score": 10},
-                    {"my_choice": "🆎 拿出相册：『大吾你看你小时候打泼牛奶的样子！』", "dialogue": "『哈哈，那些黑历史快收起来啦，我现在可是要注意形象的！』", "score": -10}
+                    {"my_choice": "🆎 拿出相册：『大吾你看你小时候打翻牛奶的样子！』", "dialogue": "『哈哈，那些黑历史快收起来啦，我现在可是要注意形象的！』", "score": -10}
                 ]
             },
             2: {
@@ -582,70 +572,454 @@ GAME_DATABASE = {
             1: {
                 "title": "🎬 第一幕：家常便当盒",
                 "desc": "你带着大盒便当找到大桥和也。",
-                 "choices": [
-                   {"my_choice": "🅰️ 打开大号便当: 『和也！肉和布丁都管够！快吃吧！』", "dialogue": "「嘎哈！是家里做的那种便当味吧？我可是加足了料！」" },
-                   {"my_choice": "🅱️ 打开小号便当", "dialogue": "「诶？你吃得完大号的吗？不过你喜欢就好啦！」", "score": 10 },
-                   {"my_choice": "🆎 拿走他的份", "dialogue": "「喂！那可是我的午饭啊！不过你想吃就拿去吧~」", "score": -10 }
-        ]
-    },
-
-
-            2: {
-                "title": "第二幕：童年回忆",
-                "desc": "公园的长椅上，他递给你一盒牛奶。",
                 "choices": [
-                    { "my_choice": "A 笑着接受", "dialogue": "「从小到大你都没变过，总是把最好的留给我。」", "score": 10 },
-                    { "my_choice": "B 调侃他", "dialogue": "「怎么还是童年款？不过我也挺怀念的就是了。」", "score": 5 },
-                    { "my_choice": "AB 拒绝", "dialogue": "「我现在不喝这个啦，你自己喝吧。」", "score": -10 }
-                ]
-            },
-            3: {
-                "title": "第三幕：夜风漫步",
-                "desc": "深夜走在小道上，夜风有些凉。",
-                "choices": [
-                    { "my_choice": "A 靠紧他", "dialogue": "「放心吧，有我在，绝对不会让你冷到的！」", "score": 15 },
-                    { "my_choice": "B 递热饮", "dialogue": "「你还是这么体贴，暖到心里去了呢。」", "score": 10 },
-                    { "my_choice": "AB 独自快走", "dialogue": "「走这么快干嘛？等等我啊！」", "score": -10 }
-                ]
-            }
-        }
-    }
-}
+                    {"my_choice": "🅰️ 打开大号便当：『和也！肉和布丁都管够！快吃吧！』", "dialogue": "『嘎哈！是家里做的那种便当味吧？我可是加足了料！』", "score": 20},
+                    {"my_choice": "🅱️ 打开小号便当", "dialogue": "『诶？你吃得完大号的吗？不过你喜欢就好啦！』", "score": 10},
+                    {"my_choice": "🆎 拿走他的份", "dialogue": "『喂！那可是我的午饭啊！不过你想吃就拿去吧~』", "score": -10}
                 ]
             },
             2: {
                 "title": "🎬 第二幕：童年回忆",
                 "desc": "公园的长椅上，他递给你一盒牛奶。",
                 "choices": [
-                    { "my_choice": "A 笑着接受", "dialogue": "「从小到大你都没变过，总是把最好的留给我。」", "score": 10 },
-                    { "my_choice": "B 调侃他", "dialogue": "「怎么还是童年款？不过我也挺怀念的就是了。」", "score": 5 },
-                    { "my_choice": "AB 拒绝", "dialogue": "「我现在不喝这个啦，你自己喝吧。」", "score": -10 }
+                    {"my_choice": "🅰️ 笑着接受：『从小到大你都没变过，总是把最好的留给我。』", "dialogue": "『从小到大你都没变过，总是把最好的留给我。』", "score": 20},
+                    {"my_choice": "🅱️ 调侃他", "dialogue": "『怎么还是童年款？不过我也挺怀念的就是了。』", "score": 10},
+                    {"my_choice": "🆎 拒绝", "dialogue": "『我现在不喝这个啦，你自己喝吧。』", "score": -10}
                 ]
             },
             3: {
                 "title": "🎬 第三幕：夜风漫步",
                 "desc": "深夜走在小道上，夜风有些凉。",
                 "choices": [
-                    { "my_choice": "A 靠紧他", "dialogue": "「放心吧，有我在，绝对不会让你冷到的！」", "score": 15 },
-                    { "my_choice": "B 递热饮", "dialogue": "「你还是这么体贴，暖到心里去了呢。」", "score": 10 },
-                    { "my_choice": "AB 独自快走", "dialogue": "「走这么快干嘛？等等我啊！」", "score": -10 }
+                    {"my_choice": "🅰️ 靠紧他：『有你在身边，感觉一直暖暖的。』", "dialogue": "『放心吧，有我在，绝对不会让你冷到的！』", "score": 20},
+                    {"my_choice": "🅱️ 递热饮", "dialogue": "『你还是这么体贴，暖到心里去了呢。』", "score": 10},
+                    {"my_choice": "🆎 独自快走", "dialogue": "『走这么快干嘛？等等我啊！』", "score": -10}
                 ]
             }
         },
-        "endings": {
-            "HE": {
-                "title": "🏆 专属结局：永恒的避风港 (好感度 ≥ 30)",
-                "desc": "他紧紧握住你的手：「无论是过去还是未来，我都会一直是你的避风港。」"
+        "高恭": {
+            1: {
+                "title": "🎬 第一幕：家常便当盒",
+                "desc": "你带了自制便当过来，高恭正在镜子前抓发型。",
+                "choices": [
+                    {"my_choice": "🅰️ 递上便当：『恭平！这是按你口味做的汉堡肉便当！』", "dialogue": "『哇！算你识相！看在汉堡肉的面子上，今天允许你陪帅哥我多聊会！』", "score": 20},
+                    {"my_choice": "🅱️ 放在桌上：『给你带的午饭，趁热吃。』", "dialogue": "『谢啦！不愧是从小一起长大的，够懂我！』", "score": 10},
+                    {"my_choice": "🆎 吐槽：『又在照镜子，便当都要凉了！』", "dialogue": "『帅哥的形象管理很重要的懂不懂！这就来吃啦！』", "score": -10}
+                ]
             },
-            "NE": {
-                "title": "🤝 专属结局：最默契的搭档 (好感度 0 ~ 29)",
-                "desc": "两个人笑着肩并肩走着：「能有你这样的朋友在身边，感觉真好。」"
+            2: {
+                "title": "🎬 第二幕：童年回忆",
+                "desc": "两人坐在公园长椅上，想起小时候抢保龄球游戏的趣事。",
+                "choices": [
+                    {"my_choice": "🅰️ 调侃他：『小时候打游戏输了还会哭鼻子的帅哥是谁呀？』", "dialogue": "『喂！那是意外！我现在打保龄球和游戏可都是 MVP 级别的好吗！』", "score": 20},
+                    {"my_choice": "🅱️ 递上饮料：『喝点水吧，打保龄球出汗了吧。』", "dialogue": "『谢啦！等下我打个全倒给你看！』", "score": 10},
+                    {"my_choice": "🆎 翻白眼：『从小到大就你最爱摆帅姿势。』", "dialogue": "『这叫天生丽质自难弃！哼！』", "score": -10}
+                ]
             },
-            "BE": {
-                "title": "💔 专属结局：渐行渐远的交界 (好感度 < 0)",
-                "desc": "他停下脚步，语气有些落寞：「也许……我们都长大了，不再是以前的我们了。」"
+            3: {
+                "title": "🎬 第三幕：晚风漫步",
+                "desc": "深夜回家的小路上，灯光把两人的影子拉得很长。",
+                "choices": [
+                    {"my_choice": "🅰️ 踩着他的影子笑：『恭平，以后也一直陪我走这条路吧。』", "dialogue": "『（一把拉住你的手）踩什么影子，直接牵着手走不好吗？傻瓜。』", "score": 20},
+                    {"my_choice": "🅱️ 递上热饮：『夜风挺凉的，拿着暖暖手。』", "dialogue": "『算你贴心！本帅哥今天就大发慈悲送你到家门口吧！』", "score": 10},
+                    {"my_choice": "🆎 提醒：『走快点，我要回家追剧了！』", "dialogue": "『追剧比我还重要吗？真是的！等等我！』", "score": -10}
+                ]
+            }
+        },
+        "流星": {
+            1: {
+                "title": "🎬 第一幕：家常便当盒",
+                "desc": "你带着精致的甜品便当找到流星。",
+                "choices": [
+                    {"my_choice": "🅰️ 打开便当：『流星！做了你最爱的草莓大福和甜点！』", "dialogue": "『哇——！好精致！太懂我了！来，第一口先喂给你吃！』", "score": 20},
+                    {"my_choice": "🅱️ 递给他：『顺路给你带的甜点。』", "dialogue": "『谢谢你～就知道你最疼我了！』", "score": 10},
+                    {"my_choice": "🆎 抢先拿走一个：『这个最甜的我要自己吃！』", "dialogue": "『啊！怎么这样！分我一半嘛小气鬼！』", "score": -10}
+                ]
+            },
+            2: {
+                "title": "🎬 第二幕：童年回忆",
+                "desc": "两人拿出手机翻看小时候的自拍合照。",
+                "choices": [
+                    {"my_choice": "🅰️ 靠凑过去看：『流星从小眼睛就闪闪发光的，超级可爱。』", "dialogue": "『（凑近你耳边）那是因为我的眼睛里一直都映着你的影子呀～』", "score": 20},
+                    {"my_choice": "🅱️ 拍照：『来！用现在的滤镜再拍一张合照！』", "dialogue": "『咔嚓！这张一定要发给我当手机壁纸！』", "score": 10},
+                    {"my_choice": "🆎 指着旧照笑：『你看你小时候门牙缺了一颗！』", "dialogue": "『黑历史不准看啦！快删掉快删掉！』", "score": -10}
+                ]
+            },
+            3: {
+                "title": "🎬 第三幕：晚风漫步",
+                "desc": "晚风轻拂，街角的小花店飘来一阵花香。",
+                "choices": [
+                    {"my_choice": "🅰️ 牵起他的手指：『流星，比花更吸引我的是你。』", "dialogue": "『（反手紧紧扣住你的手）哼，算你有眼光！今晚不准放开我的手哦！』", "score": 20},
+                    {"my_choice": "🅱️ 指着花店：『那朵花好漂亮呀！』", "dialogue": "『买给你！就当作是我们青梅竹马的专属礼物！』", "score": 10},
+                    {"my_choice": "🆎 打哈欠：『好困啊，我想快点回去睡觉。』", "dialogue": "『真是的，和你在一起的浪漫氛围都被你打消啦！』", "score": -10}
+                ]
+            }
+        },
+        "米七": {
+            1: {
+                "title": "🎬 第一幕：家常便当盒",
+                "desc": "你拎着保温便当盒去排练室看米七。",
+                "choices": [
+                    {"my_choice": "🅰️ 打开便当盒：『骏佑！这是阿姨和我都准备了的家常菜哦！』", "dialogue": "『（惊喜地笑开）太好了！练习了一整天，最想念的就是这个味道了！』", "score": 20},
+                    {"my_choice": "🅱️ 递过去：『饿了吧，快吃点东西。』", "dialogue": "『谢谢你每次都特意来看我，真的非常开心！』", "score": 10},
+                    {"my_choice": "🆎 调侃他：『长这么高是不是因为小时候便当吃得多？』", "dialogue": "『（害羞红脸）哪有……不过我会全部吃光的！』", "score": -10}
+                ]
+            },
+            2: {
+                "title": "🎬 第二幕：童年回忆",
+                "desc": "坐在休息室长椅上，聊起小时候一起看过的第一场电影。",
+                "choices": [
+                    {"my_choice": "🅰️ 轻轻靠在他手臂上：『那时候你就说要成为大明星，现在你做到了呢。』", "dialogue": "『（身体一僵，随后温柔地放下手臂）但对我来说，最珍贵的依然是陪在我身边的你。』", "score": 20},
+                    {"my_choice": "🅱️ 递上饮料：『喝点水润润嗓子吧。』", "dialogue": "『嗯！谢谢你，小时候你也总是这样照顾我。』", "score": 10},
+                    {"my_choice": "🆎 吐槽：『那时候你看到一半还吓哭了呢！』", "dialogue": "『（不好意思地低头）那时候我还小嘛……现在我能保护你了！』", "score": -10}
+                ]
+            },
+            3: {
+                "title": "🎬 第三幕：晚风漫步",
+                "desc": "月光洒在安静的街道上，高大的米七替你挡住了迎面吹来的冷风。",
+                "choices": [
+                    {"my_choice": "🅰️ 抓紧他的衣角：『骏佑，有你在身边，我什么都不怕。』", "dialogue": "『（停下脚步，认真地牵起你的手）以后换我来为你挡风遮雨，好吗？』", "score": 20},
+                    {"my_choice": "🅱️ 笑着看他：『今天月色很美呢。』", "dialogue": "『嗯！因为是和你一起看的，所以格外美丽。』", "score": 10},
+                    {"my_choice": "🆎 抱怨：『风好大，我们走快点吧。』", "dialogue": "『啊！抱歉，我的大衣借你披上，别冻着了。』", "score": -10}
+                ]
+            }
+        },
+        "谦杜": {
+            1: {
+                "title": "🎬 第一幕：家常便当盒",
+                "desc": "你带了造型可爱的彩虹便当给谦杜。",
+                "choices": [
+                    {"my_choice": "🅰️ 展示便当：『谦杜！这是特意为你设计的潮流彩虹便当！』", "dialogue": "『哇酷！不仅摆盘超级潮，味道也绝了！不愧是我的最佳搭档！』", "score": 20},
+                    {"my_choice": "🅱️ 递过去：『快吃吧，补充体力。』", "dialogue": "『太棒啦！开饭开饭！谢谢你的便当！』", "score": 10},
+                    {"my_choice": "🆎 抢走小热狗：『这个章鱼小热狗归我了！』", "dialogue": "『喂！那是我的最爱！快还给我～！』", "score": -10}
+                ]
+            },
+            2: {
+                "title": "🎬 第二幕：童年回忆",
+                "desc": "谦杜翻出小时候你们一起玩的滑板，兴致勃勃。",
+                "choices": [
+                    {"my_choice": "🅰️ 赞赏地看着他：『谦杜技术越来越厉害了，帅气值满分！』", "dialogue": "『嘿嘿！那当然！这招我可是练了很久，只展示给你一个人看哦！』", "score": 20},
+                    {"my_choice": "🅱️ 提醒他：『小心一点，别摔着了。』", "dialogue": "『放心放心！我的平衡感可是一流的！』", "score": 10},
+                    {"my_choice": "🆎 吐槽：『怎么还是和小时候一样爱耍帅。』", "dialogue": "『这不叫耍帅，这叫青梅竹马专属的时尚魅力！』", "score": -10}
+                ]
+            },
+            3: {
+                "title": "🎬 第三幕：晚风漫步",
+                "desc": "游乐园外的街道上，远处摩天轮闪烁着霓虹。",
+                "choices": [
+                    {"my_choice": "🅰️ 拿出拍立得：『谦杜，记录下这一刻吧！属于我们的瞬间。』", "dialogue": "『（凑近贴着你的脸）咔嚓！这张照片我要一直放在我钱包里！』", "score": 20},
+                    {"my_choice": "🅱️ 指着远处：『夜景真漂亮！』", "dialogue": "『下次我们再一起来玩吧！约定好了哦！』", "score": 10},
+                    {"my_choice": "🆎 催促：『太晚了，改天再玩吧。』", "dialogue": "『好吧……那明天你还要来陪我哦！』", "score": -10}
+                ]
+            }
+        }
+    },
+
+    # -------------------------------------------------------------------------
+    # 4. 在日留学生or打工人线
+    # -------------------------------------------------------------------------
+    "在日留学生or打工人": {
+        "丈君": {
+            1: {
+                "title": "🎬 第一幕：便利店的深夜偶遇",
+                "desc": "你在便利店打工值夜班，戴着帽子口罩的丈君走进来买热饭团。",
+                "choices": [
+                    {"my_choice": "🅰️ 递上热饭团，用熟练的日文笑着说：『辛苦了！深夜工作也要加油哦！』", "dialogue": "『（惊喜）哇，谢谢！异国他乡打工辛苦啦！听到你的鼓励感觉元气满满！』", "score": 20},
+                    {"my_choice": "🅱️ 结账：『一共是 350 日元，请慢用。』", "dialogue": "『谢谢！服务态度真好，下次我还会常来的！』", "score": 10},
+                    {"my_choice": "🆎 认出他并尖叫：『呀！你是浪花男子的丈一郎！』", "dialogue": "『嘘——！小声点小声点！别被外面路人听到啦！』", "score": -10}
+                ]
+            },
+            2: {
+                "title": "🎬 第二幕：语言学校外的雨天",
+                "desc": "放学时突降大雨，你没带伞躲在檐下，丈君撑着伞路过。",
+                "choices": [
+                    {"my_choice": "🅰️ 惊喜招呼：『丈君！好巧！』", "dialogue": "『没带伞吧？来，我的伞够大，一起走吧！顺便教我两句中文交流交流！』", "score": 20},
+                    {"my_choice": "🅱️ 借伞：『请问能借用一下雨伞吗？』", "dialogue": "『这把伞给你吧！我跑过去没事的，别感冒了！』", "score": 10},
+                    {"my_choice": "🆎 默默等雨停不敢打扰。", "dialogue": "『诶？你站在那里干嘛，快进来一起遮雨啊！』", "score": -10}
+                ]
+            },
+            3: {
+                "title": "🎬 第三幕：居酒屋的跨文化交流",
+                "desc": "打工结束后在居酒屋小憩，丈君刚好坐在你隔壁桌。",
+                "choices": [
+                    {"my_choice": "🅰️ 推荐家乡特色小吃：『这个配啤酒超级赞，要试试吗？』", "dialogue": "『（尝了一口眼睛放光）好吃！不仅美食棒，能认识你这个朋友真好！以后多教教我吧！』", "score": 20},
+                    {"my_choice": "🅱️ 聊起棒球：『最近欧力士队的比赛很精彩呢！』", "dialogue": "『哇！你也看棒球吗？太棒了！我们太有共同话题了！』", "score": 10},
+                    {"my_choice": "🆎 埋头吃东西不说话。", "dialogue": "『今天打工累了吧？多吃点补充体力哦！』", "score": -10}
+                ]
+            }
+        },
+        "大酱": {
+            1: {
+                "title": "🎬 第一幕：便利店的深夜偶遇",
+                "desc": "打工深夜，大吾走进便利店挑选草莓牛奶。",
+                "choices": [
+                    {"my_choice": "🅰️ 推荐新品：『这款新出的草莓甜品也很受欢迎哦！』", "dialogue": "『（笑颜如花）真的吗？那我买一份！在异国打工很不容易吧，要照顾好自己哦！』", "score": 20},
+                    {"my_choice": "🅱️ 礼貌结账：『欢迎下次光临！』", "dialogue": "『谢谢！你的微笑让人感觉好温暖。』", "score": 10},
+                    {"my_choice": "🆎 盯着看：『你长得好像大明星西畑大吾啊……』", "dialogue": "『哈哈，很多人都这么说呢，我是他的粉丝！嘘！』", "score": -10}
+                ]
+            },
+            2: {
+                "title": "🎬 第二幕：语言学校外的雨天",
+                "desc": "雨天你站在校门口发愁，大吾拿着两把伞走过来。",
+                "choices": [
+                    {"my_choice": "🅰️ 接过伞并感谢：『大吾桑！真的太感谢你了！』", "dialogue": "『不用客气！互相帮助是应该的，正好我也要去附近，一起走一段吧？』", "score": 20},
+                    {"my_choice": "🅱️ 道谢：『谢谢你的伞，明天还给你。』", "dialogue": "『不急不急，能帮到你就好！』", "score": 10},
+                    {"my_choice": "🆎 拒绝：『太麻烦你了，我自己跑回去就行。』", "dialogue": "『那怎么行！淋雨会感冒的，快收下吧！』", "score": -10}
+                ]
+            },
+            3: {
+                "title": "🎬 第三幕：居酒屋的跨文化交流",
+                "desc": "在居酒屋里，大吾向你请教中文里的甜言蜜语。",
+                "choices": [
+                    {"my_choice": "🅰️ 认真教他：『“辛苦了，你今天也很棒”用中文是这样说的……』", "dialogue": "『（用中文认真 repeat）“辛苦了，你今天也很棒”……这句话我想第一个对你说！』", "score": 20},
+                    {"my_choice": "🅱️ 聊起日本文化：『日本的居酒屋文化真的很温馨呢。』", "dialogue": "『能让你喜欢日本的文化，我也感到很高兴呢！』", "score": 10},
+                    {"my_choice": "🆎 害羞低头：『中文太难了，一时不知道教哪个。』", "dialogue": "『没关系没关系，我们慢慢学，以后有的是时间！』", "score": -10}
+                ]
+            }
+        },
+        "布丁": {
+            1: {
+                "title": "🎬 第一幕：便利店的深夜偶遇",
+                "desc": "大桥走进便利店，一口气抱了一堆布丁和肉包。",
+                "choices": [
+                    {"my_choice": "🅰️ 笑着结账：『买这么多甜食，今天工作一定很辛苦吧！加油！』", "dialogue": "『嘎哈！被你发现了！吃甜食最治愈了！异国打工也要加油吃饱饱哦！』", "score": 20},
+                    {"my_choice": "🅱️ 提醒：『加热包子需要稍等一分钟哦。』", "dialogue": "『好嘞！谢谢你！香喷喷的包子我来啦！』", "score": 10},
+                    {"my_choice": "🆎 惊讶：『买这么多吃的完吗？』", "dialogue": "『放心啦！我的胃可是大胃王级别的！全都能吃光！』", "score": -10}
+                ]
+            },
+            2: {
+                "title": "🎬 第二幕：语言学校外的雨天",
+                "desc": "雨天大桥路过，看到你没伞，大笑着跑过来。",
+                "choices": [
+                    {"my_choice": "🅰️ 跑进他的大伞下：『大桥桑！救命稻草来了！』", "dialogue": "『哈哈！快进来快进来！走，我带你去吃热腾腾的拉面暖暖身子！』", "score": 20},
+                    {"my_choice": "🅱️ 感谢：『能顺路带我到车站吗？』", "dialogue": "『没问题！包在我身上！出发！』", "score": 10},
+                    {"my_choice": "🆎 害怕挤到他而保持距离。", "dialogue": "『靠近一点嘛！伞很大不会挤到的！』", "score": -10}
+                ]
+            },
+            3: {
+                "title": "🎬 第三幕：居酒屋的跨文化交流",
+                "desc": "大桥在居酒屋和你分享中华料理和日本美食的差异。",
+                "choices": [
+                    {"my_choice": "🅰️ 邀请他：『下次我做地道的中国菜请你吃吧！』", "dialogue": "『哇——！真的吗！太期待了！一言为定哦！不许反悔！』", "score": 20},
+                    {"my_choice": "🅱️ 聊美食：『日本的章鱼烧真的很美味！』", "dialogue": "『对吧对吧！有机会我亲自做给吃！』", "score": 10},
+                    {"my_choice": "🆎 吃得太急呛到了。", "dialogue": "『慢点吃慢点吃！喝口水！没人跟你抢啦！』", "score": -10}
+                ]
+            }
+        },
+        "高恭": {
+            1: {
+                "title": "🎬 第一幕：便利店的深夜偶遇",
+                "desc": "高恭戴着墨镜在深夜便利店买发胶和能量饮料。",
+                "choices": [
+                    {"my_choice": "🅰️ 打趣结账：『深夜还在做造型，不愧是超级帅哥呢！』", "dialogue": "『（挑眉）算你有眼光！异国来的打工妹/弟，眼光很不错嘛！小费……啊不，给你的赞！』", "score": 20},
+                    {"my_choice": "🅱️ 装袋：『一共是 1200 日元。』", "dialogue": "『谢啦，装得挺整齐的嘛。』", "score": 10},
+                    {"my_choice": "🆎 吐槽：『大半夜戴墨镜看得清路吗？』", "dialogue": "『切，这叫时尚懂不懂！帅哥的眼光你不懂！』", "score": -10}
+                ]
+            },
+            2: {
+                "title": "🎬 第二幕：语言学校外的雨天",
+                "desc": "大雨滂沱，高恭撑着一把超酷的黑伞经过。",
+                "choices": [
+                    {"my_choice": "🅰️ 夸赞雨伞：『高恭桑的雨伞真酷！和你的造型很配！』", "dialogue": "『（得意）那是！看在你识货的份上，本帅哥顺路送你一程吧！』", "score": 20},
+                    {"my_choice": "🅱️ 打招呼：『高恭桑，下午好。』", "dialogue": "『哟！没带伞吗？一起走吧。』", "score": 10},
+                    {"my_choice": "🆎 默默退到后方。", "dialogue": "『喂！躲那么远干嘛，本帅哥又不会吃人！』", "score": -10}
+                ]
+            },
+            3: {
+                "title": "🎬 第三幕：居酒屋的跨文化交流",
+                "desc": "居酒屋里，高恭向你展示他的保龄球绝技视频。",
+                "choices": [
+                    {"my_choice": "🅰️ 大声夸赞：『哇！全倒！这个姿势太帅了！』", "dialogue": "『哈哈哈哈！被我的魅力征服了吧！下次带你一起去球馆教你打！』", "score": 20},
+                    {"my_choice": "🅱️ 递上毛巾：『打球辛苦啦，喝杯饮料。』", "dialogue": "『谢啦！算你懂事！』", "score": 10},
+                    {"my_choice": "🆎 指出缺点：『感觉这一球有点运气成分哦。』", "dialogue": "『什么运气！这叫实力！绝对的实力！』", "score": -10}
+                ]
+            }
+        },
+        "流星": {
+            1: {
+                "title": "🎬 第一幕：便利店的深夜偶遇",
+                "desc": "流星在便利店挑选美妆杂志和网红零食。",
+                "choices": [
+                    {"my_choice": "🅰️ 推荐新品：『这款零食在海外也很火哦！值得一试！』", "dialogue": "『哇！真的吗？海外留学生推荐的肯定没错！谢谢你酱～』", "score": 20},
+                    {"my_choice": "🅱️ 结账：『请问需要积分卡吗？』", "dialogue": "『不用啦，谢谢！祝你今晚打工顺利哦！』", "score": 10},
+                    {"my_choice": "🆎 疑惑：『男生也这么喜欢看美妆杂志吗？』", "dialogue": "『追求美丽是不分性别的啦！略略略～』", "score": -10}
+                ]
+            },
+            2: {
+                "title": "🎬 第二幕：语言学校外的雨天",
+                "desc": "雨天校门口，流星拿着一把粉色的可爱雨伞。",
+                "choices": [
+                    {"my_choice": "🅰️ 赞美雨伞：『流星桑的伞好可爱！太适合你了！』", "dialogue": "『嘻嘻，我也觉得超级可爱！来，伞分你一半，别把衣服弄湿了哦！』", "score": 20},
+                    {"my_choice": "🅱️ 道谢：『谢谢你陪我等雨停。』", "dialogue": "『不客气～两个人等雨就没有那么无聊啦！』", "score": 10},
+                    {"my_choice": "🆎 觉得尴尬不说话。", "dialogue": "『怎么不说话呀？流星大人有那么可怕吗？』", "score": -10}
+                ]
+            },
+            3: {
+                "title": "🎬 第三幕：居酒屋的跨文化交流",
+                "desc": "居酒屋里，流星拉着你用手机修图软件玩自拍。",
+                "choices": [
+                    {"my_choice": "🅰️ 配合做可爱表情：『这个猫咪滤镜太萌了！』", "dialogue": "『完美！这张合照太萌了！我要发在我的私密朋友圈里！』", "score": 20},
+                    {"my_choice": "🅱️ 赞美他的修图技术：『流星桑修图真专业！』", "dialogue": "『那是！流星大人可是拍照大师！』", "score": 10},
+                    {"my_choice": "🆎 拒绝拍照：『我不擅长拍照，算了吧。』", "dialogue": "『试一下嘛！在我镜头里大家都是最可爱的！』", "score": -10}
+                ]
+            }
+        },
+        "米七": {
+            1: {
+                "title": "🎬 第一幕：便利店的深夜偶遇",
+                "desc": "高大的米七弯着腰在便利店低头挑选温热罐装咖啡。",
+                "choices": [
+                    {"my_choice": "🅰️ 递上温热咖啡并鼓励：『深夜还在忙工作辛苦了！中文里的“加油”送给你！』", "dialogue": "『（害羞地微笑，用不太熟练的中文答）“加……加油”？谢谢你！你在异国打工也辛苦了！』", "score": 20},
+                    {"my_choice": "🅱️ 结账：『请拿好您的咖啡，小心烫。』", "dialogue": "『谢谢，非常感谢你的贴心提醒。』", "score": 10},
+                    {"my_choice": "🆎 惊讶于他的身高：『哇，你真的好高啊！』", "dialogue": "『（不好意思地挠挠头）啊……总是因为身高给人添麻烦呢。』", "score": -10}
+                ]
+            },
+            2: {
+                "title": "🎬 第二幕：语言学校外的雨天",
+                "desc": "雨天校门口，米七默默把伞往你这边倾斜，自己的肩膀却湿了一大片。",
+                "choices": [
+                    {"my_choice": "🅰️ 连忙将伞推过去：『米七桑，你的肩膀都湿了！靠近一点吧！』", "dialogue": "『（耳朵通红地靠近）没……没关系的！只要你没被淋湿就好！』", "score": 20},
+                    {"my_choice": "🅱️ 道谢：『真的很谢谢你送我到车站。』", "dialogue": "『能帮上忙我就很高兴了，别客气！』", "score": 10},
+                    {"my_choice": "🆎 没注意到他湿透的肩膀。", "dialogue": "『（微笑着）快走吧，前面的路水坑比较多。』", "score": -10}
+                ]
+            },
+            3: {
+                "title": "🎬 第三幕：居酒屋的跨文化交流",
+                "desc": "居酒屋里，米七好奇地问起你的家乡风景和节日习俗。",
+                "choices": [
+                    {"my_choice": "🅰️ 热赏照片：『我们那里的风景非常美，有机会一定要去看看！』", "dialogue": "『（眼神闪烁着光芒）真美啊……如果有机会，你可以带我一起去参观吗？』", "score": 20},
+                    {"my_choice": "🅱️ 介绍美食：『我们那里的特色美食也非常多哦！』", "dialogue": "『听起来就很好吃呢！以后请多教教我异国文化吧！』", "score": 10},
+                    {"my_choice": "🆎 简短回答：『就和普通城市差不多啦。』", "dialogue": "『是这样啊……不过能听你聊起家乡也很开心呢。』", "score": -10}
+                ]
+            }
+        },
+        "谦杜": {
+            1: {
+                "title": "🎬 第一幕：便利店的深夜偶遇",
+                "desc": "谦杜穿着一身潮牌走进便利店挑选潮流时尚杂志。",
+                "choices": [
+                    {"my_choice": "🅰️ 赞赏他的穿搭：『你的服装搭配超级潮！非常好看！』", "dialogue": "『（眼睛一亮）真的吗！异国的朋友眼光也很赞嘛！这套可是我自己搭配的哦！』", "score": 20},
+                    {"my_choice": "🅱️ 装袋：『杂志帮您装好了，请慢用。』", "dialogue": "『多谢！今晚打工也请继续加油！』", "score": 10},
+                    {"my_choice": "🆎 吐槽：『大半夜穿得这么招摇啊。』", "dialogue": "『这叫时尚无界限！时刻保持潮人状态！』", "score": -10}
+                ]
+            },
+            2: {
+                "title": "🎬 第二幕：语言学校外的雨天",
+                "desc": "雨天，谦杜踩着滑板撑着伞停在你面前。",
+                "choices": [
+                    {"my_choice": "🅰️ 惊叹：『下雨天滑滑板太酷了吧！』", "dialogue": "『嘿嘿，酷吧！来，伞分你，我们一起走！』", "score": 20},
+                    {"my_choice": "🅱️ 提醒：『地面滑，滑滑板要小心哦。』", "dialogue": "『知道啦！谢谢你的关心！』", "score": 10},
+                    {"my_choice": "🆎 劝阻：『雨天玩滑板太危险了，快收起来。』", "dialogue": "『好吧好吧，听你的不滑了，我们走路吧！』", "score": -10}
+                ]
+            },
+            3: {
+                "title": "🎬 第三幕：居酒屋的跨文化交流",
+                "desc": "居酒屋里，谦杜拿出一本设计图册和你分享他的服装设计理念。",
+                "choices": [
+                    {"my_choice": "🅰️ 给出跨文化建议：『如果在设计里加入一些东方元素会更有韵味哦！』", "dialogue": "『（拍手叫好）这个创意太绝了！不愧是留学生，思维就是开阔！我们加个联系方式吧！』", "score": 20},
+                    {"my_choice": "🅱️ 鼓励：『你的设计非常有灵气，一定会大受欢迎的！』", "dialogue": "『借你吉言！等我品牌发售了送你一套！』", "score": 10},
+                    {"my_choice": "🆎 看不懂：『我对服装设计不是很懂呢。』", "dialogue": "『没关系没关系！只要觉得好看就行！』", "score": -10}
+                ]
             }
         }
     }
 }
 
+# 结局字典
+ENDINGS = {
+    "HE": {
+        "title": "🏆 专属结局：心动奇迹 (好感度 ≥ 50)",
+        "desc": "他紧紧握住你的手，眼中满是温柔与坚定：「无论是舞台上还是生活中，你都是我最珍视的唯一。从今往后的每一个四季，我都想和你一起度过。」"
+    },
+    "NE": {
+        "title": "🤝 专属结局：默契伙伴 (好感度 20 ~ 49)",
+        "desc": "他笑着与你肩并肩走着：「能有你这样的朋友在身边，感觉真的很安心呢！以后也要一直保持联系哦！」"
+    },
+    "BE": {
+        "title": "💔 专属结局：擦肩而过 (好感度 < 20)",
+        "desc": "他停下脚步，眼神中闪过一丝落寞：「也许……我们都有各自的路要走吧。保重了。」"
+    }
+}
+# -----------------------------------------------------------------------------
+# 4. Streamlit 游戏主逻辑
+# -----------------------------------------------------------------------------
+st.title("💖 浪花男子心动日常")
+
+# 侧边栏选择身份与攻略角色
+st.sidebar.header("🎮 游戏设置")
+selected_role = st.sidebar.selectbox("请选择你的身份：", ROLES)
+selected_member = st.sidebar.selectbox("请选择你想攻略的成员：", list(MEMBERS.keys()))
+
+member_info = MEMBERS[selected_member]
+
+# 侧边栏展示角色基本资料
+st.sidebar.markdown("---")
+st.sidebar.subheader(f"攻略对象：{member_info['nick']}")
+st.sidebar.write(f"**人设标签：** {member_info['trait']}")
+st.sidebar.write(f"**代表颜色：** {member_info['color']}")
+safe_image(member_info["img"], caption=member_info["nick"])
+
+# 初始化 session_state 状态
+if "score" not in st.session_state:
+    st.session_state.score = 0
+if "act" not in st.session_state:
+    st.session_state.act = 1
+if "last_role" not in st.session_state:
+    st.session_state.last_role = selected_role
+if "last_member" not in st.session_state:
+    st.session_state.last_member = selected_member
+
+# 若玩家更换了身份或角色，重置游戏进度
+if st.session_state.last_role != selected_role or st.session_state.last_member != selected_member:
+    st.session_state.score = 0
+    st.session_state.act = 1
+    st.session_state.last_role = selected_role
+    st.session_state.last_member = selected_member
+    st.rerun()
+
+# 获取当前身份和角色的剧情线
+current_storyline = GAME_DATABASE.get(selected_role, {}).get(selected_member, {})
+
+# 游戏进程控制（1 ~ 3 幕）
+if st.session_state.act <= 3:
+    act_data = current_storyline.get(st.session_state.act, None)
+    
+    if act_data:
+        st.header(act_data["title"])
+        st.write(act_data["desc"])
+        st.markdown("---")
+        
+        st.subheader("💡 请做出你的选择：")
+        choices = act_data["choices"]
+        
+        for idx, choice in enumerate(choices):
+            btn_key = f"btn_{selected_role}_{selected_member}_{st.session_state.act}_{idx}"
+            if st.button(choice["my_choice"], key=btn_key):
+                st.session_state.score += choice.get("score", 0)
+                st.success(f"**{selected_member}：** {choice['dialogue']}")
+                st.session_state.act += 1
+                st.rerun()
+    else:
+        st.error("暂无该剧本剧情，请检查游戏数据库！")
+
+# 剧情结束：展示结局
+else:
+    st.header("🎬 最终结局展示")
+    total_score = st.session_state.score
+    
+    if total_score >= 50:
+        res = ENDINGS["HE"]
+    elif total_score >= 20:
+        res = ENDINGS["NE"]
+    else:
+        res = ENDINGS["BE"]
+        
+    st.subheader(res["title"])
+    st.write(res["desc"])
+    st.info(f"你的最终好感度得分：{total_score}")
+    
+    st.markdown("---")
+    if st.button("🔄 重新开始游戏", key="restart_btn"):
+        st.session_state.score = 0
+        st.session_state.act = 1
+        st.rerun()
