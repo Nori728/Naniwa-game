@@ -46,7 +46,7 @@ st.markdown(
 )
 
 # -----------------------------------------------------------------------------
-# 2. 基础数据源 (7人全员数据，已更新大酱图片)
+# 2. 基础数据源 (7人全员数据)
 # -----------------------------------------------------------------------------
 MEMBERS = {
     "丈君": {"trait": "搞笑又可靠的大哥哥", "color": "蓝色", "img": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRRxeLPXR2kAxnf8Z0uNFWIH7j_vjPcrr8Eg1qWtaTSoPKTvTMcZtXXX6Kn&s=10"},
@@ -115,7 +115,9 @@ if "total_score" not in st.session_state:
 if "dialogue_history" not in st.session_state:
     st.session_state.dialogue_history = []
 if "inventory" not in st.session_state:
-    st.session_state.inventory = []  
+    st.session_state.inventory = []  # 存储道具名称列表
+if "active_buff" not in st.session_state:
+    st.session_state.active_buff = None  # 当前生效的道具效果
 if "daily_gacha_result" not in st.session_state:
     st.session_state.daily_gacha_result = None
 
@@ -123,14 +125,14 @@ if "daily_gacha_result" not in st.session_state:
 # 5. 页面核心渲染
 # -----------------------------------------------------------------------------
 st.markdown('<p class="main-header">💖 浪花男子心动日常</p>', unsafe_allow_html=True)
-st.markdown(f'<p class="sub-header">✨ 每日运势抽卡 ＋ 道具增益 ＋ 沉浸互动剧情 (共 {MAX_ACT} 幕)</p>', unsafe_allow_html=True)
+st.markdown(f'<p class="sub-header">✨ 每日运势抽卡 ＋ 自主道具背包 ＋ 沉浸互动剧情 (共 {MAX_ACT} 幕)</p>', unsafe_allow_html=True)
 
-# 抽卡区域
+# 抽卡与扭蛋区域
 st.markdown(
     """
     <div class="gacha-box">
         <h3 style="margin-top:0; color:#b45309; font-size: 1.2rem;">🎲 每日运势与道具扭蛋机</h3>
-        <p style="font-size: 0.9rem; color: #78350f; margin-bottom: 10px;">测测今天的心动成员，抽取专属恋爱道具为你增加剧情好感buff！</p>
+        <p style="font-size: 0.9rem; color: #78350f; margin-bottom: 10px;">测测今天的心动成员，消耗10积分抽取恋爱道具，并在背包中手动点击使用！</p>
     </div>
     """,
     unsafe_allow_html=True
@@ -154,7 +156,7 @@ with col_g2:
             ]
             item_name, item_desc = random.choice(items_pool)
             st.session_state.inventory.append(item_name)
-            st.success(f"抽中道具：{item_name}！({item_desc})")
+            st.success(f"成功获得：{item_name}！(已存入下方背包)")
         else:
             st.warning("心动积分不足 10 分，快去下方剧情里累积吧！")
 
@@ -170,10 +172,29 @@ if st.session_state.daily_gacha_result:
         unsafe_allow_html=True
     )
 
+# -----------------------------------------------------------------------------
+# 🎒 可交互的自主道具背包区域
+# -----------------------------------------------------------------------------
 if st.session_state.inventory:
-    st.markdown(f"**🎒 我的道具背包：** " + " | ".join([f"`{i}`" for i in st.session_state.inventory]))
-
-st.markdown("---")
+    st.markdown("### 🎒 我的道具背包（点击按钮手动使用）")
+    
+    # 显示当前生效中的 Buff
+    if st.session_state.active_buff:
+        st.info(f"✨ **当前生效中的道具Buff**：`{st.session_state.active_buff}` —— 将在你的下一次选择中触发！")
+    
+    # 遍历背包里的每一个道具，为每个道具生成一个“使用”按钮
+    for i, item in enumerate(list(st.session_state.inventory)):
+        col_item1, col_item2 = st.columns([3, 1])
+        with col_item1:
+            st.markdown(f"**{item}**")
+        with col_item2:
+            if st.button(f"✨ 使用", key=f"use_item_{i}_{item}"):
+                # 把该道具设为当前生效的Buff，并从背包中移除
+                st.session_state.active_buff = item
+                st.session_state.inventory.remove(item)
+                st.success(f"已成功使用【{item}】！请在下方剧情中做出回应吧。")
+                st.rerun()
+    st.markdown("---")
 
 # -----------------------------------------------------------------------------
 # 菜单阶段：选择身份与攻略对象
@@ -215,7 +236,7 @@ elif st.session_state.stage == "story":
     scene_data = STORIES.get(act, STORIES[1])
     
     st.markdown(f"### 💖 【{role}】 × **{member}** (第 {act}/{MAX_ACT} 幕)")
-    st.info(f"💡 当前心动指数：**{st.session_state.total_score} 分**")
+    st.info(f"💡 当前心动指数（积分）：**{st.session_state.total_score} 分**")
     
     st.markdown(
         f"""
@@ -238,9 +259,15 @@ elif st.session_state.stage == "story":
     st.markdown("👉 **请做出你的回应选择：**")
     for idx, (c_text, r_text, score_val) in enumerate(scene_data["choices"]):
         if st.button(c_text, key=f"choice_btn_{act}_{idx}", use_container_width=True):
-            if "🍬 恋爱加倍糖果" in st.session_state.inventory:
+            # 检查玩家是否手动使用了“恋爱加倍糖果”
+            if st.session_state.active_buff == "🍬 恋爱加倍糖果":
                 score_val *= 2
-                st.toast("🍬 触发加倍糖果效果，好感度翻倍！", icon="✨")
+                st.toast("🍬 成功触发加倍糖果！本次好感度积分翻倍！", icon="✨")
+                st.session_state.active_buff = None  # 消耗掉Buff
+            elif st.session_state.active_buff:
+                st.toast(f"✨ 成功触发【{st.session_state.active_buff}】的浪漫氛围加成！", icon="💖")
+                score_val += 10  # 其他道具额外加10分
+                st.session_state.active_buff = None
             
             st.session_state.dialogue_history.append({
                 "choice_text": c_text,
@@ -305,5 +332,6 @@ elif st.session_state.stage == "result":
             st.session_state.total_score = 30
             st.session_state.dialogue_history = []
             st.session_state.inventory = []
+            st.session_state.active_buff = None
             st.session_state.daily_gacha_result = None
             st.rerun()
