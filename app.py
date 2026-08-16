@@ -1327,4 +1327,91 @@ CHARACTER_SCRIPTS = {
                     "A": {"text": "『哇！这个包装设计好有中国特色！味道也棒！你太懂潮流了！』", "score": 25},
                     "B": {"text": "『打工族都很酷的！在异国打拼更是酷爆了！加油！』", "score": 15},
                     "AB": {"text": "『别气馁啊！如果觉得孤单，我带你去逛日本最潮的街道散心！』", "score": 5}
+                }
+                # ==========================================
+# 5. 主界面渲染与剧情推进循环
+# ==========================================
+char_info = CHARACTERS[st.session_state.current_char]
+st.title("💖 浪花男子心动日常")
+st.caption(f"当前互动对象：**{st.session_state.current_char}**（{char_info['tag']}）")
+st.write(f"_{char_info['desc']}_")
+
+st.divider()
+
+# 显示上一次选择的剧情反馈
+if st.session_state.last_feedback:
+    st.info(st.session_state.last_feedback)
+
+# 分幕剧情推进与判定
+scenes = char_info["scenes"]
+
+# 第一幕
+if st.session_state.story_stage == 1:
+    s1 = scenes["s1"]
+    st.subheader(s1["title"])
+    st.write(s1["text"])
+
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button(f"A. {s1['opt_A']}"):
+            luck = random.randint(1, 10)
+            if luck > 4 or (st.session_state.gacha_buff and "心动" in st.session_state.gacha_buff[1]):
+                st.session_state.scores["heart"] += 2
+            else:
+                st.session_state.scores["trust"] += 1
+            st.session_state.last_feedback = f"反馈：{s1['res_A']}"
+            st.session_state.story_stage = 2
+            st.rerun()
+
+    with col2:
+        if st.button(f"B. {s1['opt_B']}"):
+            luck = random.randint(1, 10)
+            if luck > 4 or (st.session_state.gacha_buff and "信任" in st.session_state.gacha_buff[1]):
+                st.session_state.scores["trust"] += 2
+            else:
+                st.session_state.scores["heart"] += 1
+            st.session_state.last_feedback = f"反馈：{s1['res_B']}"
+            st.session_state.story_stage = 2
+            st.rerun()
+
+# 第二幕
+elif st.session_state.story_stage == 2:
+    s2 = scenes["s2"]
+    st.subheader(s2["title"])
+    st.write(s2["text"])
+
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button(f"A. {s2['opt_A']}"):
+            st.session_state.scores["heart"] += random.choice([1, 2])
+            st.session_state.last_feedback = f"反馈：{s2['res_A']}"
+            st.session_state.story_stage = 3
+            st.rerun()
+
+    with col2:
+        if st.button(f"B. {s2['opt_B']}"):
+            st.session_state.scores["trust"] += random.choice([1, 2])
+            st.session_state.last_feedback = f"反馈：{s2['res_B']}"
+            st.session_state.story_stage = 3
+            st.rerun()
+
+# 第三幕：结局结算
+elif st.session_state.story_stage == 3:
+    st.subheader("📖 本日结局收录")
+
+    heart_score = st.session_state.scores["heart"]
+    trust_score = st.session_state.scores["trust"]
+
+    if heart_score >= trust_score:
+        st.success(char_info["endings"]["heart"])
+    else:
+        st.warning(char_info["endings"]["trust"])
+
+    st.write(f"（本次互动隐藏数值结算 — 心动值：{heart_score} | 信任度：{trust_score}）")
+
+    if st.button("开启新的一天 / 重新开始"):
+        st.session_state.story_stage = 1
+        st.session_state.scores = {"heart": 0, "trust": 0}
+        st.session_state.last_feedback = ""
+        st.rerun()
  
