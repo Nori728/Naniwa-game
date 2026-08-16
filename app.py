@@ -3,9 +3,32 @@ import random
 import os
 
 # -----------------------------------------------------------------------------
-# 1. 页面基本配置与安全加载
+# 1. 页面基本配置与自定义背景 CSS
 # -----------------------------------------------------------------------------
 st.set_page_config(page_title="浪花男子心动日常", page_icon="💖", layout="centered")
+
+# 设置网页全屏背景（默认使用柔和浪漫的粉紫梦幻渐变色）
+# 如果想换成具体的网络背景图片，可以将 background 的值改为：url("你的背景图片网址")
+st.markdown(
+    """
+    <style>
+    .stApp {
+        background: linear-gradient(135deg, #ffdde1 0%, #ee9ca7 50%, #a1c4fd 100%);
+        background-attachment: fixed;
+        background-size: cover;
+    }
+    /* 让内容区域半透明白底，保证文字清晰可读 */
+    .stMainBlockContainer {
+        background-color: rgba(255, 255, 255, 0.85);
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        margin-top: 1rem;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 def safe_image(img_path, caption=None):
     if not img_path:
@@ -25,10 +48,8 @@ def safe_audio(audio_path):
             pass
 
 # -----------------------------------------------------------------------------
-# 2. 成员与身份数据配置 (已完美填入你的专属网络图片)
+# 2. 成员与身份数据配置 (保留成员专属照片)
 # -----------------------------------------------------------------------------
-BG_IMAGE_URL = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEiQYHWo7za_O6O-FerVkj5mA2s49UBL3hj_Tfmu-npd2yfIz1OJSCHD8n&s=10"
-
 MEMBERS = {
     "丈君": {
         "nick": "丈君", 
@@ -95,7 +116,7 @@ if "fortune_result" not in st.session_state:
     st.session_state.fortune_result = None
 
 # -----------------------------------------------------------------------------
-# 4. 动态多分支剧情数据生成（场景图自动使用背景图网址）
+# 4. 动态多分支剧情数据生成（已移除图片配置）
 # -----------------------------------------------------------------------------
 def get_act_data(role, target, act):
     t = target
@@ -104,7 +125,6 @@ def get_act_data(role, target, act):
             return {
                 "title": "🎬 第一幕：后台迎面的压力",
                 "desc": f"离上台还有 10 分钟，{t} 一个人站在休息室门口发呆，看起来有些紧张。",
-                "img": BG_IMAGE_URL,
                 "bgm": "audio/act1_bgm.mp3",
                 "choices": [
                     {"label": f"🅰️ 递上热茶温柔鼓励：『别担心，{t} 排练很完美，相信自己！』", "dialogue": f"『听到你这么说，我心里一下子踏实了！等会儿看我表现吧！』", "score": 20},
@@ -116,7 +136,6 @@ def get_act_data(role, target, act):
             return {
                 "title": "🎬 第二幕：突发危机",
                 "desc": f"中场换装时间仅剩 1 分钟，{t} 的服装拉链突然卡住了！",
-                "img": BG_IMAGE_URL,
                 "bgm": "audio/act2_bgm.mp3",
                 "choices": [
                     {"label": f"🅰️ 眼神坚定迅速上手帮忙拉开，顺手擦掉他额头的汗：『有我在，别慌。』", "dialogue": f"『你靠得好近……心跳都要漏拍了，不过多亏有你！』", "score": 20},
@@ -128,7 +147,6 @@ def get_act_data(role, target, act):
             return {
                 "title": "🎬 第三幕：深夜保姆车",
                 "desc": f"演出完美结束，在回程的车上，{t} 累得靠在座椅上昏昏欲睡。",
-                "img": BG_IMAGE_URL,
                 "bgm": "audio/act3_bgm.mp3",
                 "choices": [
                     {"label": "🅰️ 调低空调，轻轻将他的头靠在自己肩膀上。", "dialogue": f"『（微笑着没睁眼）你的肩膀好暖和……别动，让我靠一会儿。』", "score": 20},
@@ -142,7 +160,6 @@ def get_act_data(role, target, act):
             return {
                 "title": "🎬 第一幕：后台通道的秘密碰面",
                 "desc": f"在无人注意的后台角落，你和 {t} 只有短短 1 分钟的碰面时间。",
-                "img": BG_IMAGE_URL,
                 "bgm": "audio/act1_bgm.mp3",
                 "choices": [
                     {"label": "🅰️ 悄悄递上手写信和小零食，拉拉他的手。", "dialogue": f"『只有你还记得我最爱吃这个！真想不管不顾抱抱你……』", "score": 20},
@@ -154,7 +171,6 @@ def get_act_data(role, target, act):
             return {
                 "title": "🎬 第二幕：台下观众席的暗号",
                 "desc": f"演唱会高潮，{t} 巡场时眼神扫过了你所在的区域。",
-                "img": BG_IMAGE_URL,
                 "bgm": "audio/act2_bgm.mp3",
                 "choices": [
                     {"label": "🅰️ 举起只有你俩懂的专属手幅，甜甜一笑。", "dialogue": f"在台上精准捕捉到了你的眼神，对着你的方向做了一个专属于你的飞吻！", "score": 20},
@@ -166,7 +182,6 @@ def get_act_data(role, target, act):
             return {
                 "title": "🎬 第三幕：深夜公寓约会",
                 "desc": f"{t} 风尘仆仆赶到你的住处，解下口罩深深叹了口气。",
-                "img": BG_IMAGE_URL,
                 "bgm": "audio/act3_bgm.mp3",
                 "choices": [
                     {"label": "🅰️ 主动上前抱住他的腰：『今天辛苦啦。』", "dialogue": f"『在你面前，我只想做那个深深爱着你的普通男人。』", "score": 20},
@@ -180,7 +195,6 @@ def get_act_data(role, target, act):
             return {
                 "title": "🎬 第一幕：家常便当盒",
                 "desc": f"你带了便当去看 {t}，他正坐在休息室擦汗。",
-                "img": BG_IMAGE_URL,
                 "bgm": "audio/act1_bgm.mp3",
                 "choices": [
                     {"label": "🅰️ 递上便当帮他整理乱发：『还记得你最爱吃这个。』", "dialogue": f"『一点都没变！从小到大，还是你最懂我的口味！』", "score": 20},
@@ -192,7 +206,6 @@ def get_act_data(role, target, act):
             return {
                 "title": "🎬 第二幕：童年回忆",
                 "desc": f"两人并排坐在沙发上，聊起了小时候在公园打闹的日子。",
-                "img": BG_IMAGE_URL,
                 "bgm": "audio/act2_bgm.mp3",
                 "choices": [
                     {"label": "🅰️ 感慨：『没想到当年那个小不点，现在真成了大明星。』", "dialogue": f"『无论我走多远，在你面前我永远是那个少年。』", "score": 20},
@@ -204,7 +217,6 @@ def get_act_data(role, target, act):
             return {
                 "title": "🎬 第三幕：晚风漫步",
                 "desc": "深夜工作结束，两人走在回家熟悉的小路上。",
-                "img": BG_IMAGE_URL,
                 "bgm": "audio/act3_bgm.mp3",
                 "choices": [
                     {"label": "🅰️ 侧头看他：『这条路我们从小走到大呢。』", "dialogue": f"『唯一不同的是，现在的我……想牵着你的手继续走下去。』", "score": 20},
@@ -218,7 +230,6 @@ def get_act_data(role, target, act):
             return {
                 "title": "🎬 第一幕：后台兼职偶遇",
                 "desc": f"你在后台当兼职翻译，正好碰到 {t} 在练习中文台词。",
-                "img": BG_IMAGE_URL,
                 "bgm": "audio/act1_bgm.mp3",
                 "choices": [
                     {"label": "🅰️ 耐心纠正发音：『发音很棒，加油哦！』", "dialogue": f"『真的吗？为了你，我一定会好好练习中文的！』", "score": 20},
@@ -230,10 +241,9 @@ def get_act_data(role, target, act):
             return {
                 "title": "🎬 第二幕：异国文化交流",
                 "desc": f"休息时间，{t} 好奇地问起你在日本的打工生活。",
-                "img": BG_IMAGE_URL,
                 "bgm": "audio/act2_bgm.mp3",
                 "choices": [
-                    {"label": "🅰️ 分享家乡零食，聊起异国趣事。", "dialogue": f"『真好吃！以后有机会，你一定要当我的导游带 me 去你的家乡！』", "score": 20},
+                    {"label": "🅰️ 分享家乡零食，聊起异国趣事。", "dialogue": f"『真好吃！以后有机会，你一定要当我的导游带我去你的家乡！』", "score": 20},
                     {"label": "🅱️ 聊起打工：『虽然有点累，但很充实。』", "dialogue": f"『一个人在异国打拼真不简单，有困难随时找我！』", "score": 10},
                     {"label": "🆎 倒苦水：『语言不通，真想回国了。』", "dialogue": f"『别气馁啊……如果你走了，我会非常舍不得你的。』", "score": -10}
                 ]
@@ -242,7 +252,6 @@ def get_act_data(role, target, act):
             return {
                 "title": "🎬 第三幕：电车站台",
                 "desc": "深夜打工结束，你们在微凉的电车站台并排等车。",
-                "img": BG_IMAGE_URL,
                 "bgm": "audio/act3_bgm.mp3",
                 "choices": [
                     {"label": "🅰️ 买两罐热可可，碰到了彼此的手指。", "dialogue": f"『握着热可可……感觉整个冬天都不冷了，手贴在一起更暖和。』", "score": 20},
@@ -308,8 +317,7 @@ elif st.session_state.page == "story" and st.session_state.act <= 3:
     
     st.subheader(f"【{role} 线】{act_data['title']}")
     
-    safe_image(act_data.get("img"), caption=act_data["title"])
-    
+    # 剧情描述
     st.info(act_data["desc"])
     
     if st.session_state.history:
