@@ -123,4 +123,187 @@ if "daily_gacha_result" not in st.session_state:
 # 5. 页面核心渲染
 # -----------------------------------------------------------------------------
 st.markdown('<p class="main-header">💖 浪花男子心动日常</p>', unsafe_allow_html=True)
-st.markdown(f'<p class="sub-header">✨ 每日运势抽卡 ＋ 道具增益 ＋ 沉浸互动剧情 (共
+st.markdown(f'<p class="sub-header">✨ 每日运势抽卡 ＋ 道具增益 ＋ 沉浸互动剧情 (共 {MAX_ACT} 幕)</p>', unsafe_allow_html=True)
+
+# 抽卡区域
+st.markdown(
+    """
+    <div class="gacha-box">
+        <h3 style="margin-top:0; color:#b45309; font-size: 1.2rem;">🎲 每日运势与道具扭蛋机</h3>
+        <p style="font-size: 0.9rem; color: #78350f; margin-bottom: 10px;">测测今天的心动成员，抽取专属恋爱道具为你增加剧情好感buff！</p>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+col_g1, col_g2 = st.columns(2)
+with col_g1:
+    if st.button("✨ 测测今天大势心动成员", use_container_width=True):
+        lucky_name, lucky_data = random.choice(list(MEMBERS.items()))
+        st.session_state.daily_gacha_result = (lucky_name, lucky_data)
+
+with col_g2:
+    if st.button("🎁 抽取心动道具 (消耗10积分)", use_container_width=True):
+        if st.session_state.total_score >= 10:
+            st.session_state.total_score -= 10
+            items_pool = [
+                ("🍬 恋爱加倍糖果", "下一次选择获得双倍好感积分！"),
+                ("🎧 读心耳机", "能精准洞察他内心的真实羞涩台词。"),
+                ("📸 SSR限定拍立得", "增加全盘浪漫氛围与结局甜度。"),
+                ("🥤 冰爽解暑饮料", "恢复元气，解锁隐藏温柔互动。")
+            ]
+            item_name, item_desc = random.choice(items_pool)
+            st.session_state.inventory.append(item_name)
+            st.success(f"抽中道具：{item_name}！({item_desc})")
+        else:
+            st.warning("心动积分不足 10 分，快去下方剧情里累积吧！")
+
+if st.session_state.daily_gacha_result:
+    lname, ldata = st.session_state.daily_gacha_result
+    st.markdown(
+        f"""
+        <div class="card-box" style="text-align: center;">
+            <p style="color: #e11d48; font-weight: bold; font-size: 1.1rem;">🌟 今日运势爆棚中：{lname} ({ldata['trait']})</p>
+            <img src="{ldata['img']}" width="100%" style="border-radius: 12px; max-height: 250px; object-fit: cover; margin-top: 5px;">
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+if st.session_state.inventory:
+    st.markdown(f"**🎒 我的道具背包：** " + " | ".join([f"`{i}`" for i in st.session_state.inventory]))
+
+st.markdown("---")
+
+# -----------------------------------------------------------------------------
+# 菜单阶段：选择身份与攻略对象
+# -----------------------------------------------------------------------------
+if st.session_state.stage == "menu":
+    st.subheader("📖 开启心动互动剧情")
+    
+    selected_role = st.selectbox("1️⃣ 请选择你的身份：", ROLES)
+    selected_member = st.selectbox("2️⃣ 请选择你想攻略的成员：", list(MEMBERS.keys()))
+    
+    m_info = MEMBERS[selected_member]
+    st.markdown(
+        f"""
+        <div class="card-box" style="text-align: center;">
+            <img src="{m_info['img']}" width="100%" style="border-radius: 12px; max-height: 280px; object-fit: cover;">
+            <p style="margin-top: 10px; font-weight: bold; font-size: 1.1rem; color: #e11d48;">✨ {selected_member} (特征：{m_info['trait']} | 专属色：{m_info['color']})</p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    
+    if st.button("✨ 确认并进入多幕专属剧情 ➔", type="primary", use_container_width=True):
+        st.session_state.player_role = selected_role
+        st.session_state.target_member = selected_member
+        st.session_state.current_act = 1
+        st.session_state.dialogue_history = []
+        st.session_state.stage = "story"
+        st.rerun()
+
+# -----------------------------------------------------------------------------
+# 剧情互动阶段
+# -----------------------------------------------------------------------------
+elif st.session_state.stage == "story":
+    role = st.session_state.player_role
+    member = st.session_state.target_member
+    act = st.session_state.current_act
+    m_info = MEMBERS[member]
+    
+    scene_data = STORIES.get(act, STORIES[1])
+    
+    st.markdown(f"### 💖 【{role}】 × **{member}** (第 {act}/{MAX_ACT} 幕)")
+    st.info(f"💡 当前心动指数：**{st.session_state.total_score} 分**")
+    
+    st.markdown(
+        f"""
+        <div style="text-align: center; margin-bottom: 15px;">
+            <img src="{m_info['img']}" width="100%" style="border-radius: 12px; max-height: 200px; object-fit: cover;">
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    
+    st.subheader(scene_data["title"])
+    
+    if st.session_state.dialogue_history:
+        st.markdown("---")
+        for item in st.session_state.dialogue_history:
+            st.markdown(f"💬 **你**：{item['choice_text']}")
+            st.success(f"💖 **{member} 的回应**：{item['reply_text']}")
+        st.markdown("---")
+    
+    st.markdown("👉 **请做出你的回应选择：**")
+    for idx, (c_text, r_text, score_val) in enumerate(scene_data["choices"]):
+        if st.button(c_text, key=f"choice_btn_{act}_{idx}", use_container_width=True):
+            if "🍬 恋爱加倍糖果" in st.session_state.inventory:
+                score_val *= 2
+                st.toast("🍬 触发加倍糖果效果，好感度翻倍！", icon="✨")
+            
+            st.session_state.dialogue_history.append({
+                "choice_text": c_text,
+                "reply_text": r_text
+            })
+            st.session_state.total_score += score_val
+            
+            if act < MAX_ACT:
+                st.session_state.current_act += 1
+            else:
+                st.session_state.stage = "result"
+            st.rerun()
+            
+    st.markdown("---")
+    if st.button("🏠 放弃当前进度，返回主菜单"):
+        st.session_state.stage = "menu"
+        st.rerun()
+
+# -----------------------------------------------------------------------------
+# 结算阶段
+# -----------------------------------------------------------------------------
+elif st.session_state.stage == "result":
+    role = st.session_state.player_role
+    member = st.session_state.target_member
+    score = st.session_state.total_score
+    m_info = MEMBERS[member]
+    
+    st.balloons()
+    st.header("🏆 结算：HE 甜蜜告白结局")
+    st.success(f"在【{role}】的故事中，你与 **{member}** 的最终心动指数为：**{score} 分**！")
+    
+    st.markdown(
+        f"""
+        <div class="card-box" style="text-align: center;">
+            <img src="{m_info['img']}" width="100%" style="border-radius: 12px; max-height: 300px; object-fit: cover;">
+            <p style="margin-top: 15px; font-weight: bold; font-size: 1.2rem; color: #e11d48;">✨ 达成 HE 专属告白：【{member} × {role}】</p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    
+    st.markdown(
+        f"""
+        > 『不管别人怎么看，你才是我最重要的选择！在灯光下的角落里，紧紧握住你的手，这就是属于我们的甜蜜恋情。』
+        """,
+        unsafe_allow_html=True
+    )
+    
+    st.markdown("---")
+    col_r1, col_r2 = st.columns(2)
+    with col_r1:
+        if st.button("🔄 重新体验当前角色", use_container_width=True):
+            st.session_state.current_act = 1
+            st.session_state.total_score = 30
+            st.session_state.dialogue_history = []
+            st.session_state.stage = "story"
+            st.rerun()
+    with col_r2:
+        if st.button("🏠 返回主菜单/更换角色", use_container_width=True):
+            st.session_state.stage = "menu"
+            st.session_state.current_act = 1
+            st.session_state.total_score = 30
+            st.session_state.dialogue_history = []
+            st.session_state.inventory = []
+            st.session_state.daily_gacha_result = None
+            st.rerun()
