@@ -1,6 +1,5 @@
 import streamlit as st
 import random
-import time
 
 # -----------------------------------------------------------------------------
 # 1. 页面基本配置
@@ -38,56 +37,118 @@ st.markdown(
 )
 
 # -----------------------------------------------------------------------------
-# 2. 基础数据源 (成员信息、头像与特征)
+# 2. 基础数据源 (7人详细档案与写真)
 # -----------------------------------------------------------------------------
-MEMBERS = {
-    "丈君": {"trait": "搞笑又可靠的大哥哥", "color": "蓝色", "img": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRRxeLPXR2kAxnf8Z0uNFWIH7j_vjPcrr8Eg1qWtaTSoPKTvTMcZtXXX6Kn&s=10"},
-    "大酱": {"trait": "热情太阳般的 C 位", "color": "红色", "img": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEiQYHWo7za_O6O-FerVkj5mA2s49UBL3hj_Tfmu-npd2yfIz1OJSCHD8n&s=10"},
-    "布丁": {"trait": "温柔体贴又吃得超开心的队长", "color": "绿色", "img": "https://img-mdpr.freetls.fastly.net/article/H0CW/nm/H0CW_-CrOagXoRlSyQPOD6_zSqLjGNjyrfLRLWlqECw.jpg?width=750"},
-    "高恭": {"trait": "自恋又帅气的八嘎", "color": "紫色", "img": "https://img-mdpr.freetls.fastly.net/article/d4sb/nm/d4sbe7H-P8R6sUQpAshcntVT8-h0ZPcuMe3icV8aOm4.jpg?width=750"},
-    "流星": {"trait": "眼睛会闪光的小恶魔", "color": "橙色", "img": "https://oggi.jp/wp-content/uploads/2023/03/DMA-DSC00151_2-2.jpg"},
-    "米七": {"trait": "高挑的长腿王子", "color": "粉色", "img": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSvYWZ1rSHkldisNtmwbvxSYNjR8FWjj4_wdyKxw84_h0SabJN81yYpsGXL&s=10"},
-    "谦杜": {"trait": "时尚又有主见的末子", "color": "黄色", "img": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRs8ILDomyP9A6WZPtgig1e6IyPPmSpxS8HSYiRImU0uSqXicpvyNrHV8A&s=10"},
+CHARACTERS = {
+    "丈君 (Fujiwara Joichiro)": {"color": "💙", "trait": "搞笑又可靠的大哥哥", "img": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRRxeLPXR2kAxnf8Z0uNFWIH7j_vjPcrr8Eg1qWtaTSoPKTvTMcZtXXX6Kn&s=10"},
+    "大酱 (Nishihata Daigo)": {"color": "🔴", "trait": "热情太阳般的 C 位", "img": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEiQYHWo7za_O6O-FerVkj5mA2s49UBL3hj_Tfmu-npd2yfIz1OJSCHD8n&s=10"},
+    "布丁 (Ohashi Kazuya)": {"color": "💚", "trait": "温柔体贴的元气队长", "img": "https://img-mdpr.freetls.fastly.net/article/H0CW/nm/H0CW_-CrOagXoRlSyQPOD6_zSqLjGNjyrfLRLWlqECw.jpg?width=750"},
+    "高恭 (Takahashi Kyohei)": {"color": "💜", "trait": "自恋又帅气的傲娇少年", "img": "https://img-mdpr.freetls.fastly.net/article/d4sb/nm/d4sbe7H-P8R6sUQpAshcntVT8-h0ZPcuMe3icV8aOm4.jpg?width=750"},
+    "流星 (Onishi Ryusei)": {"color": "🧡", "trait": "眼睛会闪光的小恶魔", "img": "https://oggi.jp/wp-content/uploads/2023/03/DMA-DSC00151_2-2.jpg"},
+    "米七 (Michieda Shunsuke)": {"color": "💖", "trait": "高挑清纯的长腿王子", "img": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSvYWZ1rSHkldisNtmwbvxSYNjR8FWjj4_wdyKxw84_h0SabJN81yYpsGXL&s=10"},
+    "谦杜 (Nagao Kento)": {"color": "💛", "trait": "时尚又有主见的末子", "img": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRs8ILDomyP9A6WZPtgig1e6IyPPmSpxS8HSYiRImU0uSqXicpvyNrHV8A&s=10"},
 }
 
 ROLES = ["经纪人", "粉丝/地下恋", "青梅竹马", "在日留学生or打工人"]
 
-# 经典剧情分支库
-STORIES = {
+# -----------------------------------------------------------------------------
+# 3. 多幕剧情与个性化台词大数据库 (针对不同身份、不同人物拥有独特剧情)
+# -----------------------------------------------------------------------------
+CHARACTER_SCRIPTS = {
     "经纪人": {
-        "title": "🎬 后台的斗嘴日常",
-        "desc": "离上台还有 10 分钟，成员正坐在化妆镜前调侃。",
-        "choices": [
-            ("A. 顺着他的话打趣", "哼，就知道拆我的台！不过……今天表现得不错嘛。"),
-            ("B. 递上手卡正色道", "好啦好啦，听你的还不行吗？工作时认真认真的样子，其实挺吸引人的。"),
-            ("C. 假装严肃：『再不认真我要扣鸡腿了！』", "别介介！经纪人大人手下留情，我马上进入状态还不行吗！")
-        ]
+        "丈君 (Fujiwara Joichiro)": {
+            1: {
+                "title": "🎬 第一幕：通告间隙的吐槽",
+                "desc": "刚结束搞笑番组的录制，丈君拿着毛巾一边擦汗一边凑过来。",
+                "choices": [
+                    {"label": "A. 递上一瓶冰麦茶：『今天表现不错哦，辛苦啦。』", "next": 2, "score": 20, "reply": "哇，还是你最懂我！不过刚才那个整蛊企划吓死我了，得你安慰一下才行。"},
+                    {"label": "B. 假装严肃：『刚才有个梗你接慢了半拍哦！』", "next": 2, "score": 15, "reply": "诶——？那是因为我在后台分心看你了嘛！好啦，饶了我这一次吧。"}
+                ]
+            },
+            2: {
+                "title": "🎬 第二幕：深夜的保姆车后座",
+                "desc": "深夜收工的保姆车上，经纪人席位只剩下你和他，车厢里一片安静。",
+                "choices": [
+                    {"label": "A. 靠在车窗边假装闭目养神", "next": "HE", "score": 25, "reply": "（悄悄把肩膀挪过来让你靠着）累了就靠一会儿吧……有我在，安心睡吧。"},
+                    {"label": "B. 翻看接下来的行程表提醒他早点休息", "next": "HE", "score": 20, "reply": "好啦，工作狂经纪人小姐，现在是私人时间，不许再看文件了，看我一眼嘛。"}
+                ]
+            }
+        },
+        "米七 (Michieda Shunsuke)": {
+            1: {
+                "title": "🎬 第一幕：杂志拍摄后台",
+                "desc": "米七刚换好一身纯白西装，走到你面前低头整理领带。",
+                "choices": [
+                    {"label": "A. 帮他仔细整理领口：『这样就完美啦。』", "next": 2, "score": 25, "reply": "（低头看着你，耳根微微泛红）每次你这样帮我……我都觉得心跳好快。"},
+                    {"label": "B. 调侃道：『不愧是国宝级帅哥，今天也闪闪发光。』", "next": 2, "score": 15, "reply": "别笑话我了……你在旁边看着我的时候，我才没办法专心拍照呢。"}
+                ]
+            },
+            2: {
+                "title": "🎬 第二幕：收工后的私下对剧本",
+                "desc": "休息室里只剩你们两人，他突然合上剧本，认真地看着你。",
+                "choices": [
+                    {"label": "A. 疑惑回望：『怎么了？台词有什么不懂的吗？』", "next": "HE", "score": 25, "reply": "台词我都懂……我只是在想，什么时候才能让你只做我一个人的专属经纪人。"},
+                    {"label": "B. 拍拍他的肩膀：『快把最后一段对完收工啦！』", "next": "HE", "score": 20, "reply": "好吧……既然你这么急着收工，那今晚收工后必须陪我一起去吃拉面作为惩罚！"}
+                ]
+            }
+        }
     },
     "粉丝/地下恋": {
-        "title": "🎬 深夜的私密连线",
-        "desc": "结束了闪耀的巨蛋演出，深夜手机屏幕亮起，是他打来的视频电话。",
+        "大酱 (Nishihata Daigo)": {
+            1: {
+                "title": "🎬 第一幕：巨蛋演唱会后的深夜连线",
+                "desc": "万粉欢呼的巨蛋演唱会刚刚落幕，手机屏幕上亮起了他的视频通话。",
+                "choices": [
+                    {"label": "A. 刚接通就笑着说：『今天在台下我有一直看着你哦！』", "next": 2, "score": 25, "reply": "真的吗？我在台上一眼就找到你了……那一刻，聚光灯好像都没有你耀眼。"},
+                    {"label": "B. 假装傲娇：『大明星今天表现不错，特此表扬。』", "next": 2, "score": 15, "reply": "什么嘛，明明最想听你夸我的人就是我！快多说两句好听的哄哄我。"}
+                ]
+            },
+            2: {
+                "title": "🎬 第二幕：无人小巷的秘密拥抱",
+                "desc": "通过层层伪装，你们终于在约好的公园长椅旁见到了彼此。",
+                "choices": [
+                    {"label": "A. 紧张地环顾四周：『会被狗仔拍到的！快回去吧……』", "next": "HE", "score": 20, "reply": "（一把将你拉进怀里）不怕……好不容易见到你，让我抱一会儿就好，就一会儿。"},
+                    {"label": "B. 笑着递上亲手做的便当", "next": "HE", "score": 25, "reply": "呜哇……每次吃到你做的饭，我就觉得所有的辛苦都值了。有你真好。"}
+                ]
+            }
+        },
+        "布丁 (Ohashi Kazuya)": {
+            1: {
+                "title": "🎬 第一幕：深夜广播节目结束后",
+                "desc": "他结束了深夜生放送广播，带着温柔的笑意给你发来语音电话。",
+                "choices": [
+                    {"label": "A. 声音带着困意：『欢迎回家，今天辛苦啦队长。』", "next": 2, "score": 20, "reply": "听到你的声音，我一天的疲惫就全飞走啦！好想现在就飞到你身边吃你做的布丁。"},
+                    {"label": "B. 吐槽他今天广播里吃螺丝：『刚才直播吃螺丝了吧你！』", "next": 2, "score": 15, "reply": "诶——？这都被你听出来了！不许笑话我，我要亲亲才能好！"}
+                ]
+            },
+            2: {
+                "title": "🎬 第二幕：秘密约会的料理时光",
+                "desc": "在安全的小屋里，他系着围裙，笑意盈盈地看着你切菜。",
+                "choices": [
+                    {"label": "A. 小心翼翼躲开他的视线：『专心切你的菜啦！』", "next": "HE", "score": 20, "reply": "因为你比菜好看嘛~ 呐，张嘴，尝尝我刚刚做好的汤够不够甜。"},
+                    {"label": "B. 喂他吃一口切好的水果", "next": "HE", "score": 25, "reply": "唔……好甜！不过没有你对我笑的时候甜。最喜欢你了！"}
+                ]
+            }
+        }
+    }
+}
+
+# 默认通用剧本（当选中其他未单独罗列组合时使用，确保每一个人都可以玩）
+DEFAULT_SCRIPT = {
+    1: {
+        "title": "🎬 第一幕：命运的邂逅日常",
+        "desc": "阳光正好，你们在约好的地点相遇，他带着标志性的微笑向你走来。",
         "choices": [
-            ("A. 假装生气：『这么晚还不睡，明天有黑眼圈怎么办！』", "因为见不到你，想你想得睡不着嘛……只能听听你的声音了。"),
-            ("B. 柔声撒娇：『欢迎回家，今天在台下我有一直看着你哦。』", "真的吗？我在台上一眼就看到你了……那一刻，聚光灯好像都没你耀眼。"),
-            ("C. 无奈叹气默默听他碎碎念", "喂，别叹气呀！能听到你的声音，我今天所有的疲惫都消失了。")
+            {"label": "A. 主动挥手打招呼：『这里这里！』", "next": 2, "score": 20, "reply": "看到你笑得这么开心，我今天一整天的心情都变好了呢。"},
+            {"label": "B. 假装高冷双手抱胸：『你迟到了三分钟哦。』", "next": 2, "score": 15, "reply": "好啦好啦是我不对！为了赔罪，今天你想吃什么我都请客！"}
         ]
     },
-    "青梅竹马": {
-        "title": "🎬 放学后的旧琴房",
-        "desc": "夕阳透过琴房的玻璃窗，他正百无聊赖地拨弄着吉他弦。",
+    2: {
+        "title": "🎬 第二幕：心跳加速的独处时光",
+        "desc": "周围的人渐渐散去，只剩下彼此的心跳声和微风吹过的声音。",
         "choices": [
-            ("A. 直接恶作剧蒙住他的眼睛：『猜猜我是谁？』", "这股香气……笨蛋，除了你还能有谁。快松手，我有东西要给你看。"),
-            ("B. 递上一罐冰可乐：『弹这么久不累吗？』", "哇，还是你最懂我！冰可乐和你的关心，我全部收下啦。"),
-            ("C. 安静地坐在旁边听他弹奏", "……干嘛一直盯着我看？我会不好意思专心弹吉他的。")
-        ]
-    },
-    "在日留学生or打工人": {
-        "title": "🎬 后台兼职偶遇",
-        "desc": "你在后台兼职翻译，正好碰到他在练习中文台词。",
-        "choices": [
-            ("A. 耐心纠正发音：『发音很棒，加油哦！』", "真的吗？中文发音像是在吃的东西吗？谢谢你耐心的指导！"),
-            ("B. 递上资料：『这是今天的台词对照表。』", "太感谢了！如果没有你，我今天肯定要出大丑了。"),
-            ("C. 鞠躬低头：『那个……请问有什么需要我做的吗？』", "不用这么客气啦！快抬起头来，我想多看看你。")
+            {"label": "A. 脸颊微红地别过头去", "next": "HE", "score": 25, "reply": "（轻轻握住你的手）……别把脸转过去，我想一直这样看着你。"},
+            {"label": "B. 认真地向他倾诉心意", "next": "HE", "score": 25, "reply": "（眼神变得无比温柔）傻瓜，其实我的心意，早就只为你一个人停留了。"}
         ]
     }
 }
@@ -95,35 +156,39 @@ STORIES = {
 # -----------------------------------------------------------------------------
 # Session State 初始化
 # -----------------------------------------------------------------------------
-if "gacha" not in st.session_state:
-    st.session_state.gacha = None
-if "story_reply" not in st.session_state:
-    st.session_state.story_reply = ""
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
+if "gacha_res" not in st.session_state:
+    st.session_state.gacha_res = None
+if "story_stage" not in st.session_state:
+    st.session_state.story_stage = 1
+if "total_score" not in st.session_state:
+    st.session_state.total_score = 0
+if "history_replies" not in st.session_state:
+    st.session_state.history_replies = []
+if "current_script_key" not in st.session_state:
+    st.session_state.current_script_key = ""
 
 # -----------------------------------------------------------------------------
-# 页面标题
+# 页面顶部标题
 # -----------------------------------------------------------------------------
 st.markdown('<p class="main-header">💖 浪花男子 · 专属心动企划</p>', unsafe_allow_html=True)
-st.markdown('<p class="sub-header">抽卡写真 ＋ 剧情分支 ＋ 自由畅聊</p>', unsafe_allow_html=True)
+st.markdown('<p class="sub-header">抽卡写真 ＋ 7人专属多幕剧情分支 ＋ 纯净沉浸式体验</p>', unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
 # 模块一：每日运势抽卡
 # -----------------------------------------------------------------------------
 st.markdown("### 🎰 1. 每日心动运势抽卡")
-if st.button("✨ 测测今天最心动的成员", type="primary", use_container_width=True):
-    st.session_state.gacha = random.choice(list(MEMBERS.keys()))
+if st.button("✨ 抽取今日命定心动对象", type="primary", use_container_width=True):
+    st.session_state.gacha_res = random.choice(list(CHARACTERS.keys()))
 
-if st.session_state.gacha:
-    m_name = st.session_state.gacha
-    m_info = MEMBERS[m_name]
-    st.success(f"🎉 抽卡成功！你今天的命定心动对象是：{m_name}")
+if st.session_state.gacha_res:
+    c_name = st.session_state.gacha_res
+    c_info = CHARACTERS[c_name]
+    st.success(f"🎉 抽卡成功！你今天的命定心动对象是：{c_name}")
     st.markdown(
         f"""
         <div class="card-box" style="text-align: center;">
-            <img src="{m_info['img']}" width="100%" style="border-radius: 12px; max-height: 320px; object-fit: cover;">
-            <p style="margin-top: 10px; font-weight: bold; color: #e11d48;">✨ {m_name} ({m_info['trait']})</p>
+            <img src="{c_info['img']}" width="100%" style="border-radius: 12px; max-height: 320px; object-fit: cover;">
+            <p style="margin-top: 10px; font-weight: bold; color: #e11d48;">✨ {c_name} ({c_info['trait']})</p>
         </div>
         """,
         unsafe_allow_html=True
@@ -132,99 +197,91 @@ if st.session_state.gacha:
 st.divider()
 
 # -----------------------------------------------------------------------------
-# 模块二：沉浸式剧情分支
+# 模块二：多幕剧情分支系统（无自由发言，专注精细剧情）
 # -----------------------------------------------------------------------------
-st.markdown("### 📖 2. 经典剧情分支模式")
+st.markdown("### 📖 2. 7人专属多幕剧情模式")
+
 col1, col2 = st.columns(2)
 with col1:
-    sel_role = st.selectbox("选择你的身份", ROLES)
+    sel_role = st.selectbox("选择你的身份", ROLES, key="role_sel")
 with col2:
-    sel_member = st.selectbox("选择攻略对象", list(MEMBERS.keys()))
+    sel_member = st.selectbox("选择攻略对象", list(CHARACTERS.keys()), key="member_sel")
 
-story = STORIES[sel_role]
-member_data = MEMBERS[sel_member]
+# 切换身份或人物时，重置剧情进度
+script_key = f"{sel_role}_{sel_member}"
+if st.session_state.current_script_key != script_key:
+    st.session_state.current_script_key = script_key
+    st.session_state.story_stage = 1
+    st.session_state.total_score = 0
+    st.session_state.history_replies = []
 
-st.markdown(f"#### {story['title']}")
-st.markdown(f"> **{story['desc']}**")
+# 获取对应的剧本 (如果没有独立写明，则调用默认精美剧本)
+role_dict = CHARACTER_SCRIPTS.get(sel_role, {})
+member_script = role_dict.get(sel_member, DEFAULT_SCRIPT)
 
-# 展示成员图片
+member_data = CHARACTERS[sel_member]
+stage = st.session_state.story_stage
+
 st.markdown(
     f"""
-    <div style="text-align: center; margin-bottom: 10px;">
-        <img src="{member_data['img']}" width="100%" style="border-radius: 10px; max-height: 220px; object-fit: cover;">
+    <div style="text-align: center; margin-bottom: 15px;">
+        <img src="{member_data['img']}" width="100%" style="border-radius: 10px; max-height: 200px; object-fit: cover;">
+        <p style="color: #64748b; font-size: 0.9rem; margin-top: 5px;">当前攻略：<b>{sel_member}</b> | 身份：<b>{sel_role}</b></p>
     </div>
     """,
     unsafe_allow_html=True
 )
 
-if st.session_state.story_reply:
+# 回放之前的对话记录
+for h in st.session_state.history_replies:
     st.markdown(
         f"""
-        <div style="background: white; padding: 12px; border-radius: 8px; border-left: 4px solid #e11d48; margin-bottom: 10px;">
-            💬 <b>{sel_member} 的回应：</b><br>
-            <p style="color: #334155; margin-top: 4px;">「{st.session_state.story_reply}」</p>
+        <div style="background: white; padding: 10px; border-radius: 8px; border-left: 3px solid #e11d48; margin-bottom: 8px; font-size: 0.95rem;">
+            💬 <b>{sel_member}：</b> 「{h}」
         </div>
         """,
         unsafe_allow_html=True
     )
-    st.markdown("💖 **【HE 甜蜜告白结局达成】**：*『好不容易在人群中找到了你……这次我再也不会松开你的手了！』*")
 
-st.write("👉 **请选择你的回应：**")
-for idx, (label, reply_text) in enumerate(story["choices"]):
-    if st.button(label, key=f"choice_{idx}", use_container_width=True):
-        st.session_state.story_reply = reply_text
+# 判断是否通关 (HE 结局)
+if stage == "HE":
+    st.markdown("---")
+    st.markdown("### 🏆 【HE 甜蜜告白结局达成】")
+    st.markdown(
+        f"""
+        <div class="card-box" style="text-align: center;">
+            <p style="color: #e11d48; font-weight: bold; font-size: 1.1rem;">✨ 最终心动指数：{st.session_state.total_score} 分 (完美满分！)</p>
+            <p style="margin-top: 10px; line-height: 1.6;">
+                <i>『好不容易在人山人海中认出了彼此……这次我再也不会松开你的手了！无论外界怎么看，你永远是我唯一的偏爱与选择。』</i><br>
+                —— <b>{sel_member}</b> 在灯光暗下的后台角落里，紧紧将你拥入怀中，开启了只属于你们的浪漫恋爱。
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    if st.button("🔄 重新体验本段剧情", use_container_width=True):
+        st.session_state.story_stage = 1
+        st.session_state.total_score = 0
+        st.session_state.history_replies = []
         st.rerun()
 
-if st.button("🔄 重置剧情选择", use_container_width=True):
-    st.session_state.story_reply = ""
-    st.rerun()
+else:
+    # 渲染当前幕的剧情与选项
+    current_scene = member_script.get(stage, DEFAULT_SCRIPT[1])
+    
+    st.markdown(f"#### {current_scene['title']}")
+    st.markdown(f"> **{current_scene['desc']}**")
+    
+    st.markdown("👉 **请做出你的抉择：**")
+    for idx, choice in enumerate(current_scene["choices"]):
+        if st.button(choice["label"], key=f"choice_btn_{stage}_{idx}", use_container_width=True):
+            st.session_state.history_replies.append(choice["reply"])
+            st.session_state.total_score += choice["score"]
+            st.session_state.story_stage = choice["next"]
+            st.rerun()
 
-st.divider()
-
-# -----------------------------------------------------------------------------
-# 模块三：自由畅聊模式 (想说什么就说什么)
-# -----------------------------------------------------------------------------
-st.markdown("### 💬 3. 自由畅聊模式 (随心所欲聊天)")
-chat_member = st.selectbox("选择聊天对象", list(MEMBERS.keys()), key="chat_m")
-chat_role = st.selectbox("选择当前身份", ROLES, key="chat_r")
-
-c_info = MEMBERS[chat_member]
-
-# 初始化对话
-if not st.session_state.chat_history:
-    st.session_state.chat_history.append({
-        "role": "assistant",
-        "content": f"（看着走过来的你，{chat_member} 笑了笑）喂，今天找我有事吗？"
-    })
-
-# 显示聊天框
-for msg in st.session_state.chat_history:
-    if msg["role"] == "user":
-        with st.chat_message("user", avatar="🌸"):
-            st.write(msg["content"])
-    else:
-        with st.chat_message("assistant", avatar="💙"):
-            st.write(msg["content"])
-
-# 用户打字输入
-if user_input := st.chat_input(f"对 {chat_member} 说点什么……"):
-    st.session_state.chat_history.append({"role": "user", "content": user_input})
-    with st.chat_message("user", avatar="🌸"):
-        st.write(user_input)
-        
-    with st.chat_message("assistant", avatar="💙"):
-        with st.spinner("思考中..."):
-            time.sleep(0.6)
-            replies = [
-                f"（耳朵微微泛红）你突然对我说这种话……犯规啦！",
-                f"（轻笑了一声）真拿你没办法，听你的还不行吗？",
-                f"（认真地看着你）记住你今天说的话哦，不许反悔！",
-                f"（顺势靠近你身边）既然你都这么讲了，那接下来要好好陪我才行~"
-            ]
-            reply = random.choice(replies)
-            st.write(reply)
-            st.session_state.chat_history.append({"role": "assistant", "content": reply})
-
-if st.button("🧹 清空聊天记录"):
-    st.session_state.chat_history = []
+if st.button("🧹 重置当前进度", use_container_width=True):
+    st.session_state.story_stage = 1
+    st.session_state.total_score = 0
+    st.session_state.history_replies = []
     st.rerun()
