@@ -955,20 +955,24 @@ elif st.session_state.stage == "playing":
             st.session_state.total_score += final_score
             st.session_state.dialogue_history.append((current_story['title'], choice_text, reply_text, final_score))
             
-            if act < MAX_ACT and random.random() < 0.4:
-                random_events_pool = [
-                    {"title": "突发暴雨的屋檐避难", "desc": f"两人在回家路上突然遇到倾盆大雨，被迫挤在一个小小的便利店屋檐下，肩膀紧紧贴在一起……"},
-                    {"title": "电台直播的连线突袭", "desc": f"工作间隙突然接到了一档电台连线直播，主持人现场要求他对你说一句真心话！"},
-                    {"title": "猫咪咖啡厅的意外邂逅", "desc": f"排练间隙去咖啡厅休息，一只可爱的布偶猫突然跳进你怀里，引得他吃醋地看着你……"},
-                    {"title": "便利店最后一块布丁", "desc": f"深夜去买宵夜，冰箱里只剩下最后一份他最爱的限定布丁，你们会怎么分？"}
-                    { "title": "📸 文春炮的闪光灯危机", "desc": f"深夜在街角散步时，暗处突然闪过一道刺眼的白光！文春记者带着长枪短炮从阴影里冲了出来，你们必须立刻做出反应！"},
-                    {"title": "🚨 狂热私生饭的围堵", "desc": f"刚结束录制，停车场突然冲出几个情绪激动的私生饭和私家车，死死堵住了去路，他下意识地把你护在了身后……"},
-                    {"title": "🎙️ 直播未关麦的社死瞬间", "desc": f"以为直播已经切断，他正凑在你耳边小声呢喃情话，结果几万名在线观众把两人的亲密私语听得清清楚楚！"},
-                    {"title": "🎭 颁奖后台的擦肩而过", "desc": f"在众多同行和媒体云集的颁奖典礼后台，为了避人耳目，你们俩不得不一起躲进了一个狭窄逼仄的杂物间里。"},
-                    {"title": "🕶️ 机场同款引发的饭圈地震", "desc": f"两人前脚刚一前一后离开机场，后脚就被火眼金睛的粉丝扒出戴了同款情侣项链，热搜瞬间爆了！"}
-         
+                if act < MAX_ACT and random.random() < 0.4:
+        random_events_pool = [
+            {"title": "突发暴雨的屋檐避难", "desc": f"两人在回家路上突然遇到倾盆大雨，被迫挤在一个小小的便利店屋檐下，肩膀紧紧贴着……"},
+            {"title": "电台直播的连线袭击", "desc": f"工作间隙突然接到了一档电台连线直播，主持人现场要求他对你说一句真心话！"},
+            {"title": "猫咪咖啡厅的意外邂逅", "desc": f"排练间隙去咖啡厅休息，一只可爱的布偶猫突然跳进你怀里，引得他吃醋地看着你……"},
+            {"title": "便利店最后一块布丁", "desc": f"深夜去买宵夜，冰箱里只剩下最后一份他最爱的限定布丁，你们会怎么分？"},
+            {"title": "📸 文春炮的闪光灯危机", "desc": f"深夜在街角散步时，暗处突然闪过一道刺眼的白光！文春记者带着长枪短炮从阴影里冲了出来，你们必须立刻做出反应！"},
+            {"title": "🚨 狂热私生饭的围堵", "desc": f"刚结束录制，停车场突然冲出几个情绪激动的私生饭和私家车，死死堵住了去路，他下意识地把你护在了身后……"},
+            {"title": "🎙️ 直播未关麦的社死瞬间", "desc": f"以为直播已经切断，他正凑在你耳边小声呢喃情话，结果几万名在线观众把两人的亲密私语听得清清楚楚！"},
+            {"title": "🎭 颁奖后台的擦肩而过", "desc": f"在众多同行和媒体云集的颁奖典礼后台，为了避人耳目，你们俩不得不一起躲进了一个狭窄逼仄的杂物间里。"},
+            {"title": "🕶️ 机场同款引发的饭圈地震", "desc": f"两人前脚刚一前一后离开机场，后脚就被火眼金睛的粉丝扒出戴了同款情侣项链，热搜瞬间爆了！"}
+        ]
+        st.session_state.random_event = random.choice(random_events_pool)
+
+        
                 st.session_state.random_event = random.choice(random_events_pool)
                 st.session_state.random_event = random.choice(random_events_pool)
+                
     
     # --- 防御道具拦截逻辑加在这里 ---
     current_event_title = st.session_state.random_event["title"]
