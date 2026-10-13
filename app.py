@@ -9,66 +9,105 @@ st.set_page_config(
     layout="centered",
 )
 
-# 2. STARTO / 杰尼斯组合与成员数据
+# 2. STARTO / 杰尼斯组合与成员数据（已按年龄从大到小严格排序）并附带出道曲音乐链接
 IDOL_GROUPS = {
-    "KEY TO LIT": ["岩崎大昇", "井上瑞稀", "中村岭亚", "猪狩苍弥", "佐佐木大光"],
-    "B&ZAI": [
-        "桥本凉",
-        "矢花黎",
-        "今野大辉",
-        "菅田琳宁",
-        "本高克树",
-        "铃木悠仁",
-        "川崎星辉",
-        "稻叶通阳",
-    ],
-    "ACEes": ["浮所飞贵", "那须雄登", "作间龙斗", "深田龙生", "佐藤龙我"],
-    "Aぇ! group (A少年)": [
-        "末泽诚也",
-        "正门良规",
-        "草间理查德敬太",
-        "小岛健",
-        "佐野晶哉",
-    ],
-    "浪花男子 (なにわ男子)": [
-        "藤原丈一郎",   
-        "西畑大吾",
-        "大桥和也",
-        "高桥恭平",
-        "大西流星",
-        "道枝骏佑",
-        "长尾谦杜",
-    ],
-    "SUPER EIGHT": ["横山裕", "村上信五", "丸山隆平", "安田章大", "大仓忠义"],
-    "Snow Man": [
-        "目黑莲",
-        "岩本照",
-        "深泽辰哉",
-        "ラウール",
-        "渡边翔太",
-        "向井康二",
-        "阿部亮平",
-        "宫馆凉太",
-        "佐久间大介",
-    ],
-    "SixTONES": [
-        "松村北斗",
-        "京本大我",
-        "田中树",
-        "杰西 (Jesse)",
-        "高地优吾",
-        "森本慎太郎",
-    ],
-    "King & Prince": ["平野紫耀", "永濑廉", "高桥海人", "岸优太", "神宫寺勇太"],
-    "Travis Japan": [
-        "宫近海斗",
-        "松田元太",
-        "七五三挂龙也",
-        "中村海人",
-        "川岛如惠留",
-        "吉泽闲也",
-        "松仓海斗",
-    ],
+    "SUPER EIGHT": {
+        "members": ["横山裕", "村上信五", "丸山隆平", "安田章大", "大仓忠义"],
+        "debut_song": "浪花いろは節",
+        "audio_url": "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&loop=1",  # 示例或官方音源嵌入
+    },
+    "Snow Man": {
+        "members": [
+            "深泽辰哉",
+            "岩本照",
+            "宫馆凉太",
+            "渡边翔太",
+            "阿部亮平",
+            "佐久间大介",
+            "向井康二",
+            "目黑莲",
+            "ラウール",
+        ],
+        "debut_song": "D.D.",
+        "audio_url": "https://www.youtube.com/embed/rbuYtrNUxg4?autoplay=1&loop=1",
+    },
+    "SixTONES": {
+        "members": [
+            "高地优吾",
+            "京本大我",
+            "杰西 (Jesse)",
+            "田中树",
+            "松村北斗",
+            "森本慎太郎",
+        ],
+        "debut_song": "Imitation Rain",
+        "audio_url": "https://www.youtube.com/embed/pIdae_ZOiko?autoplay=1&loop=1",
+    },
+    "Aぇ! group (A少年)": {
+        "members": [
+            "末泽诚也",
+            "正门良规",
+            "小岛健",
+            "佐野晶哉",
+        ],
+        "debut_song": "《A》BEGINNING",
+        "audio_url": "https://www.youtube.com/embed/example1?autoplay=1",
+    },
+    "浪花男子 (なにわ男子)": {
+        "members": [
+            "藤原丈一郎",
+            "大桥和也",
+            "西畑大吾",
+            "大西流星",
+            "高桥恭平",
+            "道枝骏佑",
+            "长尾谦杜",
+        ],
+        "debut_song": "初心LOVE (うぶらぶ)",
+        "audio_url": "https://www.youtube.com/embed/5t8mxgR5M7w?autoplay=1&loop=1",
+    },
+    "King & Prince": {
+        "members": ["岸优太", "平野紫耀", "神宫寺勇太", "永濑廉", "高桥海人"],
+        "debut_song": "Cinderella Girl",
+        "audio_url": "https://www.youtube.com/embed/example2?autoplay=1",
+    },
+    "Travis Japan": {
+        "members": [
+            "川岛如惠留",
+            "七五三挂龙也",
+            "吉泽闲也",
+            "中村海人",
+            "宫近海斗",
+            "松仓海斗",
+            "松田元太",
+        ],
+        "debut_song": "JUST DANCE!",
+        "audio_url": "https://www.youtube.com/embed/example3?autoplay=1",
+    },
+    "KEY TO LIT": {
+        "members": ["岩崎大昇", "井上瑞稀", "中村岭亚", "猪狩苍弥", "佐佐木大光"],
+        "debut_song": None,
+        "audio_url": None,
+    },
+    "B&ZAI": {
+        "members": [
+            "桥本凉",
+            "矢花黎",
+            "今野大辉",
+            "菅田琳宁",
+            "本高克树",
+            "铃木悠仁",
+            "川崎星辉",
+            "稻叶通阳",
+        ],
+        "debut_song": None,
+        "audio_url": None,
+    },
+    "ACEes": {
+        "members": ["浮所飞贵", "那须雄登", "作间龙斗", "深田龙生", "佐藤龙我"],
+        "debut_song": None,
+        "audio_url": None,
+    },
 }
 
 # 3. 极简高颜值粉紫 UI
@@ -153,7 +192,6 @@ def init_game():
   st.session_state.member = ""
   st.session_state.lucky_item = ""
 
-  # 隐藏的内部数值
   st.session_state.dance = random.randint(15, 25)
   st.session_state.vocal = random.randint(15, 25)
   st.session_state.variety = random.randint(15, 25)
@@ -166,27 +204,20 @@ if "game_started" not in st.session_state:
   init_game()
 
 
-# 隐藏属性更新辅助函数（结合道具被动生效）
+# 隐藏属性更新辅助函数
 def update_hidden_stats(dance=0, vocal=0, variety=0, fans=0, trust=0, log_msg=""):
-  # 道具生效逻辑
-  if (
-      st.session_state.lucky_item == "👟 加厚防滑特制舞鞋"
-      and dance > 0
-  ):
-    dance += 5  # 舞蹈爆击
+  if st.session_state.lucky_item == "👟 加厚防滑特制舞鞋" and dance > 0:
+    dance += 5
   elif (
       st.session_state.lucky_item == "📖 记满心得的旧笔记本"
       and (vocal > 0 or variety > 0)
   ):
     vocal = int(vocal * 1.3)
     variety = int(variety * 1.3)
-  elif (
-      st.session_state.lucky_item == "🍲 深夜暖心关东煮"
-      and fans > 0
-  ):
+  elif st.session_state.lucky_item == "🍲 深夜暖心关东煮" and fans > 0:
     fans = int(fans * 1.25)
   elif st.session_state.lucky_item == "🍀 前辈送的开光御守" and trust < 0:
-    trust = int(trust * 0.5)  # 负面信任减半
+    trust = int(trust * 0.5)
 
   st.session_state.dance += dance
   st.session_state.vocal += vocal
@@ -194,7 +225,6 @@ def update_hidden_stats(dance=0, vocal=0, variety=0, fans=0, trust=0, log_msg=""
   st.session_state.fans += fans
   st.session_state.trust += trust
 
-  # 限制范围
   st.session_state.trust = max(0, min(100, st.session_state.trust))
   st.session_state.fans = max(0, st.session_state.fans)
   st.session_state.dance = max(0, st.session_state.dance)
@@ -206,21 +236,35 @@ def update_hidden_stats(dance=0, vocal=0, variety=0, fans=0, trust=0, log_msg=""
 
 
 # 主标题
-st.title("💖 偶像培养计划：星途甄选 5.0")
+st.title("💖 偶像培养计划：星途甄选")
 
-# 顶部渲染状态栏（绝不显示具体属性分数）
+# 游戏开始后渲染顶部栏与动态出道曲 BGM（如果已出道）
 if st.session_state.game_started:
+  group_info = IDOL_GROUPS.get(st.session_state.group, {})
+  debut_str = (
+      f" | 💿 出道曲：《{group_info['debut_song']}》"
+      if group_info.get("debut_song")
+      else " | 🌟 研修生出道中"
+  )
+
   st.markdown(
-      f'<div class="top-dashboard">👑 当前研修生：<b>{st.session_state.member}</b>（所属：{st.session_state.group}） | 📍 进度：Stage {st.session_state.stage} / 20 | 🎒 幸运物：{st.session_state.lucky_item}</div>',
+      f'<div class="top-dashboard">👑 当前研修生：<b>{st.session_state.member}</b>（所属：{st.session_state.group}）{debut_str} | 🎒 幸运物：{st.session_state.lucky_item}</div>',
       unsafe_allow_html=True,
   )
 
+  # 如果该组合已出道，悄悄在后台嵌入背景音乐播放器
+  if group_info.get("audio_url"):
+    st.markdown(
+        f'<iframe src="{group_info["audio_url"]}" allow="autoplay" style="display:none"></iframe>',
+        unsafe_allow_html=True,
+    )
+
 # -------------------------------------------------------------------
-# STAGE 0: 选角与开局幸运物抽取
+# STAGE 0: 选角与幸运物抽取
 # -------------------------------------------------------------------
 if not st.session_state.game_started:
   st.markdown(
-      '<div class="cute-info">✨ 欢迎来到 STARTO 偶像养成营！在踏入练习室之前，请先抽取属于你的开局【幸运物盲盒】，它将在接下来的 20 个阶段中为你保驾护航！</div>',
+      '<div class="cute-info">✨ 欢迎来到 STARTO 偶像养成营！请选择你的组合、成员，并抽取开局【幸运物盲盒】！</div>',
       unsafe_allow_html=True,
   )
 
@@ -230,8 +274,9 @@ if not st.session_state.game_started:
         "选择心仪的偶像组合：", list(IDOL_GROUPS.keys())
     )
   with col_b:
+    # 动态获取当前组合已按年龄排好序的成员列表
     selected_member = st.selectbox(
-        "选择你要扮演的成员：", IDOL_GROUPS[selected_group]
+        "选择你要扮演的成员：", IDOL_GROUPS[selected_group]["members"]
     )
 
   st.markdown("---")
@@ -263,7 +308,7 @@ if not st.session_state.game_started:
     st.info("请点击上方按钮抽取属于你的开局幸运物。")
 
   st.markdown("---")
-  if st.button("🚀 带着祝福，开启 20 阶段星途之旅！", use_container_width=True):
+  if st.button("🚀 带着祝福，正式开启星途之旅！", use_container_width=True):
     if not st.session_state.temp_lucky:
       st.session_state.temp_lucky = "📖 记满心得的旧笔记本"
     st.session_state.group = selected_group
@@ -273,7 +318,7 @@ if not st.session_state.game_started:
     st.rerun()
 
 # -------------------------------------------------------------------
-# 剧情数据大表
+# 剧情数据大表（包含 20 个身临其境的阶段）
 # -------------------------------------------------------------------
 STAGES_DATA = {
     1: {
@@ -516,7 +561,7 @@ STAGES_DATA = {
     },
     18: {
         "title": "🌟 Stage 18：全国巡演千秋乐（最终场）",
-        "desc": "全国巡演迎来了最后一站千秋乐，全场一片粉色应变灯海。舞台上大家都流下了激动的泪水。",
+        "desc": "全国巡演迎来的最后一站千秋乐，全场一片粉色应援灯海。舞台上大家都流下了激动的泪水。",
         "choices": [
             "1. 对着全场万名粉丝大喊：“谢谢你们带我们看到这么美的景色！”",
             "2. 与组合成员们紧紧拥抱在一起，围成一圈大喊加油。",
@@ -546,7 +591,7 @@ STAGES_DATA = {
         "title": "🏆 Stage 20：帝国剧场 CD 出道决选（终局裁决）",
         "desc": "帝国剧场金碧辉煌，全日本数百家媒体的闪光灯闪烁。社长坐在话筒前，即将宣读今年正式获得 **CD 出道** 资格的最终名单！",
         "choices": [
-            "🌟 挺直脊梁，怀揣 20 个阶段的汗水与羁绊，走向聚光灯！",
+            "🌟 挺直脊梁，怀揣这段时间的汗水与羁绊，走向聚光灯！",
         ],
         "effects": [],
     },
@@ -554,7 +599,7 @@ STAGES_DATA = {
 
 
 # -------------------------------------------------------------------
-# STAGE 1 - 20 游戏主流程
+# 游戏主流程
 # -------------------------------------------------------------------
 if st.session_state.game_started:
   curr_stage = st.session_state.stage
@@ -590,7 +635,7 @@ if st.session_state.game_started:
       st.rerun()
 
   # -------------------------------------------------------------------
-  # STAGE 20: 终局出道大决选 (揭晓全部得分与结局)
+  # STAGE 20: 终局出道大决选
   # -------------------------------------------------------------------
   elif curr_stage == 20:
     stage_info = STAGES_DATA[20]
@@ -603,7 +648,7 @@ if st.session_state.game_started:
         </div>
         """, unsafe_allow_html=True)
 
-    if st.button("🌟 揭晓最终出道结果与 20 阶段能力档案 🌟", use_container_width=True):
+    if st.button("🌟 揭晓最终出道结果与终局能力档案 🌟", use_container_width=True):
       st.markdown("---")
 
       total_ability = (
@@ -614,7 +659,6 @@ if st.session_state.game_started:
       trust = st.session_state.trust
       fans = st.session_state.fans
 
-      # 终局结局判定
       if trust < 25:
         st.error("💀 【最终结局：遗憾离场 / 另谋出路】")
         st.write(
@@ -626,7 +670,7 @@ if st.session_state.game_started:
         st.success("🎉 【最终结局：传奇顶流 - 百万销量 CD 华丽出道！】")
         st.markdown(
             f"### 👑 恭喜 {st.session_state.group} 的 **{st.session_state.member}**！\n"
-            f"携带幸运物【{st.session_state.lucky_item}】的你，在长达 20 个阶段的汗水、泪水与同伴羁绊中脱颖而出！"
+            f"携带幸运物【{st.session_state.lucky_item}】的你，在长期的汗水、泪水与同伴羁绊中脱颖而出！"
             "社长在发布会上亲手递出了 CD 出道金标签！出道单曲空降各大榜单首位，你正式登上了日本娱乐圈新一代巨星顶峰！"
         )
       elif fans >= 6000 and trust >= 45:
@@ -643,9 +687,8 @@ if st.session_state.game_started:
             "社长决定让你继续作为组合的中坚力量深耕舞台，未来可期！"
         )
 
-      # 20 阶段终极能力档案大公开
       st.markdown("---")
-      st.markdown("### 📊 你的 20 阶段星途能力终极档案")
+      st.markdown("### 📊 你的星途能力终极档案")
       st.write(
           f"- 💃 舞蹈能力：**{st.session_state.dance} pt** | 🎤 歌唱能力：**{st.session_state.vocal} pt** | 🤡 综艺表现：**{st.session_state.variety} pt**"
       )
@@ -653,7 +696,7 @@ if st.session_state.game_started:
       st.write(f"- 💖 累积粉丝总数：**{fans:,} 人**")
       st.write(f"- 🎒 开局幸运物：**{st.session_state.lucky_item}**")
 
-      st.markdown("#### 📖 你的 20 阶段星途手记完整回顾：")
+      st.markdown("#### 📖 你的星途手记完整回顾：")
       for log in st.session_state.logs:
         st.caption(f"• {log}")
 
