@@ -125,7 +125,7 @@ st.markdown(
 )
 
 
-# 4. 初始化数据（加入压力值系统）
+# 4. 初始化数据
 def init_game():
   st.session_state.game_started = False
   st.session_state.stage = 1
@@ -315,7 +315,7 @@ def render_dirt_dig_game():
 
 
 # -------------------------------------------------------------------
-# 👗 3. 纸娃娃换装搭配小游戏
+# 👗 3. 精致奇迹暖暖风：偶像男装/多风格纸娃娃换装间
 # -------------------------------------------------------------------
 def render_dress_up_game():
   html_code = """
@@ -324,20 +324,20 @@ def render_dress_up_game():
     <head>
         <style>
             body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
-            .dress-box { background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); padding: 10px; width: 320px; text-align: center; }
-            canvas { display: block; margin: 0 auto; background: #211035; border-radius: 10px; border: 2px solid #ff4081; }
-            .category-row { display: flex; justify-content: center; gap: 4px; margin-top: 8px; }
+            .dress-box { background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); padding: 12px; width: 320px; text-align: center; }
+            canvas { display: block; margin: 0 auto; background: linear-gradient(135deg, #2b1055, #7597de); border-radius: 12px; border: 2px solid #ff4081; box-shadow: inset 0 0 15px rgba(0,0,0,0.4); }
+            .category-row { display: flex; justify-content: center; gap: 4px; margin-top: 10px; }
             .cat-btn { background: #4a148c; color: white; border: 1px solid #ff80ab; padding: 6px 10px; font-size: 11px; font-weight: bold; border-radius: 8px; cursor: pointer; }
-            .cat-btn.active { background: #ff4081; }
-            .items-row { display: flex; justify-content: center; gap: 6px; margin-top: 6px; }
-            .item-btn { background: linear-gradient(45deg, #ab47bc, #7b1fa2); color: white; border: none; padding: 6px 12px; font-size: 11px; font-weight: bold; border-radius: 8px; cursor: pointer; }
+            .cat-btn.active { background: #ff4081; box-shadow: 0 0 8px #ff4081; }
+            .items-row { display: flex; justify-content: center; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+            .item-btn { background: linear-gradient(45deg, #ab47bc, #7b1fa2); color: white; border: 1px solid #ea80fc; padding: 6px 10px; font-size: 11px; font-weight: bold; border-radius: 8px; cursor: pointer; }
             .item-btn:active { transform: scale(0.95); }
         </style>
     </head>
     <body>
         <div class="dress-box">
-            <div style="color: #ffeb3b; font-weight: bold; font-size: 12px; margin-bottom: 4px;">👗 杂志封面拍摄：偶像纸娃娃换装间</div>
-            <canvas id="dollCanvas" width="300" height="170"></canvas>
+            <div style="color: #ffeb3b; font-weight: bold; font-size: 13px; margin-bottom: 6px;">✨ 杂志封面：偶像纸娃娃高级定制间</div>
+            <canvas id="dollCanvas" width="296" height="185"></canvas>
             
             <div class="category-row">
                 <button class="cat-btn active" onclick="setCategory('hair')">💇 发型</button>
@@ -354,32 +354,32 @@ def render_dress_up_game():
 
             let currentCat = 'hair';
             let outfit = {
-                hair: { name: '清爽短发', color: '#ffb703' },
-                top: { name: '闪光战袍', color: '#ff4081' },
-                bottom: { name: '修身潮裤', color: '#3a86ff' },
-                shoes: { name: '打歌高帮鞋', color: '#adb5bd' }
+                hair: { name: '日系抓发', type: 'hair1' },
+                top: { name: '学院西装', type: 'top1' },
+                bottom: { name: '修身黑裤', type: 'bot1' },
+                shoes: { name: '经典皮鞋', type: 'shoe1' }
             };
 
             const options = {
                 hair: [
-                    { name: '清爽短发', color: '#ffb703' },
-                    { name: '优雅长卷', color: '#8338ec' },
-                    { name: '活力马尾', color: '#fb8500' }
+                    { name: '日系抓发', type: 'hair1' },
+                    { name: '韩系微卷', type: 'hair2' },
+                    { name: '耀眼狼尾', type: 'hair3' }
                 ],
                 top: [
-                    { name: '闪光战袍', color: '#ff4081' },
-                    { name: '学院西装', color: '#2b2d42' },
-                    { name: '朋克皮衣', color: '#000000' }
+                    { name: '学院西装', type: 'top1' },
+                    { name: '华丽战袍', type: 'top2' },
+                    { name: '宽松连帽衫', type: 'top3' }
                 ],
                 bottom: [
-                    { name: '修身潮裤', color: '#3a86ff' },
-                    { name: '舞台短裙', color: '#ff006e' },
-                    { name: '工装长裤', color: '#6c757d' }
+                    { name: '修身黑裤', type: 'bot1' },
+                    { name: '工装潮裤', type: 'bot2' },
+                    { name: '亮片西裤', type: 'bot3' }
                 ],
                 shoes: [
-                    { name: '打歌高帮鞋', color: '#adb5bd' },
-                    { name: '闪亮皮鞋', color: '#ffd166' },
-                    { name: '运动小白鞋', color: '#ffffff' }
+                    { name: '经典皮鞋', type: 'shoe1' },
+                    { name: '高帮马丁', type: 'shoe2' },
+                    { name: '运动板鞋', type: 'shoe3' }
                 ]
             };
 
@@ -406,39 +406,93 @@ def render_dress_up_game():
             }
 
             function drawDoll() {
-                ctx.clearRect(0, 0, 300, 170);
+                ctx.clearRect(0, 0, 296, 185);
 
-                ctx.fillStyle = 'rgba(255, 128, 171, 0.15)';
-                ctx.beginPath(); ctx.arc(150, 85, 65, 0, Math.PI*2); ctx.fill();
+                // 背景聚光灯光晕
+                let grad = ctx.createRadialGradient(148, 92, 10, 148, 92, 90);
+                grad.addColorStop(0, 'rgba(255, 255, 255, 0.25)');
+                grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, 296, 185);
 
+                // --- 1. 模特身体轮廓 ---
+                // 颈部
                 ctx.fillStyle = '#fceade';
-                ctx.beginPath(); ctx.arc(150, 55, 22, 0, Math.PI*2); ctx.fill();
-
-                ctx.fillStyle = outfit.shoes.color;
-                ctx.fillRect(132, 138, 14, 15);
-                ctx.fillRect(154, 138, 14, 15);
-
-                ctx.fillStyle = outfit.bottom.color;
-                ctx.fillRect(136, 100, 28, 40);
-
-                ctx.fillStyle = outfit.top.color;
+                ctx.fillRect(141, 62, 14, 15);
+                // 头部
                 ctx.beginPath();
-                ctx.roundRect(125, 65, 50, 42, 6);
+                ctx.arc(148, 48, 20, 0, Math.PI*2);
+                ctx.fill();
+                // 眼睛
+                ctx.fillStyle = '#2b1055';
+                ctx.beginPath();
+                ctx.arc(141, 47, 2, 0, Math.PI*2);
+                ctx.arc(155, 47, 2, 0, Math.PI*2);
                 ctx.fill();
 
-                ctx.fillStyle = outfit.hair.color;
-                ctx.beginPath();
-                ctx.arc(150, 48, 24, Math.PI, Math.PI * 2);
-                if(outfit.hair.name === '活力马尾') {
-                    ctx.arc(175, 45, 10, 0, Math.PI*2);
-                } else if(outfit.hair.name === '优雅长卷') {
-                    ctx.fillRect(124, 45, 10, 30);
-                    ctx.fillRect(166, 45, 10, 30);
+                // --- 2. 裤装 (Bottom) ---
+                ctx.fillStyle = outfit.bottom.type === 'bot1' ? '#1f2421' : (outfit.bottom.type === 'bot2' ? '#5c677d' : '#4a3000');
+                if(outfit.bottom.type === 'bot1') {
+                    ctx.fillRect(135, 110, 12, 45);
+                    ctx.fillRect(149, 110, 12, 45);
+                } else if(outfit.bottom.type === 'bot2') { // 宽松工装
+                    ctx.fillRect(133, 110, 14, 45);
+                    ctx.fillRect(149, 110, 14, 45);
+                } else { // 闪片西裤
+                    ctx.fillStyle = '#b5838d';
+                    ctx.fillRect(134, 110, 13, 45);
+                    ctx.fillRect(149, 110, 13, 45);
                 }
-                ctx.fill();
 
-                ctx.fillStyle = '#ffeb3b'; ctx.font = '11px Arial';
-                ctx.fillText("✨ 当前搭配: " + outfit.top.name + " + " + outfit.bottom.name, 15, 20);
+                // --- 3. 上衣 (Top) ---
+                if(outfit.top.type === 'top1') { // 学院西装
+                    ctx.fillStyle = '#2b2d42';
+                    ctx.beginPath(); ctx.roundRect(125, 72, 46, 42, 6); ctx.fill();
+                    // 内衬白衬衫 V 领
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath(); ctx.moveTo(148, 72); ctx.lineTo(142, 88); ctx.lineTo(154, 88); ctx.fill();
+                    // 领带
+                    ctx.fillStyle = '#d90429';
+                    ctx.fillRect(146, 85, 4, 14);
+                } else if(outfit.top.type === 'top2') { // 华丽战袍
+                    ctx.fillStyle = '#ffb703';
+                    ctx.beginPath(); ctx.roundRect(122, 70, 52, 44, 8); ctx.fill();
+                    ctx.fillStyle = '#fb8500';
+                    ctx.fillRect(122, 90, 52, 6);
+                } else { // 连帽衫
+                    ctx.fillStyle = '#8338ec';
+                    ctx.beginPath(); ctx.roundRect(126, 72, 44, 42, 10); ctx.fill();
+                    ctx.fillStyle = '#3a86ff';
+                    ctx.fillRect(140, 72, 16, 12); // 帽子
+                }
+
+                // --- 4. 鞋子 (Shoes) ---
+                ctx.fillStyle = outfit.shoes.type === 'shoe1' ? '#000000' : (outfit.shoes.type === 'shoe2' ? '#382b22' : '#ffffff');
+                ctx.fillRect(131, 155, 14, 10);
+                ctx.fillRect(151, 155, 14, 10);
+
+                // --- 5. 发型 (Hair) ---
+                ctx.fillStyle = '#3a0ca3';
+                if(outfit.hair.type === 'hair1') { // 日系抓发
+                    ctx.beginPath();
+                    ctx.arc(148, 42, 22, Math.PI, Math.PI * 2);
+                    ctx.lineTo(172, 50); ctx.lineTo(148, 30); ctx.lineTo(124, 50);
+                    ctx.fill();
+                } else if(outfit.hair.type === 'hair2') { // 韩系微卷
+                    ctx.beginPath();
+                    ctx.arc(148, 40, 23, 0, Math.PI * 2);
+                    ctx.fill();
+                } else { // 耀眼狼尾
+                    ctx.beginPath();
+                    ctx.arc(148, 42, 22, Math.PI, Math.PI * 2);
+                    ctx.fillRect(123, 40, 6, 22);
+                    ctx.fillRect(167, 40, 6, 22);
+                    ctx.fill();
+                }
+
+                // 界面提示文字
+                ctx.fillStyle = '#ffeb3b'; ctx.font = 'bold 11px Arial';
+                ctx.fillText("🎨 穿搭: " + outfit.top.name + " + " + outfit.bottom.name, 12, 20);
             }
 
             setCategory('hair');
@@ -447,6 +501,7 @@ def render_dress_up_game():
     </body>
     </html>
     """
+  ]
   components.html(html_code, height=275)
 
 
@@ -885,6 +940,7 @@ def render_lightstick_game():
     </body>
     </html>
     """
+  )
   components.html(html_code, height=290)
 
 
@@ -1284,11 +1340,11 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # 阶段 17：👗 杂志封面拍摄与舞台换装搭配小游戏
+  # 阶段 17：👗 精致暖暖风男装纸娃娃换装
   elif curr_stage == 17:
-    st.subheader("📍 Stage 17：【杂志封面拍摄】偶像纸娃娃换装间")
+    st.subheader("📍 Stage 17：【杂志封面拍摄】偶像纸娃娃高级定制间")
     st.markdown(
-        '<div class="event-card"><b>👗 【换装搭配小游戏】</b><br>即将拍摄出道单曲的杂志封面！请在下方为模特自由搭配<b>发型、上衣、裤装与鞋子</b>，打造最亮眼的封面造型！</div>',
+        '<div class="event-card"><b>👗 【奇迹暖暖风：男装换装搭配间】</b><br>即将拍摄出道单曲的杂志封面！请在下方为男神模特自由搭配<b>精致发型、男团西装/战袍、潮酷裤装与鞋子</b>！</div>',
         unsafe_allow_html=True,
     )
     render_dress_up_game()
