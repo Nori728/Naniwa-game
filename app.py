@@ -311,7 +311,6 @@ def render_dirt_dig_game():
     </body>
     </html>
     """
-  ]
   components.html(html_code, height=310)
 
 
