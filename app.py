@@ -9,7 +9,7 @@ st.set_page_config(
     layout="centered",
 )
 
-# 2. 团队数据（已按年龄严格从大到小排序）
+# 2. 团队与成员数据（已按年龄从大到小严格排序）
 IDOL_GROUPS = {
     "ARASHI (岚)": ["大野智", "樱井翔", "相叶雅纪", "二宫和也", "松本润"],
     "WEST.": [
@@ -81,7 +81,7 @@ IDOL_GROUPS = {
     "ACEes": ["浮所飞贵", "那须雄登", "作间龙斗", "深田龙生", "佐藤龙我"],
 }
 
-# 3. 页面样式美化（高颜值极简风格）
+# 3. 样式美化
 st.markdown(
     """
     <style>
@@ -108,20 +108,24 @@ st.markdown(
         font-weight: 600;
         margin-bottom: 15px;
     }
+    .game-box {
+        background: #ffffff;
+        padding: 20px;
+        border-radius: 15px;
+        border: 2px solid #ab47bc;
+        text-align: center;
+        margin: 15px 0;
+        color: #4a148c;
+    }
     div[data-testid="stRadio"] div[role="radiogroup"] > label {
         background-color: #ffffff;
-        padding: 12px 18px;
-        border-radius: 15px;
-        margin-bottom: 8px;
+        padding: 10px 16px;
+        border-radius: 12px;
+        margin-bottom: 6px;
         border: 2px solid #ea80fc;
-        transition: all 0.2s ease;
         color: #4a148c;
         font-weight: 600;
         touch-action: manipulation;
-    }
-    div[data-testid="stRadio"] div[role="radiogroup"] > label:hover {
-        background-color: #f3e5f5;
-        border-color: #ff4081;
     }
     .stButton > button {
         background: linear-gradient(45deg, #ff4081, #ab47bc) !important;
@@ -146,15 +150,14 @@ def init_game():
   st.session_state.player_name = ""
   st.session_state.group = ""
 
-  # 后台隐形数值（玩家不可见）
-  st.session_state.energy = 100  # 体力
-  st.session_state.dance = 20  # 舞蹈
-  st.session_state.vocal = 20  # 歌唱
-  st.session_state.variety = 20  # 综艺
-  st.session_state.fans = 100  # 粉丝数
-  st.session_state.trust = 50  # 社长信任度
-  st.session_state.bond = 10  # 团员羁绊值
-
+  # 后台隐形数值
+  st.session_state.energy = 100
+  st.session_state.dance = 20
+  st.session_state.vocal = 20
+  st.session_state.variety = 20
+  st.session_state.fans = 100
+  st.session_state.trust = 50
+  st.session_state.bond = 10
   st.session_state.logs = []
 
 
@@ -162,7 +165,6 @@ if "game_started" not in st.session_state:
   init_game()
 
 
-# 获取随机团员辅助函数
 def get_rand_member():
   members = IDOL_GROUPS.get(st.session_state.group, ["前辈"])
   return random.choice(members)
@@ -172,11 +174,11 @@ def get_rand_member():
 st.title("💖 星途闪耀：我的练习生日常")
 
 # -------------------------------------------------------------------
-# STAGE 0: 开局设定（输入名字与选择组合）
+# STAGE 0: 经典的下箭头展开式选团面板 (st.expander)
 # -------------------------------------------------------------------
 if not st.session_state.game_started:
   st.markdown(
-      '<div class="cute-info">✨ 欢迎来到 STARTO 偶像养成营！请输入你的名字，并选择想加入/同行研修的组合！</div>',
+      '<div class="cute-info">✨ 欢迎来到 STARTO 偶像养成营！请先输入你的名字，然后点击下方你心仪的组合（带下箭头可展开查看成员），开启养成之旅！</div>',
       unsafe_allow_html=True,
   )
 
@@ -185,124 +187,128 @@ if not st.session_state.game_started:
   )
 
   st.markdown("---")
-  st.markdown("#### 🏢 请选择想加入/同行研修的组合：")
+  st.markdown("#### 🏢 请展开下方组合面板进行选择：")
 
-  # 手机适配单选按钮
-  selected_group = st.radio(
-      "点击选择组合：", list(IDOL_GROUPS.keys()), key="group_radio"
-  )
+  # 用 st.expander 实现点击下箭头展开选团
+  for g_name, members in IDOL_GROUPS.items():
+    member_list_str = "、".join(members)
+    with st.expander(f"✨ {g_name} （点击右侧下箭头查看成员）"):
+      st.write(f"**组合成员**：{member_list_str}")
+      if st.button(f"🎯 就决定加入 【{g_name}】！", key=f"select_{g_name}"):
+        st.session_state.chosen_target_group = g_name
+
+  if "chosen_target_group" in st.session_state:
+    st.success(
+        f"🌟 当前已锁定目标组合：**{st.session_state.chosen_target_group}**"
+    )
 
   st.markdown("---")
-  if st.button("🚀 签订研修契约，开启练习生生涯！", use_container_width=True):
+  if st.button("🚀 签订研修契约，正式开启练习生生活！", use_container_width=True):
     if not name_input.strip():
-      st.error("请先输入名字哦！")
+      st.error("请先输入你的名字哦！")
+    elif "chosen_target_group" not in st.session_state:
+      st.error("请先点击上方任意组合的下箭头展开并选择一个组合哦！")
     else:
       st.session_state.player_name = name_input.strip()
-      st.session_state.group = selected_group
+      st.session_state.group = st.session_state.chosen_target_group
       st.session_state.game_started = True
       st.rerun()
 
 # -------------------------------------------------------------------
-# 游戏主流程（剧情事件 + 自由排程，无显式数据面板）
+# 游戏主流程
 # -------------------------------------------------------------------
 if st.session_state.game_started:
   curr_stage = st.session_state.stage
-
-  # 规则：特定节点触发【自由自主排程日】
   is_free_training_day = curr_stage in [2, 5, 8, 12, 15, 18]
 
   if is_free_training_day and curr_stage < 20:
-    st.subheader("🗓️ 自由特训与日常安排")
+    st.subheader("🗓️ 自主特训与日常安排")
     st.info(
-        "💡 **自主安排日**：今天没有集体课程，你可以自由安排练习、休息或与同伴互动。"
+        "💡 **自主安排日**：今天没有集体课程，你可以自由进行专项突破或恢复体力。"
     )
 
     col1, col2 = st.columns(2)
     with col1:
       if st.button("💃 在舞蹈房死磕高难度步法"):
         if st.session_state.energy < 20:
-          st.error("⚠️ 你感到极度疲惫，已经没有精力继续高强度练习了，快去休息吧！")
+          st.error("⚠️ 你感到极度疲惫，快去休息吧！")
         else:
           gain = random.randint(15, 25)
           st.session_state.dance += gain
           st.session_state.energy -= 20
-          st.session_state.logs.append(
-              "在舞蹈房对着镜子反复练习，舞步更加娴熟自然。"
-          )
           st.session_state.stage += 1
           st.rerun()
-
-      if st.button("🎤 到声乐室练习高音与发声"):
+      if st.button("🎤 到声乐室练习高音发声"):
         if st.session_state.energy < 20:
-          st.error("⚠️ 你感到极度疲惫，嗓子有些哑了，快去休息吧！")
+          st.error("⚠️ 嗓子有些哑了，快去休息吧！")
         else:
           gain = random.randint(15, 25)
           st.session_state.vocal += gain
           st.session_state.energy -= 20
-          st.session_state.logs.append(
-              "在声乐室练习发声技巧，开嗓效果显著。"
-          )
           st.session_state.stage += 1
           st.rerun()
-
     with col2:
       member_name = get_rand_member()
-      if st.button(f"🍲 与 {member_name} 相约去吃烤肉聊心事"):
+      if st.button(f"🍲 与 {member_name} 约去吃烤肉聊心事"):
         if st.session_state.energy < 15:
-          st.error("⚠️ 你太累了，连出门吃饭的精力都没有了，快去休息吧！")
+          st.error("⚠️ 太累了，连出门的精力都没有啦！")
         else:
           st.session_state.bond += 15
           st.session_state.fans += 300
           st.session_state.energy -= 15
-          st.session_state.logs.append(
-              f"与 {member_name} 深夜吃烤肉，聊起了许多对未来的憧憬，感情加深。"
-          )
           st.session_state.stage += 1
           st.rerun()
-
-      if st.button("💤 回宿舍彻底休息躺平"):
+      if st.button("💤 回宿舍彻底躺平休息"):
         st.session_state.energy = min(100, st.session_state.energy + 40)
-        st.session_state.logs.append("睡了个大饱觉，整个人恢复了精气神！")
         st.session_state.stage += 1
         st.rerun()
 
-  # 普通剧情关卡（根据当前能力隐形判定）
   elif curr_stage < 20:
     st.subheader(f"📍 阶段 {curr_stage}")
-
     member = get_rand_member()
 
-    if curr_stage == 1:
+    # 互动小游戏挑战关卡
+    if curr_stage in [3, 7, 11, 14, 17]:
       st.markdown(f"""
             <div class="event-card">
-                <b>🎵 【雨后练习室的汗水】</b><br>
-                今天基础舞蹈课强度极大，大家都瘫坐在地上。{member} 擦着汗走过来拍了拍你的肩膀：“{st.session_state.player_name}，刚才那个转身动作重心有点偏哦，要不要再试一次？”
+                <b>🎮 【舞台互动挑战：即兴全开麦应变】</b><br>
+                现场突然抽中了由你主导的舞蹈 Break！台下灯光聚焦，音乐节拍正在倒数！你需要凭手速和反应在节拍落下时按下按钮！
             </div>
             """, unsafe_allow_html=True)
 
-      c1 = st.button("1. 挑战：独自留下来对着镜子死磕动作直到深夜")
-      c2 = st.button("2. 递上买来的冰麦茶，和大家结伴回宿舍聊聊天")
+      st.markdown(
+          '<div class="game-box">⚡ <b>互动挑战</b>：请在下方滑动调整到最完美的舞台爆发力度（1-100），接近 <b>88</b> 即为满分完美表现！</div>',
+          unsafe_allow_html=True,
+      )
 
-      if c1:
-        if st.session_state.dance >= 15:
+      user_power = st.slider(
+          "调整你的爆发力度：", 1, 100, 50, key=f"slider_{curr_stage}"
+      )
+
+      if st.button("🔥 释放舞台大招！"):
+        diff = abs(user_power - 88)
+        if diff <= 5:
+          st.balloons()
           st.success(
-              f"✨ 你的专注与执着感动了大家！{member} 回头看到了你加练的背影，默默为你点赞。"
+              "🎯 **完美判定 (PERFECT)！** 你的节奏感惊艳全场，粉丝暴涨，台下尖叫声掀翻屋顶！"
           )
-          st.session_state.dance += 20
+          st.session_state.fans += 1200
+          st.session_state.dance += 25
+        elif diff <= 20:
+          st.success(
+              "✨ **良好判定 (GREAT)！** 顺利完成了表演，表现得稳扎稳打。"
+          )
+          st.session_state.fans += 500
+          st.session_state.vocal += 15
         else:
-          st.error("❌ 动作发力不对导致轻微拉伤，体力消耗巨大！")
-          st.session_state.energy -= 30
-        st.session_state.stage += 1
-        st.rerun()
-
-      if c2:
-        st.session_state.bond += 10
-        st.session_state.fans += 200
+          st.warning(
+              "⚠️ **失误 (MISS)！** 稍微有点紧张，节奏踩得不太准，不过好在有队友救场。"
+          )
+          st.session_state.trust -= 5
         st.session_state.stage += 1
         st.rerun()
 
     else:
-      # 动态生成剧情
       events = [
           {
               "title": "📺 临时突袭直播",
@@ -315,12 +321,6 @@ if st.session_state.game_started:
               "desc": "现场彩排设备突发故障，耳返里全是嘈杂的杂音！",
               "opt1": "凭肌肉记忆与感觉全开麦硬扛高音！",
               "opt2": "冷静地摘下耳返，与队友依靠眼神对齐节奏。",
-          },
-          {
-              "title": "📖 杂志采访时刻",
-              "desc": "记者问起你平时私底下和团里谁关系最好、最大的爱好是什么。",
-              "opt1": "分享与队友们深夜吃烤肉的搞笑日常。",
-              "opt2": "聊聊自己最近研究的音乐创作与编曲。",
           },
       ]
       ev = events[curr_stage % len(events)]
@@ -345,20 +345,16 @@ if st.session_state.game_started:
         st.session_state.stage += 1
         st.rerun()
 
-  # -------------------------------------------------------------------
-  # STAGE 20: 终局 CD 出道决选
-  # -------------------------------------------------------------------
   else:
-    st.subheader("🏁 帝国剧场 CD 出道决选（终局裁决）")
-
+    st.subheader("🏁 帝国剧场阶段（终局裁决）")
     st.markdown(f"""
         <div class="event-card">
             <b>✨ 【命运的聚光灯】</b><br>
-            帝国剧场金碧辉煌，全日本数百家媒体的闪光灯不断闪烁。社长坐在话筒前，即将宣读今年正式获得 <b>CD 出道</b> 资格的最终名单！
+            帝国剧场金碧辉煌，全日本数百家媒体的闪光灯不断闪烁。社长坐在话筒前，即将宣读最终的考核结果！
         </div>
         """, unsafe_allow_html=True)
 
-    if st.button("🌟 揭晓最终出道裁决与终局档案 🌟", use_container_width=True):
+    if st.button("🌟 揭晓最终考核结果与终局档案 🌟", use_container_width=True):
       st.markdown("---")
       total_ability = (
           st.session_state.dance
@@ -373,11 +369,11 @@ if st.session_state.game_started:
       ):
         st.balloons()
         st.success(
-            f"🎉 恭喜 **{st.session_state.player_name}**！你凭借出色的综合实力与不可替代的团队羁绊，与 **{st.session_state.group}** 成功获得 CD 出道资格！"
+            f"🎉 恭喜 **{st.session_state.player_name}**！你凭借出色的综合实力与不可替代的团队羁绊，与 **{st.session_state.group}** 的伙伴们完美完成了全部研修！"
         )
       else:
         st.warning(
-            f"⚠️ 遗憾！**{st.session_state.player_name}** 的综合爆发力距离主流 CD 出道还有一小步，社长安排你继续作为组合的中坚力量深耕舞台！"
+            f"⚠️ 遗憾！**{st.session_state.player_name}** 的综合爆发力距离完美标准还有一小步，社长安排你继续深耕舞台，未来可期！"
         )
 
       st.markdown("---")
@@ -390,10 +386,6 @@ if st.session_state.game_started:
       st.write(
           f"- 💖 粉丝总数：**{st.session_state.fans:,} 人** | 🤝 社长信任：**{st.session_state.trust}** | 💞 团员羁绊：**{st.session_state.bond}**"
       )
-
-      st.markdown("#### 📖 你的星途回忆手记：")
-      for log in st.session_state.logs:
-        st.caption(f"• {log}")
 
       st.write("")
       if st.button("🎮 开启全新练习生人生"):
