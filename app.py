@@ -321,24 +321,27 @@ def render_gold_miner_game():
 # 🤝 3. 成员双人互动【默契猜拳对决】
 # -------------------------------------------------------------------
 def render_member_duel_game(member_name):
-  html_code = f"""
+  html_code = (
+      """
     <!DOCTYPE html>
     <html>
     <head>
         <style>
-            body {{ background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }}
-            .duel-box {{ background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); padding: 15px; width: 320px; text-align: center; }}
-            .vs-display {{ display: flex; justify-content: space-around; align-items: center; margin: 15px 0; color: #fff; font-size: 16px; font-weight: bold; }}
-            .avatar {{ background: #2d1b4e; border: 2px solid #ff4081; border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 5px auto; }}
-            .duel-btns {{ display: flex; gap: 8px; margin-top: 10px; }}
-            .d-btn {{ background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; border: none; padding: 12px 0; font-size: 15px; font-weight: bold; border-radius: 12px; cursor: pointer; flex: 1; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }}
-            .d-btn:active {{ transform: scale(0.95); }}
-            #duel-result {{ color: #ffeb3b; font-size: 14px; font-weight: bold; margin-top: 10px; min-height: 24px; }}
+            body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+            .duel-box { background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); padding: 15px; width: 320px; text-align: center; }
+            .vs-display { display: flex; justify-content: space-around; align-items: center; margin: 15px 0; color: #fff; font-size: 16px; font-weight: bold; }
+            .avatar { background: #2d1b4e; border: 2px solid #ff4081; border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 5px auto; }
+            .duel-btns { display: flex; gap: 8px; margin-top: 10px; }
+            .d-btn { background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; border: none; padding: 12px 0; font-size: 15px; font-weight: bold; border-radius: 12px; cursor: pointer; flex: 1; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+            .d-btn:active { transform: scale(0.95); }
+            #duel-result { color: #ffeb3b; font-size: 14px; font-weight: bold; margin-top: 10px; min-height: 24px; }
         </style>
     </head>
     <body>
         <div class="duel-box">
-            <div style="color: #ffeb3b; font-weight: bold; font-size: 14px;">🤝 与 {member_name} 的后台默契猜拳对决！</div>
+            <div style="color: #ffeb3b; font-weight: bold; font-size: 14px;">🤝 与 """
+      + member_name
+      + """ 的后台默契猜拳对决！</div>
             <div class="vs-display">
                 <div>
                     <div class="avatar">🧑‍🎤</div>
@@ -348,11 +351,15 @@ def render_member_duel_game(member_name):
                 <div style="color:#ff4081; font-size: 20px; font-weight:bold;">VS</div>
                 <div>
                     <div class="avatar">🌟</div>
-                    <div>{member_name}</div>
+                    <div>"""
+      + member_name
+      + """</div>
                     <div id="memberChoice" style="font-size: 20px; margin-top: 5px;">❓</div>
                 </div>
             </div>
-            <div id="duel-result">请选择你的出拳，赢过 {member_name} 提升团员羁绊！</div>
+            <div id="duel-result">请选择你的出拳，赢过 """
+      + member_name
+      + """ 提升团员羁绊！</div>
             <div class="duel-btns">
                 <button class="d-btn" onclick="playDuel('石头')">✊ 石头</button>
                 <button class="d-btn" onclick="playDuel('剪刀')">✌️ 剪刀</button>
@@ -361,7 +368,7 @@ def render_member_duel_game(member_name):
         </div>
         <script>
             const choices = ['石头', '剪刀', '布'];
-            const icons = {{ '石头': '✊', '剪刀': '✌️', '布': '🖐️' }};
+            const icons = { '石头': '✊', '剪刀': '✌️', '布': '🖐️' };
             let wins = 0;
 
             function playDuel(pChoice) {
@@ -378,11 +385,15 @@ def render_member_duel_game(member_name):
                     (pChoice === '剪刀' && mChoice === '布') ||
                     (pChoice === '布' && mChoice === '石头')
                 ) {
-                    resMsg = "🎉 赢了！{member_name} 为你鼓掌欢呼！";
+                    resMsg = "🎉 赢了！"""
+      + member_name
+      + """ 为你鼓掌欢呼！";
                     resColor = "#00e676";
                     wins++;
                 } else {
-                    resMsg = "💧 输啦！{member_name} 得意地笑了起来！";
+                    resMsg = "💧 输啦！"""
+      + member_name
+      + """ 得意地笑了起来！";
                     resColor = "#ff5252";
                 }
                 document.getElementById('duel-result').innerHTML = resMsg + " (胜场: " + wins + ")";
@@ -392,6 +403,7 @@ def render_member_duel_game(member_name):
     </body>
     </html>
     """
+  )
   components.html(html_code, height=310)
 
 
@@ -399,26 +411,31 @@ def render_member_duel_game(member_name):
 # 🍜 4. 成员双人互动【深夜拉面大胃王比拼】
 # -------------------------------------------------------------------
 def render_ramen_battle_game(member_name):
-  html_code = f"""
+  html_code = (
+      """
     <!DOCTYPE html>
     <html>
     <head>
         <style>
-            body {{ background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }}
-            .battle-box {{ background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); padding: 15px; width: 320px; text-align: center; }}
-            .bowl {{ font-size: 45px; margin: 10px 0; }}
-            .score-row {{ display: flex; justify-content: space-around; color: #fff; font-size: 14px; font-weight: bold; margin-bottom: 10px; }}
-            .eat-btn {{ background: linear-gradient(45deg, #ff5252, #ffeb3b); color: #333; border: none; padding: 14px 0; font-size: 17px; font-weight: bold; border-radius: 20px; cursor: pointer; width: 100%; box-shadow: 0 4px 15px rgba(255,82,82,0.5); }}
-            .eat-btn:active {{ transform: scale(0.95); }}
+            body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+            .battle-box { background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); padding: 15px; width: 320px; text-align: center; }
+            .bowl { font-size: 45px; margin: 10px 0; }
+            .score-row { display: flex; justify-content: space-around; color: #fff; font-size: 14px; font-weight: bold; margin-bottom: 10px; }
+            .eat-btn { background: linear-gradient(45deg, #ff5252, #ffeb3b); color: #333; border: none; padding: 14px 0; font-size: 17px; font-weight: bold; border-radius: 20px; cursor: pointer; width: 100%; box-shadow: 0 4px 15px rgba(255,82,82,0.5); }
+            .eat-btn:active { transform: scale(0.95); }
         </style>
     </head>
     <body>
         <div class="battle-box">
-            <div style="color: #ffeb3b; font-weight: bold; font-size: 14px;">🍜 深夜食堂：与 {member_name} 的拉面大胃王对决！</div>
+            <div style="color: #ffeb3b; font-weight: bold; font-size: 14px;">🍜 深夜食堂：与 """
+      + member_name
+      + """ 的拉面大胃王对决！</div>
             <div class="bowl" id="bowlIcon">🍜</div>
             <div class="score-row">
                 <div>你吃面: <span id="playerBowls" style="color:#00e676; font-size:16px;">0</span> 碗</div>
-                <div>{member_name}: <span id="memberBowls" style="color:#ff4081; font-size:16px;">0</span> 碗</div>
+                <div>"""
+      + member_name
+      + """: <span id="memberBowls" style="color:#ff4081; font-size:16px;">0</span> 碗</div>
             </div>
             <div id="ramen-tip" style="color: #fff; font-size: 12px; font-weight: bold; margin-bottom: 8px;">⏳ 倒计时: <span id="rTime">10</span>s | 疯狂猛点按钮炫面！</div>
             <button class="eat-btn" onclick="eatRamen()">🥢 狂炫拉面！</button>
@@ -432,7 +449,7 @@ def render_ramen_battle_game(member_name):
 
             let aiTimer = setInterval(() => {
                 if (!isOver) {
-                    if (Math.random() > 0.3) {{ mBowls++; mSpan.innerText = mBowls; }}
+                    if (Math.random() > 0.3) { mBowls++; mSpan.innerText = mBowls; }
                 }
             }, 600);
 
@@ -441,7 +458,9 @@ def render_ramen_battle_game(member_name):
                     timeLeft--; tSpan.innerText = timeLeft;
                 } else {
                     isOver = true; clearInterval(clock); clearInterval(aiTimer);
-                    let resultText = pBowls > mBowls ? "🎉 你赢了！打破了大胃王纪录！" : "💧 输给 {member_name} 了！对方吃得太快了！";
+                    let resultText = pBowls > mBowls ? "🎉 你赢了！打破了大胃王纪录！" : "💧 输给 """
+      + member_name
+      + """ 了！对方吃得太快了！";
                     document.getElementById('ramen-tip').innerHTML = resultText;
                     document.getElementById('ramen-tip').style.color = pBowls > mBowls ? "#00e676" : "#ff5252";
                 }
@@ -458,6 +477,7 @@ def render_ramen_battle_game(member_name):
     </body>
     </html>
     """
+  )
   components.html(html_code, height=310)
 
 
@@ -465,22 +485,25 @@ def render_ramen_battle_game(member_name):
 # 📦 5. 成员双人互动【后台箱子平衡堆高挑战】
 # -------------------------------------------------------------------
 def render_box_stack_game(member_name):
-  html_code = f"""
+  html_code = (
+      """
     <!DOCTYPE html>
     <html>
     <head>
         <style>
-            body {{ background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }}
-            .stack-box {{ background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); padding: 15px; width: 320px; text-align: center; }}
-            .tower {{ height: 110px; display: flex; flex-direction: column-reverse; align-items: center; justify-content: flex-start; border-bottom: 3px solid #ff4081; margin: 10px 0; overflow: hidden; }}
-            .box-item {{ background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; width: 140px; height: 20px; border-radius: 4px; margin: 2px 0; font-size: 11px; font-weight: bold; line-height: 20px; }}
-            .stack-btn {{ background: linear-gradient(45deg, #00e676, #00b0ff); color: white; border: none; padding: 12px 0; font-size: 16px; font-weight: bold; border-radius: 15px; cursor: pointer; width: 100%; box-shadow: 0 4px 10px rgba(0,230,118,0.4); }}
-            .stack-btn:active {{ transform: scale(0.95); }}
+            body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+            .stack-box { background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); padding: 15px; width: 320px; text-align: center; }
+            .tower { height: 110px; display: flex; flex-direction: column-reverse; align-items: center; justify-content: flex-start; border-bottom: 3px solid #ff4081; margin: 10px 0; overflow: hidden; }
+            .box-item { background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; width: 140px; height: 20px; border-radius: 4px; margin: 2px 0; font-size: 11px; font-weight: bold; line-height: 20px; }
+            .stack-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: white; border: none; padding: 12px 0; font-size: 16px; font-weight: bold; border-radius: 15px; cursor: pointer; width: 100%; box-shadow: 0 4px 10px rgba(0,230,118,0.4); }
+            .stack-btn:active { transform: scale(0.95); }
         </style>
     </head>
     <body>
         <div class="stack-box">
-            <div style="color: #ffeb3b; font-weight: bold; font-size: 13px;">📦 后台整活：与 {member_name} 的箱子堆高挑战！</div>
+            <div style="color: #ffeb3b; font-weight: bold; font-size: 13px;">📦 后台整活：与 """
+      + member_name
+      + """ 的箱子堆高挑战！</div>
             <div class="tower" id="towerContainer">
                 <div class="box-item">🎵 基底箱子 #1</div>
             </div>
@@ -503,15 +526,18 @@ def render_box_stack_game(member_name):
                 div.innerHTML = '📦 巡演器材箱 #' + height;
                 container.appendChild(div);
 
-                if (height === maxH) {{
-                    tip.innerHTML = "🎉 完美叠到 6 层！{member_name} 惊叹鼓掌！";
+                if (height === maxH) {
+                    tip.innerHTML = "🎉 完美叠到 6 层！"""
+      + member_name
+      + """ 惊叹鼓掌！";
                     tip.style.color = "#00e676";
-                }}
+                }
             }
         </script>
     </body>
     </html>
     """
+  )
   components.html(html_code, height=310)
 
 
