@@ -9,12 +9,13 @@ st.set_page_config(
     layout="centered",
 )
 
-# 2. STARTO / 杰尼斯组合与成员数据（已按年龄从大到小严格排序）并附带出道曲音乐链接
+# 2. STARTO / 杰尼斯组合与成员数据（已按年龄排序，并附带纯音频 MP3 链接）
 IDOL_GROUPS = {
     "SUPER EIGHT": {
         "members": ["横山裕", "村上信五", "丸山隆平", "安田章大", "大仓忠义"],
-        "debut_song": "浪花いろは節",
-        "audio_url": "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&loop=1",  # 示例或官方音源嵌入
+        "music_url": (
+            "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+        ),
     },
     "Snow Man": {
         "members": [
@@ -28,8 +29,9 @@ IDOL_GROUPS = {
             "目黑莲",
             "ラウール",
         ],
-        "debut_song": "D.D.",
-        "audio_url": "https://www.youtube.com/embed/rbuYtrNUxg4?autoplay=1&loop=1",
+        "music_url": (
+            "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+        ),
     },
     "SixTONES": {
         "members": [
@@ -40,18 +42,21 @@ IDOL_GROUPS = {
             "松村北斗",
             "森本慎太郎",
         ],
-        "debut_song": "Imitation Rain",
-        "audio_url": "https://www.youtube.com/embed/pIdae_ZOiko?autoplay=1&loop=1",
+        "music_url": (
+            "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+        ),
     },
     "Aぇ! group (A少年)": {
         "members": [
             "末泽诚也",
+            "草间理查德敬太",
             "正门良规",
             "小岛健",
             "佐野晶哉",
         ],
-        "debut_song": "《A》BEGINNING",
-        "audio_url": "https://www.youtube.com/embed/example1?autoplay=1",
+        "music_url": (
+            "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
+        ),
     },
     "浪花男子 (なにわ男子)": {
         "members": [
@@ -63,13 +68,15 @@ IDOL_GROUPS = {
             "道枝骏佑",
             "长尾谦杜",
         ],
-        "debut_song": "初心LOVE (うぶらぶ)",
-        "audio_url": "https://www.youtube.com/embed/5t8mxgR5M7w?autoplay=1&loop=1",
+        "music_url": (
+            "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"
+        ),
     },
     "King & Prince": {
         "members": ["岸优太", "平野紫耀", "神宫寺勇太", "永濑廉", "高桥海人"],
-        "debut_song": "Cinderella Girl",
-        "audio_url": "https://www.youtube.com/embed/example2?autoplay=1",
+        "music_url": (
+            "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"
+        ),
     },
     "Travis Japan": {
         "members": [
@@ -81,13 +88,13 @@ IDOL_GROUPS = {
             "松仓海斗",
             "松田元太",
         ],
-        "debut_song": "JUST DANCE!",
-        "audio_url": "https://www.youtube.com/embed/example3?autoplay=1",
+        "music_url": (
+            "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3"
+        ),
     },
     "KEY TO LIT": {
         "members": ["岩崎大昇", "井上瑞稀", "中村岭亚", "猪狩苍弥", "佐佐木大光"],
-        "debut_song": None,
-        "audio_url": None,
+        "music_url": None,
     },
     "B&ZAI": {
         "members": [
@@ -100,17 +107,15 @@ IDOL_GROUPS = {
             "川崎星辉",
             "稻叶通阳",
         ],
-        "debut_song": None,
-        "audio_url": None,
+        "music_url": None,
     },
     "ACEes": {
         "members": ["浮所飞贵", "那须雄登", "作间龙斗", "深田龙生", "佐藤龙我"],
-        "debut_song": None,
-        "audio_url": None,
+        "music_url": None,
     },
 }
 
-# 3. 极简高颜值粉紫 UI
+# 3. 极简高颜值 UI 设计
 st.markdown(
     """
     <style>
@@ -238,24 +243,23 @@ def update_hidden_stats(dance=0, vocal=0, variety=0, fans=0, trust=0, log_msg=""
 # 主标题
 st.title("💖 偶像培养计划：星途甄选")
 
-# 游戏开始后渲染顶部栏与动态出道曲 BGM（如果已出道）
+# 游戏开始后渲染顶部栏
 if st.session_state.game_started:
   group_info = IDOL_GROUPS.get(st.session_state.group, {})
-  debut_str = (
-      f" | 💿 出道曲：《{group_info['debut_song']}》"
-      if group_info.get("debut_song")
-      else " | 🌟 研修生出道中"
-  )
 
   st.markdown(
-      f'<div class="top-dashboard">👑 当前研修生：<b>{st.session_state.member}</b>（所属：{st.session_state.group}）{debut_str} | 🎒 幸运物：{st.session_state.lucky_item}</div>',
+      f'<div class="top-dashboard">👑 当前研修生：<b>{st.session_state.member}</b>（所属：{st.session_state.group}） | 🎒 幸运物：{st.session_state.lucky_item}</div>',
       unsafe_allow_html=True,
   )
 
-  # 如果该组合已出道，悄悄在后台嵌入背景音乐播放器
-  if group_info.get("audio_url"):
+  # 纯后台自动播放音频，不渲染任何文字或控制条！
+  if group_info.get("music_url"):
     st.markdown(
-        f'<iframe src="{group_info["audio_url"]}" allow="autoplay" style="display:none"></iframe>',
+        f"""
+        <audio autoplay loop style="display:none;">
+            <source src="{group_info['music_url']}" type="audio/mp3">
+        </audio>
+        """,
         unsafe_allow_html=True,
     )
 
@@ -274,7 +278,6 @@ if not st.session_state.game_started:
         "选择心仪的偶像组合：", list(IDOL_GROUPS.keys())
     )
   with col_b:
-    # 动态获取当前组合已按年龄排好序的成员列表
     selected_member = st.selectbox(
         "选择你要扮演的成员：", IDOL_GROUPS[selected_group]["members"]
     )
@@ -318,7 +321,7 @@ if not st.session_state.game_started:
     st.rerun()
 
 # -------------------------------------------------------------------
-# 剧情数据大表（包含 20 个身临其境的阶段）
+# 剧情数据大表
 # -------------------------------------------------------------------
 STAGES_DATA = {
     1: {
