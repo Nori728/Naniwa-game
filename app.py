@@ -311,11 +311,12 @@ def render_dirt_dig_game():
     </body>
     </html>
     """
+  ]
   components.html(html_code, height=310)
 
 
 # -------------------------------------------------------------------
-# 👗 3. 精致奇迹暖暖风：偶像男装/多风格纸娃娃换装间
+# 👗 3. 精致暖暖风：偶像男装/多风格纸娃娃换装间 (兼容修正版)
 # -------------------------------------------------------------------
 def render_dress_up_game():
   html_code = """
@@ -405,10 +406,26 @@ def render_dress_up_game():
                 });
             }
 
+            // 兼容性圆角矩形辅助函数
+            function drawRoundedRect(ctx, x, y, width, height, radius) {
+                ctx.beginPath();
+                ctx.moveTo(x + radius, y);
+                ctx.lineTo(x + width - radius, y);
+                ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+                ctx.lineTo(x + width, y + height - radius);
+                ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                ctx.lineTo(x + radius, y + height);
+                ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+                ctx.lineTo(x, y + radius);
+                ctx.quadraticCurveTo(x, y, x + radius, y);
+                ctx.closePath();
+                ctx.fill();
+            }
+
             function drawDoll() {
                 ctx.clearRect(0, 0, 296, 185);
 
-                // 背景聚光灯光晕
+                // 背景光晕
                 let grad = ctx.createRadialGradient(148, 92, 10, 148, 92, 90);
                 grad.addColorStop(0, 'rgba(255, 255, 255, 0.25)');
                 grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
@@ -416,14 +433,12 @@ def render_dress_up_game():
                 ctx.fillRect(0, 0, 296, 185);
 
                 // --- 1. 模特身体轮廓 ---
-                // 颈部
                 ctx.fillStyle = '#fceade';
                 ctx.fillRect(141, 62, 14, 15);
-                // 头部
                 ctx.beginPath();
                 ctx.arc(148, 48, 20, 0, Math.PI*2);
                 ctx.fill();
-                // 眼睛
+
                 ctx.fillStyle = '#2b1055';
                 ctx.beginPath();
                 ctx.arc(141, 47, 2, 0, Math.PI*2);
@@ -435,35 +450,33 @@ def render_dress_up_game():
                 if(outfit.bottom.type === 'bot1') {
                     ctx.fillRect(135, 110, 12, 45);
                     ctx.fillRect(149, 110, 12, 45);
-                } else if(outfit.bottom.type === 'bot2') { // 宽松工装
+                } else if(outfit.bottom.type === 'bot2') {
                     ctx.fillRect(133, 110, 14, 45);
                     ctx.fillRect(149, 110, 14, 45);
-                } else { // 闪片西裤
+                } else {
                     ctx.fillStyle = '#b5838d';
                     ctx.fillRect(134, 110, 13, 45);
                     ctx.fillRect(149, 110, 13, 45);
                 }
 
                 // --- 3. 上衣 (Top) ---
-                if(outfit.top.type === 'top1') { // 学院西装
+                if(outfit.top.type === 'top1') {
                     ctx.fillStyle = '#2b2d42';
-                    ctx.beginPath(); ctx.roundRect(125, 72, 46, 42, 6); ctx.fill();
-                    // 内衬白衬衫 V 领
+                    drawRoundedRect(ctx, 125, 72, 46, 42, 6);
                     ctx.fillStyle = '#ffffff';
                     ctx.beginPath(); ctx.moveTo(148, 72); ctx.lineTo(142, 88); ctx.lineTo(154, 88); ctx.fill();
-                    // 领带
                     ctx.fillStyle = '#d90429';
                     ctx.fillRect(146, 85, 4, 14);
-                } else if(outfit.top.type === 'top2') { // 华丽战袍
+                } else if(outfit.top.type === 'top2') {
                     ctx.fillStyle = '#ffb703';
-                    ctx.beginPath(); ctx.roundRect(122, 70, 52, 44, 8); ctx.fill();
+                    drawRoundedRect(ctx, 122, 70, 52, 44, 8);
                     ctx.fillStyle = '#fb8500';
                     ctx.fillRect(122, 90, 52, 6);
-                } else { // 连帽衫
+                } else {
                     ctx.fillStyle = '#8338ec';
-                    ctx.beginPath(); ctx.roundRect(126, 72, 44, 42, 10); ctx.fill();
+                    drawRoundedRect(ctx, 126, 72, 44, 42, 10);
                     ctx.fillStyle = '#3a86ff';
-                    ctx.fillRect(140, 72, 16, 12); // 帽子
+                    ctx.fillRect(140, 72, 16, 12);
                 }
 
                 // --- 4. 鞋子 (Shoes) ---
@@ -473,16 +486,16 @@ def render_dress_up_game():
 
                 // --- 5. 发型 (Hair) ---
                 ctx.fillStyle = '#3a0ca3';
-                if(outfit.hair.type === 'hair1') { // 日系抓发
+                if(outfit.hair.type === 'hair1') {
                     ctx.beginPath();
                     ctx.arc(148, 42, 22, Math.PI, Math.PI * 2);
                     ctx.lineTo(172, 50); ctx.lineTo(148, 30); ctx.lineTo(124, 50);
                     ctx.fill();
-                } else if(outfit.hair.type === 'hair2') { // 韩系微卷
+                } else if(outfit.hair.type === 'hair2') {
                     ctx.beginPath();
                     ctx.arc(148, 40, 23, 0, Math.PI * 2);
                     ctx.fill();
-                } else { // 耀眼狼尾
+                } else {
                     ctx.beginPath();
                     ctx.arc(148, 42, 22, Math.PI, Math.PI * 2);
                     ctx.fillRect(123, 40, 6, 22);
@@ -490,7 +503,6 @@ def render_dress_up_game():
                     ctx.fill();
                 }
 
-                // 界面提示文字
                 ctx.fillStyle = '#ffeb3b'; ctx.font = 'bold 11px Arial';
                 ctx.fillText("🎨 穿搭: " + outfit.top.name + " + " + outfit.bottom.name, 12, 20);
             }
@@ -501,6 +513,7 @@ def render_dress_up_game():
     </body>
     </html>
     """
+  ]
   components.html(html_code, height=275)
 
 
@@ -546,11 +559,24 @@ def render_pancake_stack_game(member_name):
                 current.vy = 4.0;
             }
 
+            function drawRoundedRect(ctx, x, y, width, height, radius) {
+                ctx.beginPath();
+                ctx.moveTo(x + radius, y);
+                ctx.lineTo(x + width - radius, y);
+                ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+                ctx.lineTo(x + width, y + height - radius);
+                ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                ctx.lineTo(x + radius, y + height);
+                ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+                ctx.lineTo(x, y + radius);
+                ctx.quadraticCurveTo(x, y, x + radius, y);
+                ctx.closePath();
+                ctx.fill();
+            }
+
             function drawPancakeEntity(ctx, x, y, w, h, isBase) {
                 ctx.fillStyle = '#d4a373';
-                ctx.beginPath();
-                ctx.roundRect(x, y, w, h, 6);
-                ctx.fill();
+                drawRoundedRect(ctx, x, y, w, h, 6);
                 ctx.strokeStyle = '#bc6c25';
                 ctx.lineWidth = 2;
                 ctx.stroke();
@@ -939,7 +965,6 @@ def render_lightstick_game():
     </body>
     </html>
     """
-  )
   components.html(html_code, height=290)
 
 
@@ -999,6 +1024,7 @@ def render_dodge_canvas_game():
     </body>
     </html>
     """
+  ]
   components.html(html_code, height=300)
 
 
