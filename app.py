@@ -501,7 +501,6 @@ def render_dress_up_game():
     </body>
     </html>
     """
-  ]
   components.html(html_code, height=275)
 
 
