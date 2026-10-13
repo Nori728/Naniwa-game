@@ -1058,7 +1058,6 @@ def render_lightstick_game():
     </body>
     </html>
     """
-  )
   components.html(html_code, height=290)
 
 
@@ -1118,7 +1117,6 @@ def render_dodge_canvas_game():
     </body>
     </html>
     """
-  )
   components.html(html_code, height=300)
 
 
