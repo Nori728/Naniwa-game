@@ -222,7 +222,7 @@ def render_piano_tiles_game():
 
 
 # -------------------------------------------------------------------
-# 🪙 2. 玩家可实时控制角度的【地下仓库黄金寻宝】小游戏
+# 🪙 2. 地下仓库可控抓夹寻宝
 # -------------------------------------------------------------------
 def render_gold_miner_game():
   html_code = """
@@ -318,7 +318,208 @@ def render_gold_miner_game():
 
 
 # -------------------------------------------------------------------
-# 💡 3. 演唱会【粉丝应援手灯狂热】小游戏（替代拼图）
+# 🤝 3. 成员双人互动【默契猜拳对决】
+# -------------------------------------------------------------------
+def render_member_duel_game(member_name):
+  html_code = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {{ background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }}
+            .duel-box {{ background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); padding: 15px; width: 320px; text-align: center; }}
+            .vs-display {{ display: flex; justify-content: space-around; align-items: center; margin: 15px 0; color: #fff; font-size: 16px; font-weight: bold; }}
+            .avatar {{ background: #2d1b4e; border: 2px solid #ff4081; border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 5px auto; }}
+            .duel-btns {{ display: flex; gap: 8px; margin-top: 10px; }}
+            .d-btn {{ background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; border: none; padding: 12px 0; font-size: 15px; font-weight: bold; border-radius: 12px; cursor: pointer; flex: 1; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }}
+            .d-btn:active {{ transform: scale(0.95); }}
+            #duel-result {{ color: #ffeb3b; font-size: 14px; font-weight: bold; margin-top: 10px; min-height: 24px; }}
+        </style>
+    </head>
+    <body>
+        <div class="duel-box">
+            <div style="color: #ffeb3b; font-weight: bold; font-size: 14px;">🤝 与 {member_name} 的后台默契猜拳对决！</div>
+            <div class="vs-display">
+                <div>
+                    <div class="avatar">🧑‍🎤</div>
+                    <div>你</div>
+                    <div id="playerChoice" style="font-size: 20px; margin-top: 5px;">❓</div>
+                </div>
+                <div style="color:#ff4081; font-size: 20px; font-weight:bold;">VS</div>
+                <div>
+                    <div class="avatar">🌟</div>
+                    <div>{member_name}</div>
+                    <div id="memberChoice" style="font-size: 20px; margin-top: 5px;">❓</div>
+                </div>
+            </div>
+            <div id="duel-result">请选择你的出拳，赢过 {member_name} 提升团员羁绊！</div>
+            <div class="duel-btns">
+                <button class="d-btn" onclick="playDuel('石头')">✊ 石头</button>
+                <button class="d-btn" onclick="playDuel('剪刀')">✌️ 剪刀</button>
+                <button class="d-btn" onclick="playDuel('布')">🖐️ 布</button>
+            </div>
+        </div>
+        <script>
+            const choices = ['石头', '剪刀', '布'];
+            const icons = {{ '石头': '✊', '剪刀': '✌️', '布': '🖐️' }};
+            let wins = 0;
+
+            function playDuel(pChoice) {
+                let mChoice = choices[Math.floor(Math.random() * choices.length)];
+                document.getElementById('playerChoice').innerText = icons[pChoice];
+                document.getElementById('memberChoice').innerText = icons[mChoice];
+
+                let resMsg = "";
+                let resColor = "#ffeb3b";
+                if (pChoice === mChoice) {
+                    resMsg = "🤝 平局！两人默契十足！";
+                } else if (
+                    (pChoice === '石头' && mChoice === '剪刀') ||
+                    (pChoice === '剪刀' && mChoice === '布') ||
+                    (pChoice === '布' && mChoice === '石头')
+                ) {
+                    resMsg = "🎉 赢了！{member_name} 为你鼓掌欢呼！";
+                    resColor = "#00e676";
+                    wins++;
+                } else {
+                    resMsg = "💧 输啦！{member_name} 得意地笑了起来！";
+                    resColor = "#ff5252";
+                }
+                document.getElementById('duel-result').innerHTML = resMsg + " (胜场: " + wins + ")";
+                document.getElementById('duel-result').style.color = resColor;
+            }
+        </script>
+    </body>
+    </html>
+    """
+  components.html(html_code, height=310)
+
+
+# -------------------------------------------------------------------
+# 🍜 4. 成员双人互动【深夜拉面大胃王比拼】（新增）
+# -------------------------------------------------------------------
+def render_ramen_battle_game(member_name):
+  html_code = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {{ background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }}
+            .battle-box {{ background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); padding: 15px; width: 320px; text-align: center; }}
+            .bowl {{ font-size: 45px; margin: 10px 0; }}
+            .score-row {{ display: flex; justify-content: space-around; color: #fff; font-size: 14px; font-weight: bold; margin-bottom: 10px; }}
+            .eat-btn {{ background: linear-gradient(45deg, #ff5252, #ffeb3b); color: #333; border: none; padding: 14px 0; font-size: 17px; font-weight: bold; border-radius: 20px; cursor: pointer; width: 100%; box-shadow: 0 4px 15px rgba(255,82,82,0.5); }}
+            .eat-btn:active {{ transform: scale(0.95); }}
+        </style>
+    </head>
+    <body>
+        <div class="battle-box">
+            <div style="color: #ffeb3b; font-weight: bold; font-size: 14px;">🍜 深夜食堂：与 {member_name} 的拉面大胃王对决！</div>
+            <div class="bowl" id="bowlIcon">🍜</div>
+            <div class="score-rows">
+                <div class="score-row">
+                    <div>你吃面: <span id="playerBowls" style="color:#00e676; font-size:16px;">0</span> 碗</div>
+                    <div>{member_name}: <span id="memberBowls" style="color:#ff4081; font-size:16px;">0</span> 碗</div>
+                </div>
+            </div>
+            <div id="ramen-tip" style="color: #fff; font-size: 12px; font-weight: bold; margin-bottom: 8px;">⏳ 倒计时: <span id="rTime">10</span>s | 疯狂猛点按钮炫面！</div>
+            <button class="eat-btn" onclick="eatRamen()">🥢 狂炫拉面！</button>
+        </div>
+        <script>
+            let pBowls = 0, mBowls = 0, timeLeft = 10, isOver = false;
+            const pSpan = document.getElementById('playerBowls');
+            const mSpan = document.getElementById('memberBowls');
+            const tSpan = document.getElementById('rTime');
+            const bowl = document.getElementById('bowlIcon');
+
+            let aiTimer = setInterval(() => {
+                if (!isOver) {
+                    // AI随机吃面速度
+                    if (Math.random() > 0.3) { mBowls++; mSpan.innerText = mBowls; }
+                }
+            }, 600);
+
+            let clock = setInterval(() => {
+                if (timeLeft > 0 && !isOver) {
+                    timeLeft--; tSpan.innerText = timeLeft;
+                } else {
+                    isOver = true; clearInterval(clock); clearInterval(aiTimer);
+                    let resultText = pBowls > mBowls ? "🎉 你赢了！打破了大胃王纪录！" : "💧 输给 {member_name} 了！对方吃得太快了！";
+                    document.getElementById('ramen-tip').innerHTML = resultText;
+                    document.getElementById('ramen-tip').style.color = pBowls > mBowls ? "#00e676" : "#ff5252";
+                }
+            }, 1000);
+
+            function eatRamen() {
+                if (isOver) return;
+                pBowls++;
+                pSpan.innerText = pBowls;
+                bowl.style.transform = "scale(1.2)";
+                setTimeout(() => bowl.style.transform = "scale(1)", 100);
+            }
+        </script>
+    </body>
+    </html>
+    """
+  components.html(html_code, height=310)
+
+
+# -------------------------------------------------------------------
+# 📦 5. 成员双人互动【后台箱子平衡堆高挑战】（新增）
+# -------------------------------------------------------------------
+def render_box_stack_game(member_name):
+  html_code = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {{ background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }}
+            .stack-box {{ background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); padding: 15px; width: 320px; text-align: center; }}
+            .tower {{ height: 110px; display: flex; flex-direction: column-reverse; align-items: center; justify-content: flex-start; border-bottom: 3px solid #ff4081; margin: 10px 0; overflow: hidden; }}
+            .box-item {{ background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; width: 140px; height: 20px; border-radius: 4px; margin: 2px 0; font-size: 11px; font-weight: bold; line-height: 20px; }}
+            .stack-btn {{ background: linear-gradient(45deg, #00e676, #00b0ff); color: white; border: none; padding: 12px 0; font-size: 16px; font-weight: bold; border-radius: 15px; cursor: pointer; width: 100%; box-shadow: 0 4px 10px rgba(0,230,118,0.4); }}
+            .stack-btn:active {{ transform: scale(0.95); }}
+        </style>
+    </head>
+    <body>
+        <div class="stack-box">
+            <div style="color: #ffeb3b; font-weight: bold; font-size: 13px;">📦 后台整活：与 {member_name} 的箱子堆高挑战！</div>
+            <div class="tower" id="towerContainer">
+                <div class="box-item">🎵 基底箱子 #1</div>
+            </div>
+            <div id="stack-tip" style="color: #fff; font-size: 12px; font-weight: bold; margin-bottom: 8px;">已叠高度: <span id="stackHeight">1</span> 层 (目标: 6层)</div>
+            <button class="stack-btn" onclick="addBox()">📦 稳稳叠上新箱子！</button>
+        </div>
+        <script>
+            let height = 1;
+            const maxH = 6;
+            const container = document.getElementById('towerContainer');
+            const tip = document.getElementById('stack-tip');
+            const hSpan = document.getElementById('stackHeight');
+
+            function addBox() {
+                if (height >= maxH) return;
+                height++;
+                hSpan.innerText = height;
+                let div = document.createElement('div');
+                div.className = 'box-item';
+                div.innerHTML = '📦 巡演器材箱 #' + height;
+                container.appendChild(div);
+
+                if (height === maxH) {
+                    tip.innerHTML = "🎉 完美叠到 6 层！{member_name} 惊叹鼓掌！";
+                    tip.style.color = "#00e676";
+                }
+            }
+        </script>
+    </body>
+    </html>
+    """
+  components.html(html_code, height=310)
+
+
+# -------------------------------------------------------------------
+# 🌟 6. 演唱会手灯狂热小游戏
 # -------------------------------------------------------------------
 def render_lightstick_game():
   html_code = """
@@ -328,17 +529,17 @@ def render_lightstick_game():
         <style>
             body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
             .light-box { background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); padding: 15px; width: 320px; text-align: center; }
-            .color-display { width: 100px; height: 100px; border-radius: 50%; margin: 10px auto; box-shadow: 0 0 20px rgba(255,255,255,0.4); border: 3px solid #fff; transition: background 0.2s; }
-            .color-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 12px; }
-            .color-btn { padding: 15px 0; font-size: 16px; font-weight: bold; border-radius: 12px; border: none; color: white; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+            .color-display { width: 90px; height: 90px; border-radius: 50%; margin: 10px auto; box-shadow: 0 0 20px rgba(255,255,255,0.4); border: 3px solid #fff; }
+            .color-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
+            .color-btn { padding: 12px 0; font-size: 15px; font-weight: bold; border-radius: 12px; border: none; color: white; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
             .color-btn:active { transform: scale(0.95); }
         </style>
     </head>
     <body>
         <div class="light-box">
-            <div style="color: #ffeb3b; font-weight: bold; font-size: 14px;">🌟 演唱会手灯狂热！按下与上方匹配的颜色！</div>
+            <div style="color: #ffeb3b; font-weight: bold; font-size: 13px;">🌟 演唱会手灯狂热！按下与上方匹配的颜色！</div>
             <div class="color-display" id="targetColorBox"></div>
-            <div id="light-tip" style="color: #fff; font-size: 13px; font-weight: bold;">⏳ 剩余时间: <span id="timeVal">12</span>s | 得分: <span id="scoreVal">0</span></div>
+            <div id="light-tip" style="color: #fff; font-size: 12px; font-weight: bold;">⏳ 剩余: <span id="timeVal">12</span>s | 得分: <span id="scoreVal">0</span></div>
             <div class="color-grid">
                 <button class="color-btn" style="background: #ff5252;" onclick="checkColor('red')">❤️ 红色</button>
                 <button class="color-btn" style="background: #448aff;" onclick="checkColor('blue')">💙 蓝色</button>
@@ -349,11 +550,7 @@ def render_lightstick_game():
         <script>
             const colors = ['red', 'blue', 'yellow', 'green'];
             const colorHex = { red: '#ff5252', blue: '#448aff', yellow: '#ffeb3b', green: '#00e676' };
-            let currentTarget = 'red';
-            let score = 0;
-            let timeLeft = 12;
-            let isGameOver = false;
-
+            let currentTarget = 'red', score = 0, timeLeft = 12, isGameOver = false;
             const box = document.getElementById('targetColorBox');
             const timeSpan = document.getElementById('timeVal');
             const scoreSpan = document.getElementById('scoreVal');
@@ -363,43 +560,33 @@ def render_lightstick_game():
                 currentTarget = colors[Math.floor(Math.random() * colors.length)];
                 box.style.background = colorHex[currentTarget];
             }
-
             let targetInterval = setInterval(changeTarget, 1000);
             changeTarget();
 
             let gameTimer = setInterval(() => {
                 if (timeLeft > 0 && !isGameOver) {
-                    timeLeft--;
-                    timeSpan.innerText = timeLeft;
+                    timeLeft--; timeSpan.innerText = timeLeft;
                 } else {
-                    isGameOver = true;
-                    clearInterval(gameTimer);
-                    clearInterval(targetInterval);
+                    isGameOver = true; clearInterval(gameTimer); clearInterval(targetInterval);
                     box.style.background = '#ab47bc';
-                    document.getElementById('light-tip').innerHTML = "🎉 应援结束！总得分: " + score;
+                    document.getElementById('light-tip').innerHTML = "🎉 应援结束！得分: " + score;
                 }
             }, 1000);
 
             function checkColor(c) {
                 if (isGameOver) return;
-                if (c === currentTarget) {
-                    score += 150;
-                    scoreSpan.innerText = score;
-                    changeTarget();
-                } else {
-                    score = Math.max(0, score - 50);
-                    scoreSpan.innerText = score;
-                }
+                if (c === currentTarget) { score += 150; scoreSpan.innerText = score; changeTarget(); }
+                else { score = Math.max(0, score - 50); scoreSpan.innerText = score; }
             }
         </script>
     </body>
     </html>
     """
-  components.html(html_code, height=310)
+  components.html(html_code, height=290)
 
 
 # -------------------------------------------------------------------
-# ⚡ 4. 长达 15 秒的【舞台灯光极限闪避】生存小游戏
+# ⚡ 7. 15 秒灯光闪避生存小游戏
 # -------------------------------------------------------------------
 def render_dodge_canvas_game():
   html_code = """
@@ -408,7 +595,7 @@ def render_dodge_canvas_game():
     <head>
         <style>
             body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
-            .canvas-box { background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); position: relative; overflow: hidden; width: 320px; height: 220px; }
+            .canvas-box { background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); position: relative; overflow: hidden; width: 320px; height: 210px; }
             canvas { display: block; }
             .ctrl-panel { display: flex; gap: 15px; margin-top: 10px; width: 320px; justify-content: center; }
             .move-btn { background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; border-radius: 20px; cursor: pointer; flex: 1; }
@@ -416,7 +603,7 @@ def render_dodge_canvas_game():
         </style>
     </head>
     <body>
-        <div class="canvas-box"><canvas id="dodgeCanvas" width="320" height="220"></canvas></div>
+        <div class="canvas-box"><canvas id="dodgeCanvas" width="320" height="210"></canvas></div>
         <div class="ctrl-panel">
             <button class="move-btn" onclick="movePlayer(-1)">⬅️ 往左闪避</button>
             <button class="move-btn" onclick="movePlayer(1)">往右闪避 ➡️</button>
@@ -424,40 +611,42 @@ def render_dodge_canvas_game():
         <script>
             const canvas = document.getElementById('dodgeCanvas');
             const ctx = canvas.getContext('2d');
-            let lane = 1, lanesX = [60, 160, 260], playerY = 180, obstacles = [], hp = 3, timeLeft = 15, isGameOver = false;
+            let lane = 1, lanesX = [60, 160, 260], playerY = 170, obstacles = [], hp = 3, timeLeft = 15, isGameOver = false;
             let timer = setInterval(() => { if(timeLeft > 0 && !isGameOver) timeLeft--; else { isGameOver = true; clearInterval(timer); clearInterval(spawner); } }, 1000);
             let spawner = setInterval(() => { if(!isGameOver) obstacles.push({ lane: Math.floor(Math.random()*3), y: -20, speed: 4.0 }); }, 550);
             function movePlayer(dir) { if(!isGameOver) { lane += dir; if(lane < 0) lane = 0; if(lane > 2) lane = 2; } }
             function loop() {
-                ctx.clearRect(0, 0, 320, 220);
+                ctx.clearRect(0, 0, 320, 210);
                 ctx.strokeStyle = '#2d1b4e'; ctx.lineWidth = 2; ctx.setLineDash([4, 4]);
-                [110, 210].forEach(x => { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 220); ctx.stroke(); });
+                [110, 210].forEach(x => { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 210); ctx.stroke(); });
                 ctx.setLineDash([]);
                 for (let i = obstacles.length - 1; i >= 0; i--) {
                     let obs = obstacles[i]; obs.y += obs.speed;
-                    ctx.fillStyle = '#ff5252'; ctx.beginPath(); ctx.arc(lanesX[obs.lane], obs.y, 14, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = '#ff5252'; ctx.beginPath(); ctx.arc(lanesX[obs.lane], obs.y, 13, 0, Math.PI*2); ctx.fill();
                     ctx.fillStyle = '#fff'; ctx.font = '11px Arial'; ctx.fillText('💡', lanesX[obs.lane]-6, obs.y+4);
                     if (obs.y >= playerY-15 && obs.y <= playerY+15 && obs.lane === lane) {
                         hp--; obstacles.splice(i, 1); if(hp <= 0) isGameOver = true;
-                    } else if (obs.y > 240) { obstacles.splice(i, 1); }
+                    } else if (obs.y > 230) { obstacles.splice(i, 1); }
                 }
                 let px = lanesX[lane];
-                ctx.fillStyle = '#ff4081'; ctx.beginPath(); ctx.arc(px, playerY, 15, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#ff4081'; ctx.beginPath(); ctx.arc(px, playerY, 14, 0, Math.PI*2); ctx.fill();
                 ctx.fillStyle = '#fff'; ctx.font = '12px Arial'; ctx.fillText('⭐', px-6, playerY+4);
-                ctx.fillStyle = '#fff'; ctx.font = 'bold 13px Arial'; ctx.fillText("⏱️ 倒计时: " + timeLeft + "s", 15, 22);
-                ctx.fillStyle = '#ff4081'; ctx.fillText("❤️ 生命: " + "❤️".repeat(Math.max(0, hp)), 210, 22);
+                ctx.fillStyle = '#fff'; ctx.font = 'bold 13px Arial'; ctx.fillText("⏱️ 倒计时: " + timeLeft + "s", 15, 20);
+                ctx.fillStyle = '#ff4081'; ctx.fillText("❤️ 生命: " + "❤️".repeat(Math.max(0, hp)), 210, 20);
                 if (!isGameOver) requestAnimationFrame(loop);
-                else { ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(0,0,320,220); ctx.fillStyle = '#00e676'; ctx.font = 'bold 18px Arial'; ctx.fillText("🎉 生存挑战成功！", 70, 115); }
+                else { ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(0,0,320,210); ctx.fillStyle = '#00e676'; ctx.font = 'bold 18px Arial'; ctx.fillText("🎉 生存挑战成功！", 70, 105); }
             }
             loop();
         </script>
     </body>
     </html>
     """
-  components.html(html_code, height=310)
+  components.html(html_code, height=300)
 
 
-# 海量剧情库
+# -------------------------------------------------------------------
+# 📖 扩充至 28 章的海量剧情与突发事件数据库
+# -------------------------------------------------------------------
 def get_story_database(player_name, member, group):
   return {
       1: {
@@ -545,11 +734,46 @@ def get_story_database(player_name, member, group):
           "opt3": "现场表演高难度全员特技翻滚，用实力回报粉丝。",
       },
       19: {
-          "title": "🌙 Stage 19：出道前夜的夜谈",
-          "desc": "明早就是帝国剧场出道大决选的发布会。深夜宿舍里没人睡得着，大家围坐在客厅地板上看着入所第一天的照片。",
-          "opt1": "“能和大家组团是我这辈子最幸运的事。”",
-          "opt2": "拿起来床头的吉他，轻声弹起大家入所第一天学的那首歌。",
-          "opt3": "笑着用搞怪语气打破沉重：“明天谁要是哭出来，谁请吃烤肉！”",
+          "title": "🎤 Stage 19：【突发外务】跨年演唱会特别组曲直击",
+          "desc": "你临时接到通知，要在全日本直播的跨年演唱会上与前辈同台表演经典串烧曲目，全国观众高达数千万！",
+          "opt1": "在台下反复看录像带练习走位，确保万无一失。",
+          "opt2": "主动向前辈请教镜头感，争取在特写时展现最完美的笑容。",
+          "opt3": "在后台深呼吸调整心态，告诉自己这只是普通的舞台。",
+      },
+      21: {
+          "title": "📸 Stage 21：【外务】国民时尚杂志封面拍摄",
+          "desc": "由于近期人气飙升，你受邀单独登上国民时尚杂志的封面。摄影师要求展现出“成熟而带有一丝危险感”的魅惑风格。",
+          "opt1": "大胆解开衬衫领口，展现极其惊艳的成熟眼神杀。",
+          "opt2": "保持清爽阳光的少年微笑，走治愈系男友路线。",
+          "opt3": "摆出充满艺术感的现代舞姿，用肢体语言震撼全场。",
+      },
+      22: {
+          "title": "🌧️ Stage 22：户外露天 Live 的暴雨突袭",
+          "desc": "在户外大型夏日音乐节进行到高潮时，天空突然下起暴雨！舞台地面变得极其湿滑，音响设备也险些进水短路。",
+          "opt1": "不顾雨水打湿头发，光脚在雨中踩水激情狂舞，嗨翻全场！",
+          "opt2": "稳住麦克风支架，在雨中用更具穿透力的嗓音震撼全场。",
+          "opt3": "第一时间护住乐器和设备，并带领大家向粉丝鞠躬致谢。",
+      },
+      24: {
+          "title": "🏢 Stage 24：社长办公室的神秘闭门谈话",
+          "desc": "深夜排练结束后，你被社长助理单独叫进了顶楼办公室。社长看着你厚厚的一叠成长记录，露出了意味深长的笑容。",
+          "opt1": "目光坚定地直视社长：“我已经准备好承担更大的责任了！”",
+          "opt2": "谦逊地向社长鞠躬：“感谢事务所一直以来的培养与照顾。”",
+          "opt3": "坦诚说出自己对未来音乐风格的构想与野心。",
+      },
+      25: {
+          "title": "🍕 Stage 25：宿舍里的深夜披萨作战",
+          "desc": f"距离出道决定日只剩最后几天，大家紧绷的神经有些支撑不住。{member} 偷偷订了外卖披萨送到宿舍，招呼大家围坐在一起放松。",
+          "opt1": "大口吃披萨并讲冷笑话，把沉重的气氛瞬间活跃起来。",
+          "opt2": "借着汽水向大家举杯：“不管结果如何，能和大家相遇太好了。”",
+          "opt3": "吃完后主动默默把客厅和厨房收拾得干干净净。",
+      },
+      27: {
+          "title": "🌙 Stage 27：出道发布会彩排的最后通牒",
+          "desc": "明天就是全日本各大电视台转播的出道决选发布会。最后一次彩排中，导播对你们的走位和队形提出了极其严苛的修改意见。",
+          "opt1": "带头留下来陪大家连夜加练 3 小时，直到全员零失误。",
+          "opt2": "逐一帮队友调整领带和耳返，展现出极强的核心凝聚力。",
+          "opt3": "闭目养神调整心态，用绝对沉稳的自信感染所有人。",
       },
   }
 
@@ -607,15 +831,15 @@ if not st.session_state.game_started:
       st.rerun()
 
 # -------------------------------------------------------------------
-# 游戏主流程
+# 游戏主流程（扩展至 28 章，加入了拉面大胃王与箱子堆高）
 # -------------------------------------------------------------------
 if st.session_state.game_started:
   curr_stage = st.session_state.stage
   member = get_rand_member()
 
-  is_free_training_day = curr_stage in [3, 9, 15]
+  is_free_training_day = curr_stage in [3, 9, 15, 20, 26]
 
-  if is_free_training_day and curr_stage < 20:
+  if is_free_training_day and curr_stage < 28:
     st.subheader(f"🗓️ Stage {curr_stage}：自主特训与日常安排")
     st.info(
         f"💡 **自主安排日** | 🎒 当前幸运物：【{st.session_state.lucky_item}】"
@@ -669,6 +893,21 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
+  # 阶段 10：🍜 深夜拉面大胃王比拼（新增双人互动）
+  elif curr_stage == 10:
+    st.subheader(f"📍 Stage 10：【深夜食堂·与 {member} 的拉面大胃王决战】")
+    st.markdown(
+        f'<div class="event-card"><b>🍜 【双人互动小游戏：深夜拉面大胃王】</b><br>排练完大家来到拉面店，你和 <b>{member}</b> 展开了 10 秒钟狂炫拉面比拼！疯狂点击按钮赢过他！</div>',
+        unsafe_allow_html=True,
+    )
+    render_ramen_battle_game(member)
+
+    if st.button("➔ 饱餐结束，点击进入下一阶段"):
+      st.session_state.bond += 18
+      st.session_state.variety += 15
+      st.session_state.stage += 1
+      st.rerun()
+
   # 阶段 12：🪙 地下仓库可控抓夹寻宝
   elif curr_stage == 12:
     st.subheader("📍 Stage 12：【事务所地下仓库·绝版宝物发掘】")
@@ -684,9 +923,38 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # 阶段 16：🌟 演唱会手灯狂热互动小游戏（替代拼图）
-  elif curr_stage == 16:
-    st.subheader("📍 Stage 16：【巨蛋巡演·全场手灯狂热互动】")
+  # 阶段 18：🤝 成员双人互动【默契猜拳对决】
+  elif curr_stage == 18:
+    st.subheader(f"📍 Stage 18：【后台趣味互动·与 {member} 的默契对决】")
+    st.markdown(
+        f'<div class="event-card"><b>🤝 【双人互动小游戏：后台猜拳对决】</b><br>在演出间隙，你和 <b>{member}</b> 玩起了后台经典猜拳游戏！赢了可以大幅提升团员羁绊！</div>',
+        unsafe_allow_html=True,
+    )
+    render_member_duel_game(member)
+
+    if st.button("➔ 互动结束，点击进入下一阶段"):
+      st.session_state.bond += 20
+      st.session_state.fans += 1500
+      st.session_state.stage += 1
+      st.rerun()
+
+  # 阶段 21：📦 后台箱子平衡堆高挑战（新增双人互动）
+  elif curr_stage == 21:
+    st.subheader(f"📍 Stage 21：【后台整活·与 {member} 的箱子平衡堆高】")
+    st.markdown(
+        f'<div class="event-card"><b>📦 【双人互动小游戏：器材箱平衡堆高】</b><br>等待上台时，你和 <b>{member}</b> 开始比拼谁能把巡演器材箱稳稳叠到最高！</div>',
+        unsafe_allow_html=True,
+    )
+    render_box_stack_game(member)
+
+    if st.button("➔ 游戏结束，点击进入下一阶段"):
+      st.session_state.bond += 22
+      st.session_state.stage += 1
+      st.rerun()
+
+  # 阶段 23：🌟 演唱会手灯狂热
+  elif curr_stage == 23:
+    st.subheader("📍 Stage 23：【巨蛋巡演·全场手灯狂热互动】")
     st.markdown(
         '<div class="event-card"><b>🌟 【手灯狂热小游戏：全场应援色同步】</b><br>演唱会高潮来临！全场粉丝手灯颜色在不断变化，<b>请点击下方对应的颜色按钮与上方保持一致</b>！</div>',
         unsafe_allow_html=True,
@@ -699,9 +967,9 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # 阶段 18：⚡ 15 秒灯光闪避生存
-  elif curr_stage == 18:
-    st.subheader("📍 Stage 18：【巨蛋巡演·舞台事故紧急闪避】")
+  # 阶段 26：⚡ 15 秒灯光闪避生存
+  elif curr_stage == 26:
+    st.subheader("📍 Stage 26：【巨蛋巡演·舞台事故紧急闪避】")
     st.markdown(
         '<div class="event-card"><b>🎮 【生存闪避小游戏：15秒极限危机】</b><br>舞台灯光坠落！点击左右闪避按钮坚持 15 秒自动通关！</div>',
         unsafe_allow_html=True,
@@ -714,9 +982,9 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # 剧情关卡
-  elif curr_stage < 20:
-    st.subheader(f"📍 Stage {curr_stage} / 20")
+  # 海量剧情关卡（28章以内）
+  elif curr_stage < 28:
+    st.subheader(f"📍 Stage {curr_stage} / 28")
 
     s_db = get_story_database(
         st.session_state.player_name, member, st.session_state.group
@@ -760,10 +1028,10 @@ if st.session_state.game_started:
       st.rerun()
 
   # -------------------------------------------------------------------
-  # STAGE 20: 帝国剧场终局裁决
+  # STAGE 28: 帝国剧场终局裁决
   # -------------------------------------------------------------------
   else:
-    st.subheader("🏁 Stage 20：帝国剧场 CD 出道决选")
+    st.subheader("🏁 Stage 28：帝国剧场 CD 出道决选")
     st.markdown(f"""
         <div class="event-card">
             <b>✨ 【命运的聚光灯】</b><br>
@@ -779,10 +1047,10 @@ if st.session_state.game_started:
           + st.session_state.variety
       )
 
-      if st.session_state.fans >= 2000 and total >= 120:
+      if st.session_state.fans >= 2500 and total >= 150:
         st.balloons()
         st.success(
-            f"🎉 恭喜 **{st.session_state.player_name}**！你携带【{st.session_state.lucky_item}】，与 **{st.session_state.group}** 的伙伴们完美闪耀帝国剧场，正式华丽 CD 出道！"
+            f"🎉 恭喜 **{st.session_state.player_name}**！你携带【{st.session_state.lucky_item}】，与 **{st.session_state.group}** 的伙伴们历经 28 章的汗水与磨砺，完美闪耀帝国剧场，正式华丽 CD 出道！"
         )
       else:
         st.warning(
