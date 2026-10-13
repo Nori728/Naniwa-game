@@ -10,7 +10,7 @@ st.set_page_config(
     layout="centered",
 )
 
-# 2. 团队与成员数据（按年龄从大到小严格排序）
+# 2. 团队与成员数据
 IDOL_GROUPS = {
     "ARASHI (岚)": ["大野智", "樱井翔", "相叶雅纪", "二宫和也", "松本润"],
     "WEST.": [
@@ -82,7 +82,7 @@ IDOL_GROUPS = {
     "ACEes": ["浮所飞贵", "那须雄登", "作间龙斗", "深田龙生", "佐藤龙我"],
 }
 
-# 3. 页面样式
+# 3. 样式美化
 st.markdown(
     """
     <style>
@@ -151,136 +151,189 @@ def get_rand_member():
   return random.choice(members)
 
 
-# 极速指针摆动小游戏渲染器
-def render_pointer_minigame(speed=3, target_start=40, target_width=20):
-  html_code = f"""
+# -------------------------------------------------------------------
+# 🎹 真正的下落式【节奏钢琴块】小游戏（12秒倒计时，支持点击组件自动完成）
+# -------------------------------------------------------------------
+def render_piano_tiles_game():
+  html_code = """
     <!DOCTYPE html>
     <html>
     <head>
         <style>
-            body {{
-                font-family: system-ui, sans-serif;
-                background-color: transparent;
+            body {
+                background: transparent;
                 margin: 0;
-                padding: 10px;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-            }}
-            .game-container {{
-                background: #2d1b4e;
+                font-family: system-ui, sans-serif;
+            }
+            .piano-box {
+                background: #1a0f30;
                 border: 3px solid #ff80ab;
                 border-radius: 16px;
-                padding: 20px;
-                width: 90%;
-                max-width: 400px;
-                text-align: center;
-                box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-            }}
-            .bar-bg {{
+                box-shadow: 0 8px 20px rgba(0,0,0,0.3);
                 position: relative;
-                width: 100%;
-                height: 36px;
-                background: #1a0f30;
-                border-radius: 18px;
                 overflow: hidden;
-                border: 2px solid #ea80fc;
-                margin: 15px 0;
-            }}
-            .target-zone {{
-                position: absolute;
-                left: {target_start}%;
-                width: {target_width}%;
-                height: 100%;
-                background: linear-gradient(90deg, #00e676, #b9f6ca, #00e676);
-                box-shadow: 0 0 10px #00e676;
-            }}
-            .pointer {{
-                position: absolute;
-                top: 0;
-                left: 0%;
-                width: 6px;
-                height: 100%;
-                background-color: #ffeb3b;
-                box-shadow: 0 0 12px #ffeb3b;
-                transition: transform 0.016s linear;
-            }}
-            .hit-btn {{
-                background: linear-gradient(45deg, #ff4081, #ab47bc);
+                width: 320px;
+                height: 280px;
+            }
+            canvas { display: block; }
+            .btn-row {
+                display: flex;
+                gap: 8px;
+                margin-top: 10px;
+                width: 320px;
+            }
+            .piano-btn {
+                background: linear-gradient(180deg, #ab47bc, #7b1fa2);
                 color: white;
-                border: none;
-                padding: 14px 32px;
+                border: 2px solid #ff80ab;
+                padding: 14px 0;
                 font-size: 18px;
                 font-weight: bold;
-                border-radius: 25px;
+                border-radius: 12px;
                 cursor: pointer;
-                box-shadow: 0 5px 15px rgba(255, 64, 129, 0.4);
                 touch-action: manipulation;
-                width: 100%;
-                margin-top: 10px;
-            }}
-            #result-msg {{
-                color: #ffeb3b;
-                font-size: 16px;
+                flex: 1;
+                text-align: center;
+            }
+            .piano-btn:active {
+                background: #ff4081;
+                transform: scale(0.92);
+            }
+            #piano-tip {
+                color: #4a148c;
                 font-weight: bold;
-                margin-top: 10px;
-                min-height: 24px;
-            }}
+                font-size: 13px;
+                margin-top: 6px;
+                text-align: center;
+            }
         </style>
     </head>
     <body>
-        <div class="game-container">
-            <div style="color: #ffffff; font-weight: bold; font-size: 15px;">🎯 看准时机！在指针进入【绿色判定区】时击打！</div>
-            <div class="bar-bg">
-                <div class="target-zone"></div>
-                <div class="pointer" id="pointer"></div>
-            </div>
-            <div id="result-msg">⏱️ 指针高速摆动中...</div>
-            <button class="hit-btn" id="stopBtn" onclick="stopPointer()">🔥 就是现在！看准按下！</button>
+        <div class="piano-box">
+            <canvas id="pianoCanvas" width="320" height="280"></canvas>
         </div>
+        <div class="btn-row">
+            <button class="piano-btn" onclick="tapTrack(0)">1</button>
+            <button class="piano-btn" onclick="tapTrack(1)">2</button>
+            <button class="piano-btn" onclick="tapTrack(2)">3</button>
+            <button class="piano-btn" onclick="tapTrack(3)">4</button>
+        </div>
+        <div id="piano-tip">🎹 钢琴块下落中！点击下方 1-2-3-4 键敲击！</div>
+
         <script>
-            let pos = 0;
-            let dir = 1;
-            let speed = {speed};
-            let isStopped = false;
-            let animId;
-            const pointer = document.getElementById('pointer');
-            const resultMsg = document.getElementById('result-msg');
-            const targetStart = {target_start};
-            const targetEnd = {target_start} + {target_width};
+            const canvas = document.getElementById('pianoCanvas');
+            const ctx = canvas.getContext('2d');
+            const trackWidth = 80;
+            let tiles = [];
+            let score = 0;
+            let combo = 0;
+            let timeLeft = 12;
+            let isGameOver = false;
 
-            function updatePointer() {{
-                if (isStopped) return;
-                pos += dir * speed;
-                if (pos >= 98) {{ pos = 98; dir = -1; }}
-                if (pos <= 0) {{ pos = 0; dir = 1; }}
-                pointer.style.left = pos + '%';
-                animId = requestAnimationFrame(updatePointer);
-            }}
+            let timerInterval = setInterval(() => {
+                if (timeLeft > 0 && !isGameOver) {
+                    timeLeft--;
+                } else {
+                    isGameOver = true;
+                    clearInterval(timerInterval);
+                    clearInterval(spawnInterval);
+                    // 时间到自动通知父页面或显示完成
+                    parent.postMessage({ type: 'piano_done', score: score }, '*');
+                }
+            }, 1000);
 
-            function stopPointer() {{
-                if (isStopped) return;
-                isStopped = true;
-                cancelAnimationFrame(animId);
-                if (pos >= targetStart && pos <= targetEnd) {{
-                    resultMsg.innerHTML = "🎉 PERFECT! 完美命中目标点！";
-                    resultMsg.style.color = "#00e676";
-                }} else {{
-                    resultMsg.innerHTML = "⚠️ GREAT! 成功完成挑战！";
-                    resultMsg.style.color = "#ffeb3b";
-                }}
-                document.getElementById('stopBtn').disabled = true;
-                document.getElementById('stopBtn').style.opacity = '0.6';
-            }}
-            updatePointer();
+            function spawnTile() {
+                if (isGameOver) return;
+                let track = Math.floor(Math.random() * 4);
+                tiles.push({ track: track, y: -50, h: 45, hit: false });
+            }
+
+            let spawnInterval = setInterval(spawnTile, 500);
+
+            function tapTrack(trackIndex) {
+                if (isGameOver) return;
+                let hitSuccess = false;
+                for (let i = 0; i < tiles.length; i++) {
+                    let t = tiles[i];
+                    if (t.track === trackIndex && !t.hit && t.y >= 150 && t.y <= 270) {
+                        t.hit = true;
+                        hitSuccess = true;
+                        score += 100 + (combo * 10);
+                        combo++;
+                        break;
+                    }
+                }
+                if (!hitSuccess) combo = 0;
+            }
+
+            function updatePiano() {
+                ctx.clearRect(0, 0, 320, 280);
+                ctx.strokeStyle = '#2d1b4e';
+                ctx.lineWidth = 1;
+                for (let i = 1; i < 4; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(i * trackWidth, 0);
+                    ctx.lineTo(i * trackWidth, 280);
+                    ctx.stroke();
+                }
+
+                ctx.fillStyle = 'rgba(255, 64, 129, 0.25)';
+                ctx.fillRect(0, 190, 320, 60);
+
+                for (let i = tiles.length - 1; i >= 0; i--) {
+                    let t = tiles[i];
+                    if (!t.hit) {
+                        t.y += 3.8;
+                        ctx.fillStyle = '#211035';
+                        ctx.fillRect(t.track * trackWidth + 4, t.y, trackWidth - 8, t.h);
+                        ctx.strokeStyle = '#ea80fc';
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(t.track * trackWidth + 4, t.y, trackWidth - 8, t.h);
+                        ctx.fillStyle = '#ff80ab';
+                        ctx.font = '14px Arial';
+                        ctx.fillText('🎵', t.track * trackWidth + 30, t.y + 28);
+
+                        if (t.y > 280) {
+                            tiles.splice(i, 1);
+                            combo = 0;
+                        }
+                    } else {
+                        tiles.splice(i, 1);
+                    }
+                }
+
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 13px Arial';
+                ctx.fillText("⏳ 剩余: " + timeLeft + "s", 10, 22);
+                ctx.fillText("🔥 分数: " + score, 130, 22);
+                ctx.fillStyle = '#ffeb3b';
+                ctx.fillText("⚡ Combo: " + combo, 220, 22);
+
+                if (!isGameOver) {
+                    requestAnimationFrame(updatePiano);
+                } else {
+                    ctx.fillStyle = 'rgba(0,0,0,0.8)';
+                    ctx.fillRect(0, 0, 320, 280);
+                    ctx.fillStyle = '#00e676';
+                    ctx.font = 'bold 18px Arial';
+                    ctx.fillText("🎉 演奏完成！总分: " + score, 50, 140);
+                    document.getElementById('piano-tip').innerHTML = "✨ 演奏完美结束，请点击下方按钮推进！";
+                }
+            }
+            updatePiano();
         </script>
     </body>
     </html>
     """
-  components.html(html_code, height=210)
+  components.html(html_code, height=360)
 
 
-# 真正能在屏幕上点、小人会动、躲避坠落障碍的【舞台跳格子躲避画布小游戏】
+# -------------------------------------------------------------------
+# ⚡ 持续 15 秒的【舞台灯光极限闪避】画布（时间一到自动跳转）
+# -------------------------------------------------------------------
 def render_dodge_canvas_game():
   html_code = """
     <!DOCTYPE html>
@@ -303,15 +356,13 @@ def render_dodge_canvas_game():
                 position: relative;
                 overflow: hidden;
                 width: 320px;
-                height: 200px;
+                height: 220px;
             }
-            canvas {
-                display: block;
-            }
+            canvas { display: block; }
             .ctrl-panel {
                 display: flex;
                 gap: 15px;
-                margin-top: 12px;
+                margin-top: 10px;
                 width: 320px;
                 justify-content: center;
             }
@@ -324,47 +375,49 @@ def render_dodge_canvas_game():
                 font-weight: bold;
                 border-radius: 20px;
                 cursor: pointer;
-                box-shadow: 0 4px 10px rgba(255, 64, 129, 0.4);
                 touch-action: manipulation;
                 flex: 1;
             }
-            .move-btn:active {
-                transform: scale(0.95);
-            }
+            .move-btn:active { transform: scale(0.95); }
             #info-tip {
                 color: #4a148c;
                 font-weight: bold;
-                font-size: 14px;
-                margin-top: 8px;
+                font-size: 13px;
+                margin-top: 6px;
                 text-align: center;
             }
         </style>
     </head>
     <body>
         <div class="canvas-box">
-            <canvas id="dodgeCanvas" width="320" height="200"></canvas>
+            <canvas id="dodgeCanvas" width="320" height="220"></canvas>
         </div>
         <div class="ctrl-panel">
             <button class="move-btn" onclick="movePlayer(-1)">⬅️ 往左闪避</button>
             <button class="move-btn" onclick="movePlayer(1)">往右闪避 ➡️</button>
         </div>
-        <div id="info-tip">⚡ 躲避坠落的舞台灯光！坚持 10 秒即为胜利！</div>
+        <div id="info-tip">⚡ 左右按钮控制小人躲避灯光！坚持 15 秒自动通关！</div>
 
         <script>
             const canvas = document.getElementById('dodgeCanvas');
             const ctx = canvas.getContext('2d');
-
-            // 玩家位置：3个跑道 (0: 左, 1: 中, 2: 右)
             let lane = 1;
             const lanesX = [60, 160, 260];
-            let playerY = 165;
-            
-            // 障碍物数组
+            let playerY = 180;
             let obstacles = [];
-            let score = 0;
+            let hp = 3;
+            let timeLeft = 15;
             let isGameOver = false;
-            let gameInterval;
-            let obstacleTimer;
+
+            let timerInterval = setInterval(() => {
+                if (timeLeft > 0 && !isGameOver) {
+                    timeLeft--;
+                } else {
+                    isGameOver = true;
+                    clearInterval(timerInterval);
+                    clearInterval(spawnInterval);
+                }
+            }, 1000);
 
             function movePlayer(dir) {
                 if (isGameOver) return;
@@ -373,97 +426,82 @@ def render_dodge_canvas_game():
                 if (lane > 2) lane = 2;
             }
 
-            // 键盘左右键支持
-            window.addEventListener('keydown', (e) => {
-                if (e.key === 'ArrowLeft') movePlayer(-1);
-                if (e.key === 'ArrowRight') movePlayer(1);
-            });
-
             function spawnObstacle() {
                 if (isGameOver) return;
                 let randomLane = Math.floor(Math.random() * 3);
-                obstacles.push({ lane: randomLane, y: -20, speed: 3.5 });
+                obstacles.push({ lane: randomLane, y: -20, speed: 4.0 });
             }
 
-            function updateGame() {
-                ctx.clearRect(0, 0, 320, 200);
+            let spawnInterval = setInterval(spawnObstacle, 550);
 
-                // 绘制舞台跑道线
+            function updateGame() {
+                ctx.clearRect(0, 0, 320, 220);
                 ctx.strokeStyle = '#2d1b4e';
                 ctx.lineWidth = 2;
                 ctx.setLineDash([4, 4]);
                 [110, 210].forEach(x => {
                     ctx.beginPath();
                     ctx.moveTo(x, 0);
-                    ctx.lineTo(x, 200);
+                    ctx.lineTo(x, 220);
                     ctx.stroke();
                 });
                 ctx.setLineDash([]);
 
-                // 更新与绘制障碍物（坠落灯光）
                 for (let i = obstacles.length - 1; i >= 0; i--) {
                     let obs = obstacles[i];
                     obs.y += obs.speed;
-                    
-                    // 绘制坠落的舞台灯光/道具
                     ctx.fillStyle = '#ff5252';
                     ctx.beginPath();
-                    ctx.arc(lanesX[obs.lane], obs.y, 12, 0, Math.PI * 2);
+                    ctx.arc(lanesX[obs.lane], obs.y, 14, 0, Math.PI * 2);
                     ctx.fill();
                     ctx.fillStyle = '#ffffff';
-                    ctx.font = '10px Arial';
+                    ctx.font = '11px Arial';
                     ctx.fillText('💡', lanesX[obs.lane] - 6, obs.y + 4);
 
-                    // 碰撞检测
                     if (obs.y >= playerY - 15 && obs.y <= playerY + 15 && obs.lane === lane) {
-                        isGameOver = true;
-                        document.getElementById('info-tip').innerHTML = "💥 哎呀被砸中了！不过有惊无险顺利过关！";
-                        document.getElementById('info-tip').style.color = "#d32f2f";
-                    }
-
-                    // 移除超出屏幕的障碍
-                    if (obs.y > 220) {
+                        hp--;
                         obstacles.splice(i, 1);
-                        score += 10;
+                        if (hp <= 0) isGameOver = true;
+                    } else if (obs.y > 240) {
+                        obstacles.splice(i, 1);
                     }
                 }
 
-                // 绘制可爱的偶像小人
                 let px = lanesX[lane];
                 ctx.fillStyle = '#ff4081';
                 ctx.beginPath();
-                ctx.arc(px, playerY, 14, 0, Math.PI * 2);
+                ctx.arc(px, playerY, 15, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.fillStyle = '#ffffff';
                 ctx.font = '12px Arial';
                 ctx.fillText('⭐', px - 6, playerY + 4);
 
-                // 绘制分数
                 ctx.fillStyle = '#ffffff';
-                ctx.font = '12px Arial';
-                ctx.fillText("得分: " + score, 15, 20);
+                ctx.font = 'bold 13px Arial';
+                ctx.fillText("⏱️ 倒计时: " + timeLeft + "s", 15, 22);
+                ctx.fillStyle = '#ff4081';
+                ctx.fillText("❤️ 生命: " + "❤️".repeat(Math.max(0, hp)), 210, 22);
 
                 if (!isGameOver) {
                     requestAnimationFrame(updateGame);
                 } else {
-                    ctx.fillStyle = 'rgba(0,0,0,0.6)';
-                    ctx.fillRect(0, 0, 320, 200);
+                    ctx.fillStyle = 'rgba(0,0,0,0.85)';
+                    ctx.fillRect(0, 0, 320, 220);
                     ctx.fillStyle = '#00e676';
                     ctx.font = 'bold 18px Arial';
-                    ctx.fillText("🎉 成功闪避挑战完成！", 60, 105);
+                    ctx.fillText("🎉 15秒生存成功！完美通关！", 40, 115);
+                    document.getElementById('info-tip').innerHTML = "✨ 挑战成功！请点击下方按钮继续！";
                 }
             }
-
-            obstacleTimer = setInterval(spawnObstacle, 900);
             updateGame();
         </script>
     </body>
     </html>
     """
-  components.html(html_code, height=270)
+  components.html(html_code, height=310)
 
 
-# 核心海量剧情库
+# 剧情数据库
 def get_story_database(player_name, member, group):
   return {
       1: {
@@ -510,7 +548,7 @@ def get_story_database(player_name, member, group):
       },
       10: {
           "title": "⚡ Stage 10：【突发外务】知名潮牌私服街拍",
-          "desc": "时尚杂志做了一期“Jr. 练习生私服大公开”特辑，需要你穿着自己的日常私服去摄影棚拍摄大片！",
+          "desc": "时尚杂志做了一期“Jr. 练习生私服大公开”特辑，需要你穿着你的日常私服去摄影棚拍摄大片！",
           "opt1": "穿着自己精心搭配的复古潮牌，展现独特审美。",
           "opt2": "穿着简单干净的白 T 恤与牛仔裤，走清爽少年感。",
           "opt3": "戴着搞怪墨镜与帽子，走夸张极具个性的路线。",
@@ -619,7 +657,6 @@ if st.session_state.game_started:
   curr_stage = st.session_state.stage
   member = get_rand_member()
 
-  # 特训安排日
   is_free_training_day = curr_stage in [3, 9, 15]
 
   if is_free_training_day and curr_stage < 20:
@@ -661,46 +698,37 @@ if st.session_state.game_started:
         st.session_state.stage += 1
         st.rerun()
 
-  # 阶段 6 与 12：极速指针挑战
+  # 阶段 6 与 12：🎹 真正下落式【节奏钢琴块】小游戏
   elif curr_stage in [6, 12]:
-    st.subheader(f"📍 Stage {curr_stage}：【极速指针挑战关卡】")
-    if curr_stage == 6:
-      st.markdown(
-          '<div class="event-card"><b>🎮 【舞台小游戏：Dance Break 绝佳卡点】</b><br>演唱会 Solo Dance 时间来临！指针极速摆动，在绿色区域瞬间按下按键！</div>',
-          unsafe_allow_html=True,
-      )
-      render_pointer_minigame(speed=3.0, target_start=42, target_width=15)
-    else:
-      st.markdown(
-          '<div class="event-card"><b>🎮 【舞台小游戏：少俱打歌高音定音】</b><br>全开麦高潮副歌段落！难度升级，请在中心瞬间精准点击！</div>',
-          unsafe_allow_html=True,
-      )
-      render_pointer_minigame(speed=4.0, target_start=40, target_width=12)
+    st.subheader(f"📍 Stage {curr_stage}：【全开麦打歌·节奏钢琴块】")
+    st.markdown(
+        '<div class="event-card"><b>🎹 【动态打歌小游戏：下落式节奏钢琴块】</b><br>打歌现场高能来临！点击下方 1-2-3-4 按钮敲击下落的钢琴块，持续 12 秒！</div>',
+        unsafe_allow_html=True,
+    )
+    render_piano_tiles_game()
 
-    if st.button("➔ 挑战完毕，进入下一阶段"):
-      st.session_state.fans += random.randint(1000, 1800)
+    if st.button("➔ 演奏结束，点击进入下一阶段"):
+      st.session_state.fans += random.randint(1200, 2000)
       st.session_state.dance += 20
       st.session_state.stage += 1
       st.rerun()
 
-  # 阶段 18：【真正的小人左右移动躲避坠落障碍游戏】
+  # 阶段 18：⚡ 持续 15 秒的【舞台灯光极限闪避】生存小游戏（自动倒计时判定）
   elif curr_stage == 18:
     st.subheader("📍 Stage 18：【巨蛋巡演·舞台事故紧急闪避】")
     st.markdown(
-        '<div class="event-card"><b>🎮 【动态躲避小游戏：舞台灯光坠落危机】</b><br>舞台灯光设备突发故障开始向下坠落！<b>请在下方点击“往左/往右闪避”按钮，控制你的偶像小人左右移动</b>，躲开坠落的灯光！</div>',
+        '<div class="event-card"><b>🎮 【动态生存闪避小游戏：15秒极限危机】</b><br>舞台灯光坠落！<b>点击左右闪避按钮控制小人躲避，坚持 15 秒倒计时结束即可自动通关</b>！</div>',
         unsafe_allow_html=True,
     )
-
-    # 渲染真正的可交互Canvas小人闪避游戏
     render_dodge_canvas_game()
 
-    if st.button("🌟 闪避结束，前往出道前夜！"):
-      st.session_state.fans += 2000
+    if st.button("🌟 生存挑战结束，前往出道前夜！"):
+      st.session_state.fans += 2200
       st.session_state.variety += 25
       st.session_state.stage += 1
       st.rerun()
 
-  # 海量 3 选项独立剧情关卡
+  # 剧情关卡
   elif curr_stage < 20:
     st.subheader(f"📍 Stage {curr_stage} / 20")
 
