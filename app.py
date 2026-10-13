@@ -173,7 +173,7 @@ if not st.session_state.game_started:
 
   # 稳稳找回的输入名字组件
   name_input = st.text_input(
-      "✏️ 请输入你的名字（或昵称）：", placeholder="例如：酱酱 / 小夏"
+      "✏️ 请输入你的名字（或昵称）：", placeholder="例如：小夏"
   )
 
   st.markdown("---")
