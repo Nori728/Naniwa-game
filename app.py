@@ -9,7 +9,7 @@ st.set_page_config(
     layout="centered",
 )
 
-# 2. 杰尼斯 / STARTO 组合与最新成员数据（带默认高质量图片或风格图标）
+# 2. 杰尼斯 / STARTO 组合与最新成员数据
 IDOL_GROUPS = {
     "KEY TO LIT": ["岩崎大昇", "井上瑞稀", "中村岭亚", "猪狩苍弥", "佐佐木大光"],
     "B&ZAI": [
@@ -154,7 +154,7 @@ def init_game():
   st.session_state.variety = random.randint(15, 25)
   st.session_state.fans = 100
   st.session_state.trust = 40
-  st.session_state.inventory = []  # 道具背包
+  st.session_state.inventory = []
   st.session_state.logs = []
 
 
@@ -164,7 +164,6 @@ if "game_started" not in st.session_state:
 
 # 辅助属性更新函数
 def update_stats(dance=0, vocal=0, variety=0, fans=0, trust=0, log_msg=""):
-  # 如果背包有“金牌训练加成护符”，效果翻倍
   multiplier = 1.5 if "金牌训练护符" in st.session_state.inventory else 1.0
 
   st.session_state.dance += int(dance * multiplier)
@@ -186,7 +185,7 @@ def update_stats(dance=0, vocal=0, variety=0, fans=0, trust=0, log_msg=""):
 # 主标题
 st.title("💖 偶像培养计划：星途甄选 3.0")
 
-# 如果游戏已经开始，在顶部渲染状态仪表盘（彻底取代侧边栏）
+# 如果游戏已经开始，在顶部渲染状态仪表盘
 if st.session_state.game_started:
   st.markdown('<div class="top-dashboard">', unsafe_allow_html=True)
   col_h1, col_h2, col_h3, col_h4, col_h5, col_h6 = st.columns(6)
@@ -211,7 +210,7 @@ if st.session_state.game_started:
   st.markdown("</div>", unsafe_allow_html=True)
 
 # -------------------------------------------------------------------
-# STAGE 0: 选角与准备 (支持直接输入照片网址)
+# STAGE 0: 选角与准备
 # -------------------------------------------------------------------
 if not st.session_state.game_started:
   st.markdown(
@@ -241,6 +240,7 @@ if not st.session_state.game_started:
     st.session_state.game_started = True
     st.rerun()
 
+
 # -------------------------------------------------------------------
 # 抽奖/道具盲盒小函数
 # -------------------------------------------------------------------
@@ -255,10 +255,11 @@ def gacha_draw():
   st.session_state.inventory.append(reward)
   st.success(f"🎁 **恭喜你通过阶段考核，抽中事务所盲盒奖励**：【 {reward} 】！")
 
+
 # -------------------------------------------------------------------
 # STAGE 1: 入校试镜与自主练习
 # -------------------------------------------------------------------
-elif st.session_state.stage == 1:
+if st.session_state.game_started and st.session_state.stage == 1:
   st.subheader("🚩 Stage 1：研修生入所试镜")
 
   st.markdown("""
@@ -315,7 +316,7 @@ elif st.session_state.stage == 1:
 # -------------------------------------------------------------------
 # STAGE 2: 前辈 Concert Back 伴舞突发事件
 # -------------------------------------------------------------------
-elif st.session_state.stage == 2:
+elif st.session_state.game_started and st.session_state.stage == 2:
   st.subheader("🚩 Stage 2：东京巨蛋 - 前辈演唱会后台")
 
   st.markdown("""
@@ -370,7 +371,7 @@ elif st.session_state.stage == 2:
 # -------------------------------------------------------------------
 # STAGE 3：电视直播突发事故
 # -------------------------------------------------------------------
-elif st.session_state.stage == 3:
+elif st.session_state.game_started and st.session_state.stage == 3:
   st.subheader("🚩 Stage 3：音乐打歌节目直播事故")
 
   st.markdown("""
@@ -426,7 +427,7 @@ elif st.session_state.stage == 3:
 # -------------------------------------------------------------------
 # STAGE 4：深夜生配信与粉丝互动突发
 # -------------------------------------------------------------------
-elif st.session_state.stage == 4:
+elif st.session_state.game_started and st.session_state.stage == 4:
   st.subheader("🚩 Stage 4：Jr. 独家深夜生配信")
 
   st.markdown("""
@@ -474,7 +475,7 @@ elif st.session_state.stage == 4:
 # -------------------------------------------------------------------
 # STAGE 5：文春炮绯闻危机 (道具联动)
 # -------------------------------------------------------------------
-elif st.session_state.stage == 5:
+elif st.session_state.game_started and st.session_state.stage == 5:
   st.subheader("🚩 Stage 5：文春炮突击绯闻危机")
 
   st.markdown("""
@@ -484,7 +485,6 @@ elif st.session_state.stage == 5:
     </div>
     """, unsafe_allow_html=True)
 
-  # 检查是否有护身符道具
   has_shield = "🛡️ 防文春护身符" in st.session_state.inventory
   if has_shield:
     st.info(
@@ -537,10 +537,9 @@ elif st.session_state.stage == 5:
 # -------------------------------------------------------------------
 # STAGE 6: 帝国剧场 - 出道最终大决选
 # -------------------------------------------------------------------
-elif st.session_state.stage == 6:
+elif st.session_state.game_started and st.session_state.stage == 6:
   st.subheader("🏁 Final Stage：帝国剧场 CD 出道大决选")
 
-  # 如果玩家填了图片网址，在这里精美展示
   if st.session_state.avatar_url:
     st.image(
         st.session_state.avatar_url,
