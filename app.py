@@ -316,7 +316,110 @@ def render_dirt_dig_game():
 
 
 # -------------------------------------------------------------------
-# 👗 3. 精致暖暖风：偶像男装/多风格纸娃娃换装间 (兼容修正版)
+# 🔥 Stage 9 新增：限定 Unit 小分队概念选拔配对小游戏
+# -------------------------------------------------------------------
+def render_unit_selection_game():
+  html_code = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+            .unit-box { background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); padding: 12px; width: 320px; text-align: center; }
+            .card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 10px 0; }
+            .concept-card { background: linear-gradient(135deg, #4a148c, #7b1fa2); border: 2px solid #ff4081; color: #fff; padding: 12px 8px; border-radius: 10px; font-size: 12px; font-weight: bold; cursor: pointer; }
+            .concept-card:active { transform: scale(0.95); }
+            .concept-card.selected { background: #00e676; color: #000; border-color: #fff; }
+            #unit-tip { color: #ffeb3b; font-size: 12px; font-weight: bold; min-height: 25px; margin-top: 5px; }
+        </style>
+    </head>
+    <body>
+        <div class="unit-box">
+            <div style="color: #ffeb3b; font-weight: bold; font-size: 13px;">🏆 限定 Unit 小分队概念选拔赛</div>
+            <div style="color: #fff; font-size: 11px; margin-top: 4px;">请在 10 秒内点击选择 3 个最契合的舞台核心词汇！</div>
+            <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 4px;">⏳ 剩余: <span id="uTime">10</span>s | 已选: <span id="selectedCount">0</span>/3</div>
+            
+            <div class="card-grid" id="cardContainer"></div>
+            <div id="unit-tip">点击卡片组合你的梦幻小分队！</div>
+        </div>
+        <script>
+            const pool = [
+                {id: 1, text: '🔥 炸裂齐舞', valid: true},
+                {id: 2, text: '🎸 摇滚乐队', valid: true},
+                {id: 3, text: '✨ 王道耀眼', valid: true},
+                {id: 4, text: '🤡 爆笑综艺', valid: false},
+                {id: 5, text: '💧 忧伤抒情', valid: false},
+                {id: 6, text: '🌙 暗黑吸血鬼', valid: true}
+            ];
+            let selected = [];
+            let timeLeft = 10;
+            let isOver = false;
+
+            const container = document.getElementById('cardContainer');
+            const tipEl = document.getElementById('unit-tip');
+            const timeEl = document.getElementById('uTime');
+            const countEl = document.getElementById('selectedCount');
+
+            function renderCards() {
+                container.innerHTML = '';
+                pool.forEach(item => {
+                    let card = document.createElement('div');
+                    card.className = 'concept-card' + (selected.includes(item.id) ? ' selected' : '');
+                    card.innerText = item.text;
+                    card.onclick = () => selectCard(item.id, card);
+                    container.appendChild(card);
+                });
+            }
+
+            let timer = setInterval(() => {
+                if (timeLeft > 0 && !isOver) {
+                    timeLeft--;
+                    timeEl.innerText = timeLeft;
+                } else if (!isOver) {
+                    finishSelection();
+                }
+            }, 1000);
+
+            function selectCard(id, el) {
+                if (isOver) return;
+                if (selected.includes(id)) {
+                    selected = selected.filter(i => i !== id);
+                } else {
+                    if (selected.length < 3) {
+                        selected.push(id);
+                    }
+                }
+                countEl.innerText = selected.length;
+                renderCards();
+                if (selected.length === 3) {
+                    finishSelection();
+                }
+            }
+
+            function finishSelection() {
+                isOver = true;
+                clearInterval(timer);
+                let correctCount = selected.filter(id => pool.find(p => p.id === id).valid).length;
+                if (correctCount >= 2) {
+                    tipEl.innerHTML = "🎉 企划大获成功！小分队出道预定！";
+                    tipEl.style.color = "#00e676";
+                } else {
+                    tipEl.innerHTML = "💧 风格略显杂乱，需调整再接再厉！";
+                    tipEl.style.color = "#ff5252";
+                }
+            }
+
+            renderCards();
+        </script>
+    </body>
+    </html>
+    """
+  ]
+  components.html(html_code, height=275)
+
+
+# -------------------------------------------------------------------
+# 👗 3. 精致暖暖风：偶像男装/多风格纸娃娃换装间
 # -------------------------------------------------------------------
 def render_dress_up_game():
   html_code = """
@@ -406,7 +509,6 @@ def render_dress_up_game():
                 });
             }
 
-            // 兼容性圆角矩形辅助函数
             function drawRoundedRect(ctx, x, y, width, height, radius) {
                 ctx.beginPath();
                 ctx.moveTo(x + radius, y);
@@ -425,14 +527,12 @@ def render_dress_up_game():
             function drawDoll() {
                 ctx.clearRect(0, 0, 296, 185);
 
-                // 背景光晕
                 let grad = ctx.createRadialGradient(148, 92, 10, 148, 92, 90);
                 grad.addColorStop(0, 'rgba(255, 255, 255, 0.25)');
                 grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
                 ctx.fillStyle = grad;
                 ctx.fillRect(0, 0, 296, 185);
 
-                // --- 1. 模特身体轮廓 ---
                 ctx.fillStyle = '#fceade';
                 ctx.fillRect(141, 62, 14, 15);
                 ctx.beginPath();
@@ -445,7 +545,6 @@ def render_dress_up_game():
                 ctx.arc(155, 47, 2, 0, Math.PI*2);
                 ctx.fill();
 
-                // --- 2. 裤装 (Bottom) ---
                 ctx.fillStyle = outfit.bottom.type === 'bot1' ? '#1f2421' : (outfit.bottom.type === 'bot2' ? '#5c677d' : '#4a3000');
                 if(outfit.bottom.type === 'bot1') {
                     ctx.fillRect(135, 110, 12, 45);
@@ -459,7 +558,6 @@ def render_dress_up_game():
                     ctx.fillRect(149, 110, 13, 45);
                 }
 
-                // --- 3. 上衣 (Top) ---
                 if(outfit.top.type === 'top1') {
                     ctx.fillStyle = '#2b2d42';
                     drawRoundedRect(ctx, 125, 72, 46, 42, 6);
@@ -479,12 +577,10 @@ def render_dress_up_game():
                     ctx.fillRect(140, 72, 16, 12);
                 }
 
-                // --- 4. 鞋子 (Shoes) ---
                 ctx.fillStyle = outfit.shoes.type === 'shoe1' ? '#000000' : (outfit.shoes.type === 'shoe2' ? '#382b22' : '#ffffff');
                 ctx.fillRect(131, 155, 14, 10);
                 ctx.fillRect(151, 155, 14, 10);
 
-                // --- 5. 发型 (Hair) ---
                 ctx.fillStyle = '#3a0ca3';
                 if(outfit.hair.type === 'hair1') {
                     ctx.beginPath();
@@ -965,6 +1061,7 @@ def render_lightstick_game():
     </body>
     </html>
     """
+  ]
   components.html(html_code, height=290)
 
 
@@ -1017,7 +1114,7 @@ def render_dodge_canvas_game():
                 ctx.fillStyle = '#fff'; ctx.font = 'bold 13px Arial'; ctx.fillText("⏱️ 倒计时: " + timeLeft + "s", 15, 20);
                 ctx.fillStyle = '#ff4081'; ctx.fillText("❤️ 生命: " + "❤️".repeat(Math.max(0, hp)), 210, 20);
                 if (!isGameOver) requestAnimationFrame(loop);
-                else { ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(0,0,320,210); ctx.fillStyle = '#00e676'; ctx.font = 'bold 18px Arial'; ctx.fillText("🎉 生存挑战成功！", 70, 105); }
+                else { ctx.fillStyle = 'rgba(0,0,0,0.85);'; ctx.fillRect(0,0,320,210); ctx.fillStyle = '#00e676'; ctx.font = 'bold 18px Arial'; ctx.fillText("🎉 生存挑战成功！", 70, 105); }
             }
             loop();
         </script>
@@ -1112,7 +1209,7 @@ def get_story_database(player_name, member, group):
       },
       19: {
           "title": "🏢 Stage 19：社长办公室的神秘闭门谈话",
-          "desc": "深夜排练结束后，你被社长助理单独叫进了顶楼办公室。社长看着你厚厚的一叠成长记录，露出了意味深长的笑容。",
+          "desc": "深夜排练结束后，你被社长助理单独叫进了顶楼办公室.社长看着你厚厚的一叠成长记录，露出了意味深长的笑容。",
           "opt1": "目光坚定地直视社长：“我已经准备好承担更大的责任了！”",
           "opt2": "谦逊地向社长鞠躬：“感谢事务所一直以来的培养与照顾。”",
           "opt3": "坦诚说出自己对未来音乐风格的构想与野心。",
@@ -1200,7 +1297,7 @@ if st.session_state.game_started:
     st.session_state.stress = 30
     st.session_state.bond += 10
 
-  is_free_training_day = curr_stage in [3, 9, 20]
+  is_free_training_day = curr_stage in [3, 20]  # Stage 9 改为了选拔小游戏
 
   if is_free_training_day and curr_stage < 25:
     st.subheader(f"🗓️ Stage {curr_stage}：自主特训与日常安排")
@@ -1292,31 +1389,19 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # 阶段 9：🔥 社内 Unit 小分队企划选拔
+  # 阶段 9 🔥（新增：限定 Unit 小分队概念选拔小游戏）
   elif curr_stage == 9:
-    st.subheader("📍 Stage 9：【社内企划】限定 Unit 小分队选拔战")
+    st.subheader("📍 Stage 9：【社内企划】限定 Unit 小分队概念选拔赛")
     st.markdown(
-        f'<div class="event-card"><b>🏆 【Unit 小分队选拔赛】</b><br>事务所突然下达了全新企划通知：将从所有练习生中选拔一支 3 人限定 Unit 小分队率先发布单曲！你需要决定和谁搭档以及主攻方向。</div>',
+        f'<div class="event-card"><b>🏆 【小分队概念选拔游戏】</b><br>事务所突然下达了全新企划通知！要在 10 秒内为 <b>{member}</b> 与你所在的组合挑选出 3 个最核心的舞台概念卡牌，冲击限定单曲出道！</div>',
         unsafe_allow_html=True,
     )
+    render_unit_selection_game()
 
-    u1 = st.button(f"1. 选择与实力超群的 {member} 强强联手，主攻炸裂双人舞曲")
-    u2 = st.button("2. 选择和擅长搞笑与气氛的队友组队，主攻综艺热单路线")
-    u3 = st.button("3. 独自一人报名全能 Ace 路线，展现个人综合实力")
-
-    if u1:
+    if st.button("➔ 选拔结束，锁定小分队企划！"):
       st.session_state.dance += 25
+      st.session_state.fans += 1200
       st.session_state.bond += 20
-      st.session_state.stage += 1
-      st.rerun()
-    if u2:
-      st.session_state.variety += 30
-      st.session_state.fans += 800
-      st.session_state.stage += 1
-      st.rerun()
-    if u3:
-      st.session_state.vocal += 20
-      st.session_state.dance += 15
       st.session_state.stage += 1
       st.rerun()
 
