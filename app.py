@@ -4,7 +4,7 @@ import streamlit as st
 
 # 1. 页面基础配置
 st.set_page_config(
-    page_title="偶像培养计划：星途甄选 3.0",
+    page_title="偶像培养计划：星途甄选",
     page_icon="💖",
     layout="centered",
 )
@@ -26,7 +26,6 @@ IDOL_GROUPS = {
     "Aぇ! group (A少年)": [
         "末泽诚也",
         "正门良规",
-        "草间理查德敬太",
         "小岛健",
         "佐野晶哉",
     ],
@@ -147,8 +146,6 @@ def init_game():
   st.session_state.group = ""
   st.session_state.member = ""
   st.session_state.avatar_url = ""
-
-  # 地狱开局低数值
   st.session_state.dance = random.randint(15, 25)
   st.session_state.vocal = random.randint(15, 25)
   st.session_state.variety = random.randint(15, 25)
@@ -158,8 +155,17 @@ def init_game():
   st.session_state.logs = []
 
 
+# 绝对安全的键值检查与初始化（防止任何 KeyError）
 if "game_started" not in st.session_state:
   init_game()
+else:
+  # 确保新增字段在老会话中不会报错
+  if "inventory" not in st.session_state:
+    st.session_state.inventory = []
+  if "avatar_url" not in st.session_state:
+    st.session_state.avatar_url = ""
+  if "logs" not in st.session_state:
+    st.session_state.logs = []
 
 
 # 辅助属性更新函数
@@ -205,8 +211,9 @@ if st.session_state.game_started:
   with col_h6:
     st.metric("🤝 社长信任", f"{st.session_state.trust}/100")
 
-  if st.session_state.inventory:
-    st.info(f"🎒 **当前拥有道具背包**：{', '.join(st.session_state.inventory)}")
+  current_inv = st.session_state.get("inventory", [])
+  if current_inv:
+    st.info(f"🎒 **当前拥有道具背包**：{', '.join(current_inv)}")
   st.markdown("</div>", unsafe_allow_html=True)
 
 # -------------------------------------------------------------------
@@ -570,7 +577,7 @@ elif st.session_state.game_started and st.session_state.stage == 6:
       st.error("💀 【结局：退所 / 遗憾离场】")
       st.write(
           f"很遗憾，{st.session_state.member}。"
-          f"由于社长信任度跌至谷底（{trust}），你未能在事务所走到最后，最终遗憾选择退所。"
+          f"由于社长信任度跌至谷底（{trust}）, 你未能在事务所走到最后，最终遗憾选择退所。"
       )
     elif fans >= 7500 and total_ability >= 105 and trust >= 60:
       st.balloons()
@@ -584,7 +591,7 @@ elif st.session_state.game_started and st.session_state.stage == 6:
       st.success("✨ 【结局：闪耀登场 - 顺利 CD 出道！】")
       st.markdown(
           f"### 👏 恭喜 {st.session_state.group} 的 **{st.session_state.member}**！\n"
-          "经过不懈的努力与多次危机的化解，社长最终为你敲定了出道出道企划！你成功跨越 Jr. 阶段，正式踏上主流明星舞台！"
+          "经过不懈的努力与多次危机的化解，社长最终为你敲定了出道企划！你成功跨越 Jr. 阶段，正式踏上主流明星舞台！"
       )
     else:
       st.warning("⚠️ 【结局：万年骨干 / 舞台剧专项演员】")
