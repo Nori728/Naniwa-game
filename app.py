@@ -18,7 +18,7 @@ st.markdown(
     [data-testid="stAppViewContainer"], .stApp {
         background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 50%, #fce7f3 100%) !important;
     }
-    
+
     /* 2. 顶部主标题与副标题 */
     .main-header {
         font-size: 2.2rem;
