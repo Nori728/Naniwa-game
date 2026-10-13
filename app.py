@@ -4,12 +4,12 @@ import streamlit as st
 
 # 1. 页面基础配置
 st.set_page_config(
-    page_title="偶像培养计划：星途甄选 2.0",
+    page_title="偶像培养计划：星途甄选 3.0",
     page_icon="💖",
     layout="centered",
 )
 
-# 2. 杰尼斯 / STARTO 组合与最新成员数据
+# 2. 杰尼斯 / STARTO 组合与最新成员数据（带默认高质量图片或风格图标）
 IDOL_GROUPS = {
     "KEY TO LIT": ["岩崎大昇", "井上瑞稀", "中村岭亚", "猪狩苍弥", "佐佐木大光"],
     "B&ZAI": [
@@ -71,16 +71,21 @@ IDOL_GROUPS = {
     ],
 }
 
-# 3. 超可爱高颜值 CSS 样式与高对比卡片
+# 3. 极简高颜值 UI 设计（无侧边栏，顶部面板）
 st.markdown(
     """
     <style>
-    /* 全局背景与字体 */
     .stApp {
         background: linear-gradient(135deg, #fce4ec 0%, #f3e5f5 100%);
     }
-    
-    /* 考核卡片：高对比深色亮字 */
+    .top-dashboard {
+        background: #ffffff;
+        padding: 15px 20px;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        margin-bottom: 20px;
+        border: 2px solid #ff80ab;
+    }
     .event-card {
         background: #2d1b4e;
         color: #ffffff;
@@ -92,18 +97,12 @@ st.markdown(
         font-size: 16px;
         line-height: 1.6;
     }
-    
     .event-title {
         font-size: 20px;
         font-weight: 800;
         color: #ff80ab;
         margin-bottom: 10px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
     }
-
-    /* 可爱提示框 */
     .cute-info {
         background-color: #ffffff;
         border-radius: 15px;
@@ -113,13 +112,6 @@ st.markdown(
         font-weight: 600;
         margin-bottom: 15px;
     }
-
-    /* Streamlit 单选框样式调整 */
-    div[data-testid="stRadio"] > label {
-        font-size: 18px !important;
-        font-weight: bold !important;
-        color: #4a148c !important;
-    }
     div[data-testid="stRadio"] div[role="radiogroup"] > label {
         background-color: #ffffff;
         padding: 12px 18px;
@@ -127,15 +119,11 @@ st.markdown(
         margin-bottom: 8px;
         border: 2px solid #ea80fc;
         transition: all 0.2s ease;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.03);
     }
     div[data-testid="stRadio"] div[role="radiogroup"] > label:hover {
         background-color: #f3e5f5;
         border-color: #ff4081;
-        transform: translateY(-2px);
     }
-
-    /* 可爱按钮外观 */
     .stButton > button {
         background: linear-gradient(45deg, #ff4081, #ab47bc) !important;
         color: white !important;
@@ -145,11 +133,6 @@ st.markdown(
         border: none !important;
         padding: 12px 30px !important;
         box-shadow: 0 6px 15px rgba(255, 64, 129, 0.4) !important;
-        transition: all 0.3s ease !important;
-    }
-    .stButton > button:hover {
-        transform: scale(1.05) !important;
-        box-shadow: 0 8px 20px rgba(255, 64, 129, 0.6) !important;
     }
     </style>
 """,
@@ -157,13 +140,13 @@ st.markdown(
 )
 
 
-# 4. 初始化游戏数据（增加防死机保护）
+# 4. 初始化游戏数据
 def init_game():
   st.session_state.game_started = False
   st.session_state.stage = 1
   st.session_state.group = ""
   st.session_state.member = ""
-  st.session_state.avatar = None
+  st.session_state.avatar_url = ""
 
   # 地狱开局低数值
   st.session_state.dance = random.randint(15, 25)
@@ -171,19 +154,22 @@ def init_game():
   st.session_state.variety = random.randint(15, 25)
   st.session_state.fans = 100
   st.session_state.trust = 40
+  st.session_state.inventory = []  # 道具背包
   st.session_state.logs = []
 
 
-# 极其严密的状态安全检查
-if "avatar" not in st.session_state or "game_started" not in st.session_state:
+if "game_started" not in st.session_state:
   init_game()
 
 
-# 属性更新隐蔽辅助函数
+# 辅助属性更新函数
 def update_stats(dance=0, vocal=0, variety=0, fans=0, trust=0, log_msg=""):
-  st.session_state.dance += dance
-  st.session_state.vocal += vocal
-  st.session_state.variety += variety
+  # 如果背包有“金牌训练加成护符”，效果翻倍
+  multiplier = 1.5 if "金牌训练护符" in st.session_state.inventory else 1.0
+
+  st.session_state.dance += int(dance * multiplier)
+  st.session_state.vocal += int(vocal * multiplier)
+  st.session_state.variety += int(variety * multiplier)
   st.session_state.fans += fans
   st.session_state.trust += trust
 
@@ -198,49 +184,38 @@ def update_stats(dance=0, vocal=0, variety=0, fans=0, trust=0, log_msg=""):
 
 
 # 主标题
-st.title("💖 偶像培养计划：星途甄选 2.0")
+st.title("💖 偶像培养计划：星途甄选 3.0")
 
-# 侧边栏：状态面板与头像
+# 如果游戏已经开始，在顶部渲染状态仪表盘（彻底取代侧边栏）
 if st.session_state.game_started:
-  st.sidebar.markdown("### 👑 当前训练生")
-
-  # 使用 safe get 语法，防止 KeyError
-  avatar_file = st.session_state.get("avatar", None)
-  if avatar_file is not None:
-    st.sidebar.image(
-        avatar_file,
-        caption=f"{st.session_state.group} - {st.session_state.member}",
-        use_container_width=True,
+  st.markdown('<div class="top-dashboard">', unsafe_allow_html=True)
+  col_h1, col_h2, col_h3, col_h4, col_h5, col_h6 = st.columns(6)
+  with col_h1:
+    st.markdown(
+        f"**👑 练习生**<br>{st.session_state.member} ({st.session_state.group})",
+        unsafe_allow_html=True,
     )
-  else:
-    st.sidebar.markdown(
-        f"**{st.session_state.group}**\n# 🌟 {st.session_state.member}"
-    )
-
-  st.sidebar.markdown("---")
-  st.sidebar.markdown("### 📊 个人实力属性")
-
-  c1, c2 = st.sidebar.columns(2)
-  with c1:
+  with col_h2:
     st.metric("💃 舞蹈", f"{st.session_state.dance} pt")
-    st.metric("🤡 综艺感", f"{st.session_state.variety} pt")
-  with c2:
+  with col_h3:
     st.metric("🎤 歌唱", f"{st.session_state.vocal} pt")
-    st.metric("🤝 社长信任", f"{st.session_state.trust} / 100")
+  with col_h4:
+    st.metric("🤡 综艺感", f"{st.session_state.variety} pt")
+  with col_h5:
+    st.metric("💖 粉丝数", f"{st.session_state.fans:,}")
+  with col_h6:
+    st.metric("🤝 社长信任", f"{st.session_state.trust}/100")
 
-  st.sidebar.metric("💖 粉丝数量", f"{st.session_state.fans:,} 人")
-
-  st.sidebar.markdown("---")
-  if st.sidebar.button("🔄 放弃并重新开始"):
-    init_game()
-    st.rerun()
+  if st.session_state.inventory:
+    st.info(f"🎒 **当前拥有道具背包**：{', '.join(st.session_state.inventory)}")
+  st.markdown("</div>", unsafe_allow_html=True)
 
 # -------------------------------------------------------------------
-# STAGE 0: 选角与准备
+# STAGE 0: 选角与准备 (支持直接输入照片网址)
 # -------------------------------------------------------------------
 if not st.session_state.game_started:
   st.markdown(
-      '<div class="cute-info">✨ 欢迎来到 STARTO 偶像训练营！请选择你的身份并开启地狱级的甄选之路吧！</div>',
+      '<div class="cute-info">✨ 欢迎来到 STARTO 偶像训练营！请选择你的组合与成员，输入你的专属宣传照网址（选填），开启养成之路！</div>',
       unsafe_allow_html=True,
   )
 
@@ -254,18 +229,31 @@ if not st.session_state.game_started:
         "选择你要扮演的成员：", IDOL_GROUPS[selected_group]
     )
 
-  st.markdown("---")
-  st.markdown("#### 📷 自定义你的偶像头像（可选）")
-  uploaded_file = st.file_uploader(
-      "支持上传 JPG / PNG 格式照片，让体验更具代入感！", type=["jpg", "png", "jpeg"]
+  avatar_input = st.text_input(
+      "📷 输入你的偶像宣传照图片网址 (URL，可选)：",
+      placeholder="例如: https://example.com/idol.jpg",
   )
 
   if st.button("🚀 签订研修契约，开启星途！", use_container_width=True):
     st.session_state.group = selected_group
     st.session_state.member = selected_member
-    st.session_state.avatar = uploaded_file
+    st.session_state.avatar_url = avatar_input.strip()
     st.session_state.game_started = True
     st.rerun()
+
+# -------------------------------------------------------------------
+# 抽奖/道具盲盒小函数
+# -------------------------------------------------------------------
+def gacha_draw():
+  items = [
+      "🌟 《Myojo》限定单人封面（粉丝+1500）",
+      "🛡️ 防文春护身符（抵消一次负面绯闻）",
+      "🎤 录音棚黄金麦克风（歌唱属性暴增+15）",
+      "👟 练习室减震舞鞋（舞蹈属性暴增+15）",
+  ]
+  reward = random.choice(items)
+  st.session_state.inventory.append(reward)
+  st.success(f"🎁 **恭喜你通过阶段考核，抽中事务所盲盒奖励**：【 {reward} 】！")
 
 # -------------------------------------------------------------------
 # STAGE 1: 入校试镜与自主练习
@@ -275,17 +263,17 @@ elif st.session_state.stage == 1:
 
   st.markdown("""
     <div class="event-card">
-        <div class="event-title">📌 【考核事件：分班考核试镜】</div>
-        你刚刚作为 Jr. 进入练习室。社长坐在台下，要求每位新人即兴展示一段才艺。周遭都是实力强劲的练习生，你打算怎么展现自己？
+        <div class="event-title">📌 【突发考核：分班即兴考核】</div>
+        你刚作为 Jr. 进入练习室。社长突然临时抽查，要求每位新人即兴展示一项绝活。周遭竞争极其惨烈，你决定展示：
     </div>
     """, unsafe_allow_html=True)
 
   choice = st.radio(
       "请做出你的决定：",
       [
-          "1. 挑战超高难度的特技空翻展示极致舞蹈！",
-          "2. 唱一首前辈的经典抒情歌曲，展示温柔的真假音转换。",
-          "3. 展现独特的搞笑天赋，准备一段单口相声（Talk）！",
+          "1. 挑战超高难度的特技空翻，展现视觉冲击力！",
+          "2. 清唱一首高难度的前辈金曲，展露歌喉。",
+          "3. 讲一个冷笑话，展现出众的综艺谈话天赋。",
       ],
       key="s1",
   )
@@ -297,51 +285,52 @@ elif st.session_state.stage == 1:
             dance=18,
             fans=300,
             trust=10,
-            log_msg="【Stage 1】完美完成空翻！社长惊叹连连，获得了高评分！",
+            log_msg="【Stage 1】空翻完美落地！社长对你的运动神经表示赞赏。",
         )
       else:
         update_stats(
             dance=5,
             trust=-10,
-            log_msg="【Stage 1】空翻落地失误，让社长担心你的身体状况。",
+            log_msg="【Stage 1】空翻时险些摔倒，留下了一个惊险的失误回忆。",
         )
     elif "2." in choice:
       update_stats(
           vocal=15,
           trust=10,
           fans=200,
-          log_msg="【Stage 1】沉稳的歌声打动了考官，被分入了歌唱组练习。",
+          log_msg="【Stage 1】温柔稳健的转音打动了台下的音响总监。",
       )
     else:
       update_stats(
           variety=20,
           fans=500,
           trust=5,
-          log_msg="【Stage 1】全场被你逗得大笑，成为了练习室里的人气王！",
+          log_msg="【Stage 1】冷笑话逗笑了全场，迅速在练习生中树立了开心果形象。",
       )
 
+    gacha_draw()
     st.session_state.stage = 2
     st.rerun()
 
 # -------------------------------------------------------------------
-# STAGE 2: 前辈 Concert Back 伴舞危机
+# STAGE 2: 前辈 Concert Back 伴舞突发事件
 # -------------------------------------------------------------------
 elif st.session_state.stage == 2:
-  st.subheader("🚩 Stage 2：大型演唱会 - 前辈 Back 伴舞")
+  st.subheader("🚩 Stage 2：东京巨蛋 - 前辈演唱会后台")
 
   st.markdown("""
     <div class="event-card">
-        <div class="event-title">📌 【考核事件：搬梯子与走位危机】</div>
-        你获得了为前辈巨蛋演唱会伴舞的珍贵机会！但在开场前 5 分钟，舞蹈总监临时变更了走位，并且舞台道具梯子突然无人搬运！
+        <div class="event-title">📌 【突发状况：搬梯子与走位冲突】</div>
+        巨蛋演唱会开场前 10 分钟，前辈的道具梯子因工作人员疏忽堆在通道。同时舞蹈总监临时调整了你们的后排走位！
     </div>
     """, unsafe_allow_html=True)
 
   choice = st.radio(
-      "你会怎么做？",
+      "你该怎么应对？",
       [
-          "1. 主动承担起搬运梯子的脏活累活，同时凭借记忆硬记新走位。",
-          "2. 不管道具，专注死记硬背自己的舞蹈走位，确保自己绝对不出错。",
-          "3. 趁着灯光昏暗，在后排做出超大动作吸引观众席视线！",
+          "1. 一个人默默把重型道具梯子搬走，并加急硬记新走位。",
+          "2. 专心死磕自己的舞蹈走位，对杂务置之不理。",
+          "3. 在后排跳舞时故意加上夸张的可爱动作，争取摄像机多扫一眼。",
       ],
       key="s2",
   )
@@ -352,106 +341,107 @@ elif st.session_state.stage == 2:
           dance=10,
           trust=20,
           fans=400,
-          log_msg="【Stage 2】默默奉献的精神被前辈和社长看在眼里，信任度大增！",
+          log_msg="【Stage 2】任劳任怨的奉献精神被前辈看在眼里，信任度暴增！",
       )
     elif "2." in choice:
       update_stats(
           dance=15,
           trust=5,
-          log_msg="【Stage 2】虽然没有特别亮眼，但展现了扎实的舞蹈基本功。",
+          log_msg="【Stage 2】虽然毫无差错，但也显得中规中矩。",
       )
     else:
       if random.random() < 0.4:
         update_stats(
             fans=2500,
             trust=-15,
-            log_msg="【Stage 2】抢镜成功！引起了热议，但社长认为你不守规矩。",
+            log_msg="【Stage 2】加戏成功！在推特上引起了热议，吸了一波颜粉。",
         )
       else:
         update_stats(
             fans=-500,
             trust=-20,
-            log_msg="【Stage 2】抢镜导致整体失调，被舞蹈总监严厉批评！",
+            log_msg="【Stage 2】因私自抢镜头导致舞蹈队形混乱，遭到严厉训斥！",
         )
 
+    gacha_draw()
     st.session_state.stage = 3
     st.rerun()
 
 # -------------------------------------------------------------------
-# STAGE 3：电视直播舞台故障
+# STAGE 3：电视直播突发事故
 # -------------------------------------------------------------------
 elif st.session_state.stage == 3:
-  st.subheader("🚩 Stage 3：电视直播 LIVE 舞台危机")
+  st.subheader("🚩 Stage 3：音乐打歌节目直播事故")
 
   st.markdown("""
     <div class="event-card">
-        <div class="event-title">📌 【突发事件：麦克风掉落 & 断音】</div>
-        你在录制独唱特写段落时，手里的麦克风突然滑落掉在了地上！现场观众和镜头都在注视着你！
+        <div class="event-title">📌 【突发危机：耳返没声音 & 走音】</div>
+        在黄金档音乐直播节目中，你的耳返突然毫无预兆地断电了，伴奏声听不真切，随时面临大走音的风险！
     </div>
     """, unsafe_allow_html=True)
 
   choice = st.radio(
-      "电光火石之间，你的反应是：",
+      "电光火石之间，你选择：",
       [
-          "1. 顺势将捡麦克风做成一个超帅气的舞蹈动作，并顺畅接上清唱！",
-          "2. 保持镇定，对镜头抛个媚眼，微笑着用口型唱完后半段。",
-          "3. 慌张地捡起麦克风，手忙脚乱地跟上伴奏节奏。",
+          "1. 凭着肌肉记忆和对全场音响的感知硬扛，进行高难度的全开麦演唱！",
+          "2. 临危不乱，迅速将耳返摘下挂在耳后，用眼神和队友默契对齐节拍。",
+          "3. 慌乱之中有点跟不上节拍，只能靠对口型（半开麦）糊弄过去。",
       ],
       key="s3",
   )
 
   if st.button("提交决定 ➔"):
     if "1." in choice:
-      if st.session_state.dance + st.session_state.vocal >= 50:
+      if st.session_state.vocal >= 40:
         update_stats(
-            dance=15,
-            vocal=15,
+            vocal=20,
             fans=3500,
             trust=15,
-            log_msg="【Stage 3】神级现场应变！这一幕成为了名场面！",
+            log_msg="【Stage 3】全开麦硬扛成功！高音震撼全网，实力受到业内狂赞！",
         )
       else:
         update_stats(
-            fans=1000,
+            fans=-500,
             trust=-5,
-            log_msg="【Stage 3】有创意，但由于唱功不够导致声音发颤。",
+            log_msg="【Stage 3】由于唱功基础不够，导致现场有些许走音，引发热议。",
         )
     elif "2." in choice:
       update_stats(
-          variety=20,
+          variety=15,
           fans=2500,
           trust=10,
-          log_msg="【Stage 3】强大的心理素质和爱豆魅力征服了全场！",
+          log_msg="【Stage 3】冷静沉着的台风圈粉无数，展现了极强的专业素养！",
       )
     else:
       update_stats(
-          fans=-800,
-          trust=-10,
-          log_msg="【Stage 3】表现过于慌乱，失去了难得的镜头展示机会。",
+          fans=-1000,
+          trust=-15,
+          log_msg="【Stage 3】假唱动作被火眼金睛的网友捕捉到，口碑小幅下滑。",
       )
 
+    gacha_draw()
     st.session_state.stage = 4
     st.rerun()
 
 # -------------------------------------------------------------------
-# STAGE 4：杂志访谈与综艺危机
+# STAGE 4：深夜生配信与粉丝互动突发
 # -------------------------------------------------------------------
 elif st.session_state.stage == 4:
-  st.subheader("🚩 Stage 4：偶像杂志专访 & 应对")
+  st.subheader("🚩 Stage 4：Jr. 独家深夜生配信")
 
   st.markdown("""
     <div class="event-card">
-        <div class="event-title">📌 【考核事件：犀利记者提问】</div>
-        在专访中，记者抛出了刁钻问题：“你觉得你在组合里是不可替代的吗？其他人会不会拖你后腿？”
+        <div class="event-title">📌 【突发互动：直播间连线恶搞】</div>
+        你在进行个人的 Johnny's web 深夜直播时，弹幕突然刷屏要求你模仿社长平时的口头禅，并连线另一位组合成员爆料私密糗事！
     </div>
     """, unsafe_allow_html=True)
 
   choice = st.radio(
-      "你的回答策略：",
+      "你会如何掌控这场直播？",
       [
-          "1. 高情商回复：“我们每个人都是拼图的一块，缺了谁这幅画都不完整！”",
-          "2. 霸气回复：“我会用实力成为队伍里绝对的核心（Center）！”",
-          "3. 搞笑调侃：“他们确实常拖我后腿，比如经常抢我的便当吃！”",
+          "1. 高情商巧妙化解，大谈对组合未来的认真规划，走温柔治愈路线。",
+          "2. 幽默感拉满，大方模仿社长并爆料队友洗澡不锁门，笑果拔群！",
+          "3. 险些说错话泄露了公司还未公开的新专辑企划机密！",
       ],
       key="s4",
   )
@@ -461,95 +451,112 @@ elif st.session_state.stage == 4:
       update_stats(
           trust=20,
           fans=2000,
-          log_msg="【Stage 4】展现了极佳的团魂，高层和粉丝非常满意！",
+          log_msg="【Stage 4】真诚走心的发言让粉丝和高层倍感欣慰。",
       )
     elif "2." in choice:
       update_stats(
-          dance=10,
-          vocal=10,
-          fans=3000,
-          trust=-10,
-          log_msg="【Stage 4】野心满满吸了一波唯粉，但也引发了部分争议。",
+          variety=25,
+          fans=4000,
+          trust=5,
+          log_msg="【Stage 4】直播片段直接冲上推特趋势第一，综艺感封神！",
       )
     else:
       update_stats(
-          variety=25,
-          fans=2500,
-          trust=10,
-          log_msg="【Stage 4】爆笑金句登上了热搜，综艺感大受好评！",
+          trust=-25,
+          fans=1000,
+          log_msg="【Stage 4】险些泄密导致被经纪人当场切断直播，连夜写检讨！",
       )
 
+    gacha_draw()
     st.session_state.stage = 5
     st.rerun()
 
 # -------------------------------------------------------------------
-# STAGE 5：八卦绯闻风波
+# STAGE 5：文春炮绯闻危机 (道具联动)
 # -------------------------------------------------------------------
 elif st.session_state.stage == 5:
-  st.subheader("🚩 Stage 5：八卦周刊绯闻风波")
+  st.subheader("🚩 Stage 5：文春炮突击绯闻危机")
 
   st.markdown("""
     <div class="event-card">
-        <div class="event-title">📌 【致命危机：周刊曝光照片】</div>
-        八卦周刊拍到了你深夜与朋友在聚会的照片，并撰文暗示你有负面嫌疑！社交媒体瞬间炸锅！
+        <div class="event-title">📌 【致命危机：周刊偷拍风波】</div>
+        八卦周刊突然放出风声，称拍到了你深夜与神秘异性出入的照片，要求事务所对质！网络舆论瞬间狂风暴雨！
     </div>
     """, unsafe_allow_html=True)
 
+  # 检查是否有护身符道具
+  has_shield = "🛡️ 防文春护身符" in st.session_state.inventory
+  if has_shield:
+    st.info(
+        "💡 **触发道具生效**：你背包中的【🛡️ 防文春护身符】自动生效，成功化解了一半危机！"
+    )
+
   choice = st.radio(
-      "危机公关，你选择怎么做？",
+      "危机公关，你打算采取什么行动？",
       [
-          "1. 连夜向社长诚恳说明原委，并主动配合事务所做出合理解释。",
-          "2. 在官方博客上发长文自证清白，安抚粉丝。",
-          "3. 选择沉默不作任何回应，冷处理等热度过去。",
+          "1. 连夜向社长坦白一切（只是普通聚会），配合公司公关部极速澄清。",
+          "2. 独自在博客发长文宣誓“我的爱只属于粉丝”，跟媒体硬刚到底。",
+          "3. 采取冷处理闭麦不回应，任由舆论发酵。",
       ],
       key="s5",
   )
 
   if st.button("提交决定 ➔"):
     if "1." in choice:
+      bonus_trust = 30 if has_shield else 20
       update_stats(
-          trust=25,
-          fans=-500,
-          log_msg="【Stage 5】你的坦诚赢得了事务所全力的公关保驾护航，危机解除！",
+          trust=bonus_trust,
+          fans=500,
+          log_msg="【Stage 5】公关部雷厉风行，完美将负面新闻压制下来！",
       )
+      if has_shield:
+        st.session_state.inventory.remove("🛡️ 防文春护身符")
     elif "2." in choice:
-      if random.random() < 0.5:
+      if random.random() < 0.6 or has_shield:
         update_stats(
-            fans=4000,
-            trust=-15,
-            log_msg="【Stage 5】粉丝被真诚打动，固粉成功！但社长对你的自作主张略有不满。",
+            fans=5000,
+            trust=-10,
+            log_msg="【Stage 5】热血感发言让粉丝极具凝聚力，固粉大成功！",
         )
       else:
         update_stats(
-            fans=-3000,
-            trust=-25,
-            log_msg="【Stage 5】风波未能平息，反而引发了更多的讨论与脱粉。",
+            fans=-4000,
+            trust=-30,
+            log_msg="【Stage 5】激进言论遭到媒体持续深挖，导致大面积脱粉危机！",
         )
     else:
       update_stats(
-          fans=-2000,
-          trust=-20,
-          log_msg="【Stage 5】冷处理导致脱粉严重，社长对你的态度感到失望。",
+          fans=-3000,
+          trust=-25,
+          log_msg="【Stage 5】冷处理让大众认为默认事实，形象大受打击。",
       )
 
     st.session_state.stage = 6
     st.rerun()
 
 # -------------------------------------------------------------------
-# STAGE 6: 最终大决选
+# STAGE 6: 帝国剧场 - 出道最终大决选
 # -------------------------------------------------------------------
 elif st.session_state.stage == 6:
-  st.subheader("🏁 Final Stage：出道最终大决选")
+  st.subheader("🏁 Final Stage：帝国剧场 CD 出道大决选")
+
+  # 如果玩家填了图片网址，在这里精美展示
+  if st.session_state.avatar_url:
+    st.image(
+        st.session_state.avatar_url,
+        caption=f"{st.session_state.group} - {st.session_state.member} 的出道定妆照",
+        width=300,
+    )
 
   st.markdown("""
     <div class="event-card">
-        <div class="event-title">👑 【最后的考核】</div>
-        舞台灯光璀璨。社长手里拿着今年最后一份 <b>“CD 出道推荐书”</b>。<br><br>
-        这是你近几年来所有汗水、努力与选择的汇总时刻！
+        <div class="event-title">👑 【终局审判：CD 出道记者会】</div>
+        帝国剧场座无虚席闪光灯闪烁。社长坐在台前，手中正翻开那本决定命运的 <b>“CD 正式出道名单”</b>。<br><br>
+        历经千难万险，你的偶像生涯将在此刻迎来终极裁决！
     </div>
     """, unsafe_allow_html=True)
 
-  if st.button("🌟 揭晓出道甄选结果 🌟", use_container_width=True):
+  if st.button("🌟 揭晓最终出道结果 🌟", use_container_width=True):
     st.markdown("---")
 
     total_ability = (
@@ -561,42 +568,45 @@ elif st.session_state.stage == 6:
     fans = st.session_state.fans
 
     if trust < 25:
-      st.error("💀 【结局：退所 / 解除契约】")
+      st.error("💀 【结局：退所 / 遗憾离场】")
       st.write(
           f"很遗憾，{st.session_state.member}。"
-          f"由于社长信任度跌至谷底（{trust}），你未能在事务所立足，最终在出道前夕收到了退所通知。"
+          f"由于社长信任度跌至谷底（{trust}），你未能在事务所走到最后，最终遗憾选择退所。"
       )
-    elif fans >= 8000 and total_ability >= 110 and trust >= 65:
+    elif fans >= 7500 and total_ability >= 105 and trust >= 60:
       st.balloons()
-      st.success("🎉 【结局：百万销量 - 传说级 CD 出道！】")
+      st.success("🎉 【结局：百万畅销 - 传奇顶流 CD 出道！】")
       st.markdown(
           f"### 👑 恭喜 {st.session_state.group} 的 **{st.session_state.member}**！\n"
-          "你凭借无可挑剔的综合实力、极高的社长信任与庞大的粉丝基础，在舞台上正式接过了 CD 出道的金标签！"
-          "你的出道单曲首周即破百万销量，成为了新一代顶流！"
+          "你凭借精湛的舞台实力、极高的社长信任与庞大粉丝群，在帝国剧场顺利接过了出道金标签！"
+          "出道单曲空降各大榜单首位，正式登顶日本娱乐圈新一代顶流巨星！"
       )
-    elif fans >= 4500 and trust >= 45:
-      st.success("✨ 【结局：顺利 CD 出道！】")
+    elif fans >= 4000 and trust >= 40:
+      st.success("✨ 【结局：闪耀登场 - 顺利 CD 出道！】")
       st.markdown(
           f"### 👏 恭喜 {st.session_state.group} 的 **{st.session_state.member}**！\n"
-          "经过多年的默默耕耘，社长终于为你和组合敲定了出道单曲！你正式摆脱了 Jr. 身份，步入主流明星行列！"
+          "经过不懈的努力与多次危机的化解，社长最终为你敲定了出道出道企划！你成功跨越 Jr. 阶段，正式踏上主流明星舞台！"
       )
     else:
-      st.warning("⚠️ 【结局：万年 Jr. 骨干 / 舞台剧专项】")
+      st.warning("⚠️ 【结局：万年骨干 / 舞台剧专项演员】")
       st.write(
           f"很可惜，{st.session_state.member}。"
-          "虽然你非常努力，但目前的综合实力和粉丝基础尚未达到 CD 出道的门槛。"
-          "社长决定让你继续在舞台深耕，等待下一次机会。"
+          "虽然你充满个人特色，但整体综合实力或粉丝基础距离 CD 出道还有一步之遥。"
+          "社长决定让你继续深耕剧场与舞台，等待下一次机会。"
       )
 
     st.markdown("---")
-    st.markdown("### 📜 你的星途档案记录")
+    st.markdown("### 📜 你的星途终极档案记录")
     st.write(
         f"- 最终实力总和：**{total_ability} pt**（舞:{st.session_state.dance} / 唱:{st.session_state.vocal} / 综:{st.session_state.variety}）"
     )
     st.write(f"- 最终社长信任：**{trust} / 100**")
     st.write(f"- 最终粉丝总数：**{fans:,} 人**")
+    st.write(
+        f"- 收集道具背包：**{', '.join(st.session_state.inventory) if st.session_state.inventory else '无'}**"
+    )
 
-    st.markdown("#### 📖 历程事件回顾：")
+    st.markdown("#### 📖 历程大事件回顾：")
     for log in st.session_state.logs:
       st.caption(f"• {log}")
 
