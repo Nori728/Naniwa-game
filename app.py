@@ -153,7 +153,7 @@ def get_rand_member():
 
 
 # -------------------------------------------------------------------
-# 🎹 1. 钢琴块下落打歌小游戏
+# 🎹 1. 钢琴块打歌小游戏
 # -------------------------------------------------------------------
 def render_piano_tiles_game():
   html_code = """
@@ -223,7 +223,7 @@ def render_piano_tiles_game():
 
 
 # -------------------------------------------------------------------
-# ⛏️ 2. 铁锹敲击土块【地下仓库盲盒挖宝】
+# ⛏️ 2. 铁锹敲击土块挖宝
 # -------------------------------------------------------------------
 def render_dirt_dig_game():
   html_code = """
@@ -315,7 +315,7 @@ def render_dirt_dig_game():
 
 
 # -------------------------------------------------------------------
-# 🔥 Stage 9：限定 Unit 小分队随机题目多选答题选拔游戏
+# 🔥 3. 小分队选拔多选题
 # -------------------------------------------------------------------
 def render_unit_selection_game():
   html_code = """
@@ -423,188 +423,232 @@ def render_unit_selection_game():
 
 
 # -------------------------------------------------------------------
-# 👗 3. 精致暖暖风：偶像男装/多风格纸娃娃换装间（完美压缩高度，完全可视）
+# 💖 替换换装 1：【后台饭撒互动：粉丝心愿手势对暗号】（彩色炫光视觉卡片）
 # -------------------------------------------------------------------
-def render_dress_up_game():
+def render_fans_service_game():
   html_code = """
     <!DOCTYPE html>
     <html>
     <head>
         <style>
             body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
-            .dress-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); padding: 8px; width: 290px; text-align: center; }
-            canvas { display: block; margin: 0 auto; background: linear-gradient(135deg, #2b1055, #7597de); border-radius: 8px; border: 1.5px solid #ff4081; }
-            .category-row { display: flex; justify-content: center; gap: 3px; margin-top: 6px; }
-            .cat-btn { background: #4a148c; color: white; border: 1px solid #ff80ab; padding: 4px 8px; font-size: 10px; font-weight: bold; border-radius: 6px; cursor: pointer; }
-            .cat-btn.active { background: #ff4081; box-shadow: 0 0 6px #ff4081; }
-            .items-row { display: flex; justify-content: center; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
-            .item-btn { background: linear-gradient(45deg, #ab47bc, #7b1fa2); color: white; border: 1px solid #ea80fc; padding: 4px 8px; font-size: 10px; font-weight: bold; border-radius: 6px; cursor: pointer; }
-            .item-btn:active { transform: scale(0.95); }
+            .fs-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 14px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); padding: 10px; width: 300px; text-align: center; }
+            .fs-card { background: linear-gradient(135deg, #ff4081, #7b1fa2); border: 2px solid #fff; border-radius: 12px; padding: 12px; margin: 8px 0; color: #fff; font-size: 15px; font-weight: bold; box-shadow: inset 0 0 10px rgba(255,255,255,0.3); }
+            .fs-btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
+            .fs-btn { background: linear-gradient(180deg, #ab47bc, #4a148c); color: white; border: 1.5px solid #ff80ab; padding: 10px 0; font-size: 12px; font-weight: bold; border-radius: 8px; cursor: pointer; }
+            .fs-btn:active { transform: scale(0.95); background: #ff4081; }
         </style>
     </head>
     <body>
-        <div class="dress-box">
-            <div style="color: #ffeb3b; font-weight: bold; font-size: 11px; margin-bottom: 4px;">✨ 杂志封面：偶像高级定制换装间</div>
-            <canvas id="dollCanvas" width="270" height="135"></canvas>
-            
-            <div class="category-row">
-                <button class="cat-btn active" onclick="setCategory('hair')">💇 发型</button>
-                <button class="cat-btn" onclick="setCategory('top')">🧥 上衣</button>
-                <button class="cat-btn" onclick="setCategory('bottom')">👖 裤装</button>
-                <button class="cat-btn" onclick="setCategory('shoes')">👟 鞋子</button>
+        <div class="fs-box">
+            <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">💖 演唱会花车巡游：粉丝饭撒大对决！</div>
+            <div style="color: #fff; font-size: 11px; margin-top: 2px;">看准应援牌手势，瞬间狙击粉丝内心！</div>
+            <div class="fs-card" id="targetSign">💌 粉丝高举应援牌：“求比心 (Finger Heart)”</div>
+            <div style="color: #00e676; font-size: 11px; font-weight: bold;">🔥 成功饭撒: <span id="fsScore">0</span> / 6 | ⏳ <span id="fsTime">10</span>s</div>
+            <div class="fs-btns">
+                <button class="fs-btn" onclick="pressFS('比心')">🫰 比心</button>
+                <button class="fs-btn" onclick="pressFS('Wink')">😉 Wink</button>
+                <button class="fs-btn" onclick="pressFS('飞吻')">💋 飞吻</button>
             </div>
-            
-            <div class="items-row" id="itemOptions"></div>
         </div>
         <script>
-            const canvas = document.getElementById('dollCanvas');
-            const ctx = canvas.getContext('2d');
+            const signs = [
+                { type: '比心', label: '💌 粉丝举牌：“求比心 (Finger Heart)”' },
+                { type: 'Wink', label: '✨ 粉丝举牌：“求绝杀 Wink (Wink)”' },
+                { type: '飞吻', label: '💋 粉丝举牌：“求抛飞吻 (Kiss)”' }
+            ];
+            let currentSign = signs[0], score = 0, timeLeft = 10, isOver = false;
 
-            let currentCat = 'hair';
-            let outfit = {
-                hair: { name: '日系抓发', type: 'hair1' },
-                top: { name: '学院西装', type: 'top1' },
-                bottom: { name: '修身黑裤', type: 'bot1' },
-                shoes: { name: '经典皮鞋', type: 'shoe1' }
-            };
-
-            const options = {
-                hair: [
-                    { name: '日系抓发', type: 'hair1' },
-                    { name: '韩系微卷', type: 'hair2' },
-                    { name: '耀眼狼尾', type: 'hair3' }
-                ],
-                top: [
-                    { name: '学院西装', type: 'top1' },
-                    { name: '华丽战袍', type: 'top2' },
-                    { name: '宽松连帽衫', type: 'top3' }
-                ],
-                bottom: [
-                    { name: '修身黑裤', type: 'bot1' },
-                    { name: '工装潮裤', type: 'bot2' },
-                    { name: '亮片西裤', type: 'bot3' }
-                ],
-                shoes: [
-                    { name: '经典皮鞋', type: 'shoe1' },
-                    { name: '高帮马丁', type: 'shoe2' },
-                    { name: '运动板鞋', type: 'shoe3' }
-                ]
-            };
-
-            function setCategory(cat) {
-                currentCat = cat;
-                document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-                event.target.classList.add('active');
-                renderOptions();
+            function nextSign() {
+                if (isOver) return;
+                currentSign = signs[Math.floor(Math.random() * signs.length)];
+                document.getElementById('targetSign').innerText = currentSign.label;
             }
 
-            function renderOptions() {
-                const row = document.getElementById('itemOptions');
-                row.innerHTML = '';
-                options[currentCat].forEach(opt => {
-                    let btn = document.createElement('button');
-                    btn.className = 'item-btn';
-                    btn.innerText = opt.name;
-                    btn.onclick = () => {
-                        outfit[currentCat] = opt;
-                        drawDoll();
-                    };
-                    row.appendChild(btn);
-                });
-            }
-
-            function drawRoundedRect(ctx, x, y, width, height, radius) {
-                ctx.beginPath();
-                ctx.moveTo(x + radius, y);
-                ctx.lineTo(x + width - radius, y);
-                ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-                ctx.lineTo(x + width, y + height - radius);
-                ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-                ctx.lineTo(x + radius, y + height);
-                ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-                ctx.lineTo(x, y + radius);
-                ctx.quadraticCurveTo(x, y, x + radius, y);
-                ctx.closePath();
-                ctx.fill();
-            }
-
-            function drawDoll() {
-                ctx.clearRect(0, 0, 270, 135);
-
-                // 身体与脸部微调缩小以匹配 135 高度画布
-                ctx.fillStyle = '#fceade';
-                ctx.fillRect(131, 44, 8, 12);
-                ctx.beginPath();
-                ctx.arc(135, 34, 14, 0, Math.PI*2);
-                ctx.fill();
-
-                ctx.fillStyle = '#2b1055';
-                ctx.beginPath();
-                ctx.arc(131, 33, 1.5, 0, Math.PI*2);
-                ctx.arc(139, 33, 1.5, 0, Math.PI*2);
-                ctx.fill();
-
-                ctx.fillStyle = outfit.bottom.type === 'bot1' ? '#1f2421' : (outfit.bottom.type === 'bot2' ? '#5c677d' : '#4a3000');
-                if(outfit.bottom.type === 'bot1') {
-                    ctx.fillRect(126, 76, 7, 34);
-                    ctx.fillRect(137, 76, 7, 34);
-                } else if(outfit.bottom.type === 'bot2') {
-                    ctx.fillRect(125, 76, 8, 34);
-                    ctx.fillRect(137, 76, 8, 34);
+            let timer = setInterval(() => {
+                if (timeLeft > 0 && !isOver) {
+                    timeLeft--; document.getElementById('fsTime').innerText = timeLeft;
                 } else {
-                    ctx.fillStyle = '#b5838d';
-                    ctx.fillRect(125, 76, 8, 34);
-                    ctx.fillRect(137, 76, 8, 34);
+                    isOver = true; clearInterval(timer);
+                    document.getElementById('targetSign').innerText = score >= 6 ? "🎉 饭撒全场大成功！" : "哎呀，反应慢了一拍...";
                 }
+            }, 1000);
 
-                if(outfit.top.type === 'top1') {
-                    ctx.fillStyle = '#2b2d42';
-                    drawRoundedRect(ctx, 118, 52, 34, 30, 4);
-                } else if(outfit.top.type === 'top2') {
-                    ctx.fillStyle = '#ffb703';
-                    drawRoundedRect(ctx, 116, 50, 38, 32, 6);
-                } else {
-                    ctx.fillStyle = '#8338ec';
-                    drawRoundedRect(ctx, 118, 52, 34, 30, 6);
+            function pressFS(type) {
+                if (isOver) return;
+                if (type === currentSign.type) {
+                    score++;
+                    document.getElementById('fsScore').innerText = score;
+                    if (score >= 6) {
+                        isOver = true;
+                        document.getElementById('targetSign').innerText = "🎉 饭撒全场大成功！";
+                    } else {
+                        nextSign();
+                    }
                 }
-
-                ctx.fillStyle = outfit.shoes.type === 'shoe1' ? '#000000' : (outfit.shoes.type === 'shoe2' ? '#382b22' : '#ffffff');
-                ctx.fillRect(125, 110, 9, 7);
-                ctx.fillRect(136, 110, 9, 7);
-
-                ctx.fillStyle = '#3a0ca3';
-                if(outfit.hair.type === 'hair1') {
-                    ctx.beginPath();
-                    ctx.arc(135, 30, 15, Math.PI, Math.PI * 2);
-                    ctx.fill();
-                } else if(outfit.hair.type === 'hair2') {
-                    ctx.beginPath();
-                    ctx.arc(135, 29, 16, 0, Math.PI * 2);
-                    ctx.fill();
-                } else {
-                    ctx.beginPath();
-                    ctx.arc(135, 30, 15, Math.PI, Math.PI * 2);
-                    ctx.fillRect(118, 28, 4, 15);
-                    ctx.fillRect(148, 28, 4, 15);
-                    ctx.fill();
-                }
-
-                ctx.fillStyle = '#ffeb3b'; ctx.font = 'bold 10px Arial';
-                ctx.fillText("🎨 " + outfit.top.name + " + " + outfit.bottom.name, 10, 15);
             }
-
-            setCategory('hair');
-            drawDoll();
+            nextSign();
         </script>
     </body>
     </html>
     """
-  components.html(html_code, height=225)
+  components.html(html_code, height=275)
 
 
 # -------------------------------------------------------------------
-# 🥞 4. 双人动态互动【实体双层松饼左右摆动堆高游戏】
+# 📸 替换换装 2：【杂志封面拍摄：闪光灯快门抓拍 QTE】（精美动态摄影框）
 # -------------------------------------------------------------------
+def render_magazine_photo_game():
+  html_code = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+            .photo-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 14px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); padding: 10px; width: 300px; text-align: center; }
+            .viewfinder { background: linear-gradient(135deg, #2b1055, #4a148c); border: 3px dashed #00e676; border-radius: 10px; padding: 12px; margin: 8px 0; color: #fff; font-size: 15px; font-weight: bold; }
+            .photo-btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
+            .p-btn { background: linear-gradient(180deg, #ff4081, #7b1fa2); color: white; border: 1.5px solid #ff80ab; padding: 10px 0; font-size: 12px; font-weight: bold; border-radius: 8px; cursor: pointer; }
+            .p-btn:active { transform: scale(0.95); background: #00e676; color: #000; }
+        </style>
+    </head>
+    <body>
+        <div class="photo-box">
+            <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">📸 杂志封面拍摄：闪光灯快门抓拍！</div>
+            <div style="color: #fff; font-size: 11px; margin-top: 2px;">看准监视器，捕捉模特最完美的瞬间！</div>
+            <div class="viewfinder" id="targetPose">✨ 捕捉侧颜绝杀</div>
+            <div style="color: #00e676; font-size: 11px; font-weight: bold;">🔥 完美快门: <span id="pScore">0</span> / 6 | ⏳ <span id="pTime">10</span>s</div>
+            <div class="photo-btns">
+                <button class="p-btn" onclick="pressPhoto('侧颜')">📷 侧颜</button>
+                <button class="p-btn" onclick="pressPhoto('大笑')">😁 大笑</button>
+                <button class="p-btn" onclick="pressPhoto('眼神')">👀 眼神</button>
+            </div>
+        </div>
+        <script>
+            const poses = [
+                { type: '侧颜', label: '✨ 监视器指示：【捕捉侧颜绝杀】' },
+                { type: '大笑', label: '😁 监视器指示：【抓拍阳光大笑】' },
+                { type: '眼神', label: '👀 监视器指示：【锁定电眼特写】' }
+            ];
+            let currentPose = poses[0], score = 0, timeLeft = 10, isOver = false;
+
+            function nextPose() {
+                if (isOver) return;
+                currentPose = poses[Math.floor(Math.random() * poses.length)];
+                document.getElementById('targetPose').innerText = currentPose.label;
+            }
+
+            let timer = setInterval(() => {
+                if (timeLeft > 0 && !isOver) {
+                    timeLeft--; document.getElementById('pTime').innerText = timeLeft;
+                } else {
+                    isOver = true; clearInterval(timer);
+                    document.getElementById('targetPose').innerText = score >= 6 ? "🎉 杂志封面大片完美诞生！" : "快门按得有点手忙脚乱...";
+                }
+            }, 1000);
+
+            function pressPhoto(type) {
+                if (isOver) return;
+                if (type === currentPose.type) {
+                    score++;
+                    document.getElementById('pScore').innerText = score;
+                    if (score >= 6) {
+                        isOver = true;
+                        document.getElementById('targetPose').innerText = "🎉 杂志封面大片完美诞生！";
+                    } else {
+                        nextPose();
+                    }
+                }
+            }
+            nextPose();
+        </script>
+    </body>
+    </html>
+    """
+  components.html(html_code, height=275)
+
+
+# -------------------------------------------------------------------
+# 🪵 替换换装 3：【后台休息室：平衡木平衡挑战】（彩色平衡仪视觉条）
+# -------------------------------------------------------------------
+def render_balance_game():
+  html_code = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+            .bal-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 14px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); padding: 10px; width: 300px; text-align: center; }
+            .bar-container { background: #2d1b4e; border: 2px solid #ff4081; border-radius: 10px; height: 36px; margin: 10px 0; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+            .bal-indicator { font-weight: bold; font-size: 14px; color: #ffeb3b; }
+            .bal-btns { display: flex; gap: 8px; margin-top: 8px; }
+            .b-btn { background: linear-gradient(180deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 0; font-size: 14px; font-weight: bold; border-radius: 8px; cursor: pointer; flex: 1; }
+            .b-btn:active { transform: scale(0.95); }
+        </style>
+    </head>
+    <body>
+        <div class="bal-box">
+            <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">🪵 后台热身：顶杂志平衡木挑战！</div>
+            <div style="color: #fff; font-size: 11px; margin-top: 2px;">保持平衡仪指针在中间，防止摔倒！</div>
+            <div class="bar-container">
+                <div class="bal-indicator" id="balText">⭐ 完美平衡 (Center) ⭐</div>
+            </div>
+            <div style="color: #00e676; font-size: 11px; font-weight: bold;">🔥 稳定得分: <span id="balScore">0</span> / 6 | ⏳ <span id="balTime">10</span>s</div>
+            <div class="bal-btns">
+                <button class="b-btn" onclick="shiftBal(-1)">⬅️ 往左倾斜</button>
+                <button class="b-btn" onclick="shiftBal(1)">往右倾斜 ➡️</button>
+            </div>
+        </div>
+        <script>
+            let pos = 0, score = 0, timeLeft = 10, isOver = false;
+            let targetPos = 0; // -1左, 0中, 1右
+
+            function nextTarget() {
+                if (isOver) return;
+                targetPos = Math.floor(Math.random() * 3) - 1; 
+                updateDisplay();
+            }
+
+            function updateDisplay() {
+                let txt = "⭐ 完美平衡 (Center) ⭐";
+                if (targetPos === -1) txt = "⬅️ 身体向左歪斜！快点左边！";
+                if (targetPos === 1) txt = "➡️ 身体向右歪斜！快点右边！";
+                document.getElementById('balText').innerText = txt;
+            }
+
+            let timer = setInterval(() => {
+                if (timeLeft > 0 && !isOver) {
+                    timeLeft--; document.getElementById('balTime').innerText = timeLeft;
+                } else {
+                    isOver = true; clearInterval(timer);
+                    document.getElementById('balText').innerText = score >= 6 ? "🎉 完美通过平衡挑战！" : "重心不稳摔倒啦...";
+                }
+            }, 1000);
+
+            function shiftBal(dir) {
+                if (isOver) return;
+                if (dir === targetPos) {
+                    score++;
+                    document.getElementById('balScore').innerText = score;
+                    if (score >= 6) {
+                        isOver = true;
+                        document.getElementById('balText').innerText = "🎉 完美通过平衡挑战！";
+                    } else {
+                        nextTarget();
+                    }
+                } else {
+                    score = Math.max(0, score - 1);
+                    document.getElementById('balScore').innerText = score;
+                }
+            }
+            nextTarget();
+        </script>
+    </body>
+    </html>
+    """
+  components.html(html_code, height=275)
+
+
 def render_pancake_stack_game(member_name):
   html_code = (
       """
@@ -747,9 +791,6 @@ def render_pancake_stack_game(member_name):
   components.html(html_code, height=245)
 
 
-# -------------------------------------------------------------------
-# ⏱️ 5. 演唱会后台紧急换装 QTE 小游戏
-# -------------------------------------------------------------------
 def render_wardrobe_qte_game(member_name):
   html_code = (
       """
@@ -822,9 +863,6 @@ def render_wardrobe_qte_game(member_name):
   components.html(html_code, height=270)
 
 
-# -------------------------------------------------------------------
-# 🤝 6. 成员双人互动【默契猜拳对决】
-# -------------------------------------------------------------------
 def render_member_duel_game(member_name):
   html_code = (
       """
@@ -912,9 +950,6 @@ def render_member_duel_game(member_name):
   components.html(html_code, height=275)
 
 
-# -------------------------------------------------------------------
-# 🍜 7. 成员双人互动【深夜拉面大胃王比拼】
-# -------------------------------------------------------------------
 def render_ramen_battle_game(member_name):
   html_code = (
       """
@@ -986,9 +1021,6 @@ def render_ramen_battle_game(member_name):
   components.html(html_code, height=275)
 
 
-# -------------------------------------------------------------------
-# 🌟 8. 演唱会手灯狂热小游戏
-# -------------------------------------------------------------------
 def render_lightstick_game():
   html_code = """
     <!DOCTYPE html>
@@ -1053,9 +1085,6 @@ def render_lightstick_game():
   components.html(html_code, height=265)
 
 
-# -------------------------------------------------------------------
-# ⚡ 9. 15 秒灯光闪避生存小游戏
-# -------------------------------------------------------------------
 def render_dodge_canvas_game():
   html_code = """
     <!DOCTYPE html>
@@ -1113,7 +1142,7 @@ def render_dodge_canvas_game():
 
 
 # -------------------------------------------------------------------
-# 📖 精简平衡至 25 章的剧情数据库
+# 剧情数据库
 # -------------------------------------------------------------------
 def get_story_database(player_name, member, group):
   return {
@@ -1284,7 +1313,7 @@ if st.session_state.game_started:
     st.session_state.stress = 30
     st.session_state.bond += 10
 
-  is_free_training_day = curr_stage in [3, 20]
+  is_free_training_day = curr_stage in [3, 16]
 
   if is_free_training_day and curr_stage < 25:
     st.subheader(f"🗓️ Stage {curr_stage}：自主特训与日常安排")
@@ -1376,7 +1405,7 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # 阶段 9 🔥（限定 Unit 小分队随机企划题目多选答题游戏）
+  # 阶段 9 🔥（小分队企划答题选拔游戏）
   elif curr_stage == 9:
     st.subheader("📍 Stage 9：【社内企划】限定 Unit 小分队答题选拔赛")
     st.markdown(
@@ -1437,33 +1466,48 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # 阶段 17：👗 精致暖暖风男装纸娃娃换装
+  # 阶段 17：💖 【全新替换游戏 1】演唱会花车饭撒互动
   elif curr_stage == 17:
-    st.subheader("📍 Stage 17：【杂志封面拍摄】偶像纸娃娃高级定制间")
+    st.subheader("📍 Stage 17：【巨蛋花车巡游】粉丝心愿手势饭撒互动")
     st.markdown(
-        '<div class="event-card"><b>👗 【奇迹暖暖风：男装换装搭配间】</b><br>即将拍摄出道单曲的杂志封面！请在下方为男神模特自由搭配<b>精致发型、男团西装/战袍、潮酷裤装与鞋子</b>！</div>',
+        '<div class="event-card"><b>💖 【饭撒互动小游戏：手势对暗号】</b><br>巡演花车开过应援席！看准粉丝高举的手幅指示（比心/Wink/飞吻），在下方点击对应的手势完成饭撒！</div>',
         unsafe_allow_html=True,
     )
-    render_dress_up_game()
+    render_fans_service_game()
 
-    if st.button("➔ 搭配完成，拍摄封面！"):
-      st.session_state.fans += 2000
+    if st.button("➔ 饭撒互动结束，粉丝好感暴涨！"):
+      st.session_state.fans += 2200
       st.session_state.variety += 20
       st.session_state.stage += 1
       st.rerun()
 
-  # 阶段 18：🤝 成员双人互动【默契猜拳对决】
+  # 阶段 18：📸 【全新替换游戏 2】杂志封面闪光灯快门抓拍
   elif curr_stage == 18:
-    st.subheader(f"📍 Stage 18：【后台趣味互动·与 {member} 的默契对决】")
+    st.subheader("📍 Stage 18：【杂志封面拍摄】闪光灯快门抓拍 QTE")
     st.markdown(
-        f'<div class="event-card"><b>🤝 【双人互动小游戏：后台猜拳对决】</b><br>在演出间隙，你和 <b>{member}</b> 玩起了后台经典猜拳游戏！赢了可以大幅提升团员羁绊！</div>',
+        '<div class="event-card"><b>📸 【时尚摄影小游戏：快门抓拍挑战】</b><br>出道杂志大片拍摄现场！看准监视器指示（侧颜/大笑/眼神），在下方精准按下快门按键！</div>',
         unsafe_allow_html=True,
     )
-    render_member_duel_game(member)
+    render_magazine_photo_game()
 
-    if st.button("➔ 互动结束，点击进入下一阶段"):
+    if st.button("➔ 拍摄大获成功，进入下一阶段！"):
+      st.session_state.fans += 1800
+      st.session_state.variety += 25
+      st.session_state.stage += 1
+      st.rerun()
+
+  # 阶段 19：🪵 【全新替换游戏 3】后台休息室平衡木挑战
+  elif curr_stage == 19:
+    st.subheader("📍 Stage 19：【后台休息室】顶杂志平衡木热身")
+    st.markdown(
+        '<div class="event-card"><b>🪵 【趣味平衡小游戏：顶杂志热身】</b><br>上台前为了防止身体紧绷，大家在后台玩顶杂志平衡木游戏！点击左右倾斜按钮稳住重心！</div>',
+        unsafe_allow_html=True,
+    )
+    render_balance_game()
+
+    if st.button("➔ 热身完毕，准备迎接巨蛋巡演！"):
       st.session_state.bond += 20
-      st.session_state.fans += 1500
+      st.session_state.dance += 15
       st.session_state.stage += 1
       st.rerun()
 
@@ -1493,6 +1537,21 @@ if st.session_state.game_started:
     if st.button("➔ 应援结束，点击进入下一阶段"):
       st.session_state.fans += 2000
       st.session_state.vocal += 20
+      st.session_state.stage += 1
+      st.rerun()
+
+  # 阶段 22：🤝 成员双人互动【默契猜拳对决】
+  elif curr_stage == 22:
+    st.subheader(f"📍 Stage 22：【后台趣味互动·与 {member} 的默契对决】")
+    st.markdown(
+        f'<div class="event-card"><b>🤝 【双人互动小游戏：后台猜拳对决】</b><br>在演出间隙，你和 <b>{member}</b> 玩起了后台经典猜拳游戏！赢了可以大幅提升团员羁绊！</div>',
+        unsafe_allow_html=True,
+    )
+    render_member_duel_game(member)
+
+    if st.button("➔ 互动结束，点击进入下一阶段"):
+      st.session_state.bond += 20
+      st.session_state.fans += 1500
       st.session_state.stage += 1
       st.rerun()
 
