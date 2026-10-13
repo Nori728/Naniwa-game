@@ -396,7 +396,7 @@ def render_member_duel_game(member_name):
 
 
 # -------------------------------------------------------------------
-# 🍜 4. 成员双人互动【深夜拉面大胃王比拼】（新增）
+# 🍜 4. 成员双人互动【深夜拉面大胃王比拼】
 # -------------------------------------------------------------------
 def render_ramen_battle_game(member_name):
   html_code = f"""
@@ -416,11 +416,9 @@ def render_ramen_battle_game(member_name):
         <div class="battle-box">
             <div style="color: #ffeb3b; font-weight: bold; font-size: 14px;">🍜 深夜食堂：与 {member_name} 的拉面大胃王对决！</div>
             <div class="bowl" id="bowlIcon">🍜</div>
-            <div class="score-rows">
-                <div class="score-row">
-                    <div>你吃面: <span id="playerBowls" style="color:#00e676; font-size:16px;">0</span> 碗</div>
-                    <div>{member_name}: <span id="memberBowls" style="color:#ff4081; font-size:16px;">0</span> 碗</div>
-                </div>
+            <div class="score-row">
+                <div>你吃面: <span id="playerBowls" style="color:#00e676; font-size:16px;">0</span> 碗</div>
+                <div>{member_name}: <span id="memberBowls" style="color:#ff4081; font-size:16px;">0</span> 碗</div>
             </div>
             <div id="ramen-tip" style="color: #fff; font-size: 12px; font-weight: bold; margin-bottom: 8px;">⏳ 倒计时: <span id="rTime">10</span>s | 疯狂猛点按钮炫面！</div>
             <button class="eat-btn" onclick="eatRamen()">🥢 狂炫拉面！</button>
@@ -434,8 +432,7 @@ def render_ramen_battle_game(member_name):
 
             let aiTimer = setInterval(() => {
                 if (!isOver) {
-                    // AI随机吃面速度
-                    if (Math.random() > 0.3) { mBowls++; mSpan.innerText = mBowls; }
+                    if (Math.random() > 0.3) {{ mBowls++; mSpan.innerText = mBowls; }}
                 }
             }, 600);
 
@@ -465,7 +462,7 @@ def render_ramen_battle_game(member_name):
 
 
 # -------------------------------------------------------------------
-# 📦 5. 成员双人互动【后台箱子平衡堆高挑战】（新增）
+# 📦 5. 成员双人互动【后台箱子平衡堆高挑战】
 # -------------------------------------------------------------------
 def render_box_stack_game(member_name):
   html_code = f"""
@@ -506,10 +503,10 @@ def render_box_stack_game(member_name):
                 div.innerHTML = '📦 巡演器材箱 #' + height;
                 container.appendChild(div);
 
-                if (height === maxH) {
+                if (height === maxH) {{
                     tip.innerHTML = "🎉 完美叠到 6 层！{member_name} 惊叹鼓掌！";
                     tip.style.color = "#00e676";
-                }
+                }}
             }
         </script>
     </body>
@@ -645,7 +642,7 @@ def render_dodge_canvas_game():
 
 
 # -------------------------------------------------------------------
-# 📖 扩充至 28 章的海量剧情与突发事件数据库
+# 📖 精简平衡至 25 章的剧情数据库
 # -------------------------------------------------------------------
 def get_story_database(player_name, member, group):
   return {
@@ -691,13 +688,6 @@ def get_story_database(player_name, member, group):
           "opt2": "默默烤好一整盘肉分给大家：“快吃吧，大家辛苦啦。”",
           "opt3": "用调侃的语气打破沉重：“以后红了可别忘了吃烤肉的情谊！”",
       },
-      10: {
-          "title": "⚡ Stage 10：【突发外务】知名潮牌私服街拍",
-          "desc": "时尚杂志做了一期“Jr. 练习生私服大公开”特辑，需要你穿着你的日常私服去摄影棚拍摄大片！",
-          "opt1": "穿着自己精心搭配的复古潮牌，展现独特审美。",
-          "opt2": "穿着简单干净的白 T 恤与牛仔裤，走清爽少年感。",
-          "opt3": "戴着搞怪墨镜与帽子，走夸张极具个性的路线。",
-      },
       11: {
           "title": "🎭 Stage 11：帝国剧场舞台剧演练",
           "desc": "你获得了参演经典舞台剧的机会。排练时需要进行高难度的威亚特技和武打动作，导演要求极高！",
@@ -734,42 +724,21 @@ def get_story_database(player_name, member, group):
           "opt3": "现场表演高难度全员特技翻滚，用实力回报粉丝。",
       },
       19: {
-          "title": "🎤 Stage 19：【突发外务】跨年演唱会特别组曲直击",
-          "desc": "你临时接到通知，要在全日本直播的跨年演唱会上与前辈同台表演经典串烧曲目，全国观众高达数千万！",
-          "opt1": "在台下反复看录像带练习走位，确保万无一失。",
-          "opt2": "主动向前辈请教镜头感，争取在特写时展现最完美的笑容。",
-          "opt3": "在后台深呼吸调整心态，告诉自己这只是普通的舞台。",
-      },
-      21: {
-          "title": "📸 Stage 21：【外务】国民时尚杂志封面拍摄",
-          "desc": "由于近期人气飙升，你受邀单独登上国民时尚杂志的封面。摄影师要求展现出“成熟而带有一丝危险感”的魅惑风格。",
-          "opt1": "大胆解开衬衫领口，展现极其惊艳的成熟眼神杀。",
-          "opt2": "保持清爽阳光的少年微笑，走治愈系男友路线。",
-          "opt3": "摆出充满艺术感的现代舞姿，用肢体语言震撼全场。",
-      },
-      22: {
-          "title": "🌧️ Stage 22：户外露天 Live 的暴雨突袭",
-          "desc": "在户外大型夏日音乐节进行到高潮时，天空突然下起暴雨！舞台地面变得极其湿滑，音响设备也险些进水短路。",
-          "opt1": "不顾雨水打湿头发，光脚在雨中踩水激情狂舞，嗨翻全场！",
-          "opt2": "稳住麦克风支架，在雨中用更具穿透力的嗓音震撼全场。",
-          "opt3": "第一时间护住乐器和设备，并带领大家向粉丝鞠躬致谢。",
-      },
-      24: {
-          "title": "🏢 Stage 24：社长办公室的神秘闭门谈话",
+          "title": "🏢 Stage 19：社长办公室的神秘闭门谈话",
           "desc": "深夜排练结束后，你被社长助理单独叫进了顶楼办公室。社长看着你厚厚的一叠成长记录，露出了意味深长的笑容。",
           "opt1": "目光坚定地直视社长：“我已经准备好承担更大的责任了！”",
           "opt2": "谦逊地向社长鞠躬：“感谢事务所一直以来的培养与照顾。”",
           "opt3": "坦诚说出自己对未来音乐风格的构想与野心。",
       },
-      25: {
-          "title": "🍕 Stage 25：宿舍里的深夜披萨作战",
+      22: {
+          "title": "🍕 Stage 22：宿舍里的深夜披萨作战",
           "desc": f"距离出道决定日只剩最后几天，大家紧绷的神经有些支撑不住。{member} 偷偷订了外卖披萨送到宿舍，招呼大家围坐在一起放松。",
           "opt1": "大口吃披萨并讲冷笑话，把沉重的气氛瞬间活跃起来。",
           "opt2": "借着汽水向大家举杯：“不管结果如何，能和大家相遇太好了。”",
           "opt3": "吃完后主动默默把客厅和厨房收拾得干干净净。",
       },
-      27: {
-          "title": "🌙 Stage 27：出道发布会彩排的最后通牒",
+      24: {
+          "title": "🌙 Stage 24：出道发布会彩排的最后通牒",
           "desc": "明天就是全日本各大电视台转播的出道决选发布会。最后一次彩排中，导播对你们的走位和队形提出了极其严苛的修改意见。",
           "opt1": "带头留下来陪大家连夜加练 3 小时，直到全员零失误。",
           "opt2": "逐一帮队友调整领带和耳返，展现出极强的核心凝聚力。",
@@ -831,15 +800,15 @@ if not st.session_state.game_started:
       st.rerun()
 
 # -------------------------------------------------------------------
-# 游戏主流程（扩展至 28 章，加入了拉面大胃王与箱子堆高）
+# 游戏主流程（精简至 25 章）
 # -------------------------------------------------------------------
 if st.session_state.game_started:
   curr_stage = st.session_state.stage
   member = get_rand_member()
 
-  is_free_training_day = curr_stage in [3, 9, 15, 20, 26]
+  is_free_training_day = curr_stage in [3, 9, 15, 20]
 
-  if is_free_training_day and curr_stage < 28:
+  if is_free_training_day and curr_stage < 25:
     st.subheader(f"🗓️ Stage {curr_stage}：自主特训与日常安排")
     st.info(
         f"💡 **自主安排日** | 🎒 当前幸运物：【{st.session_state.lucky_item}】"
@@ -893,7 +862,7 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # 阶段 10：🍜 深夜拉面大胃王比拼（新增双人互动）
+  # 阶段 10：🍜 深夜拉面大胃王比拼（双人互动）
   elif curr_stage == 10:
     st.subheader(f"📍 Stage 10：【深夜食堂·与 {member} 的拉面大胃王决战】")
     st.markdown(
@@ -923,6 +892,20 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
+  # 阶段 15：📦 后台箱子平衡堆高挑战（双人互动）
+  elif curr_stage == 15:
+    st.subheader(f"📍 Stage 15：【后台整活·与 {member} 的箱子平衡堆高】")
+    st.markdown(
+        f'<div class="event-card"><b>📦 【双人互动小游戏：器材箱平衡堆高】</b><br>等待上台时，你和 <b>{member}</b> 开始比拼谁能把巡演器材箱稳稳叠到最高！</div>',
+        unsafe_allow_html=True,
+    )
+    render_box_stack_game(member)
+
+    if st.button("➔ 游戏结束，点击进入下一阶段"):
+      st.session_state.bond += 22
+      st.session_state.stage += 1
+      st.rerun()
+
   # 阶段 18：🤝 成员双人互动【默契猜拳对决】
   elif curr_stage == 18:
     st.subheader(f"📍 Stage 18：【后台趣味互动·与 {member} 的默契对决】")
@@ -938,23 +921,9 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # 阶段 21：📦 后台箱子平衡堆高挑战（新增双人互动）
+  # 阶段 21：🌟 演唱会手灯狂热
   elif curr_stage == 21:
-    st.subheader(f"📍 Stage 21：【后台整活·与 {member} 的箱子平衡堆高】")
-    st.markdown(
-        f'<div class="event-card"><b>📦 【双人互动小游戏：器材箱平衡堆高】</b><br>等待上台时，你和 <b>{member}</b> 开始比拼谁能把巡演器材箱稳稳叠到最高！</div>',
-        unsafe_allow_html=True,
-    )
-    render_box_stack_game(member)
-
-    if st.button("➔ 游戏结束，点击进入下一阶段"):
-      st.session_state.bond += 22
-      st.session_state.stage += 1
-      st.rerun()
-
-  # 阶段 23：🌟 演唱会手灯狂热
-  elif curr_stage == 23:
-    st.subheader("📍 Stage 23：【巨蛋巡演·全场手灯狂热互动】")
+    st.subheader("📍 Stage 21：【巨蛋巡演·全场手灯狂热互动】")
     st.markdown(
         '<div class="event-card"><b>🌟 【手灯狂热小游戏：全场应援色同步】</b><br>演唱会高潮来临！全场粉丝手灯颜色在不断变化，<b>请点击下方对应的颜色按钮与上方保持一致</b>！</div>',
         unsafe_allow_html=True,
@@ -967,9 +936,9 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # 阶段 26：⚡ 15 秒灯光闪避生存
-  elif curr_stage == 26:
-    st.subheader("📍 Stage 26：【巨蛋巡演·舞台事故紧急闪避】")
+  # 阶段 23：⚡ 15 秒灯光闪避生存
+  elif curr_stage == 23:
+    st.subheader("📍 Stage 23：【巨蛋巡演·舞台事故紧急闪避】")
     st.markdown(
         '<div class="event-card"><b>🎮 【生存闪避小游戏：15秒极限危机】</b><br>舞台灯光坠落！点击左右闪避按钮坚持 15 秒自动通关！</div>',
         unsafe_allow_html=True,
@@ -982,9 +951,9 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # 海量剧情关卡（28章以内）
-  elif curr_stage < 28:
-    st.subheader(f"📍 Stage {curr_stage} / 28")
+  # 海量剧情关卡（25章以内）
+  elif curr_stage < 25:
+    st.subheader(f"📍 Stage {curr_stage} / 25")
 
     s_db = get_story_database(
         st.session_state.player_name, member, st.session_state.group
@@ -1028,10 +997,10 @@ if st.session_state.game_started:
       st.rerun()
 
   # -------------------------------------------------------------------
-  # STAGE 28: 帝国剧场终局裁决
+  # STAGE 25: 帝国剧场终局裁决
   # -------------------------------------------------------------------
   else:
-    st.subheader("🏁 Stage 28：帝国剧场 CD 出道决选")
+    st.subheader("🏁 Stage 25：帝国剧场 CD 出道决选")
     st.markdown(f"""
         <div class="event-card">
             <b>✨ 【命运的聚光灯】</b><br>
@@ -1047,10 +1016,10 @@ if st.session_state.game_started:
           + st.session_state.variety
       )
 
-      if st.session_state.fans >= 2500 and total >= 150:
+      if st.session_state.fans >= 2200 and total >= 140:
         st.balloons()
         st.success(
-            f"🎉 恭喜 **{st.session_state.player_name}**！你携带【{st.session_state.lucky_item}】，与 **{st.session_state.group}** 的伙伴们历经 28 章的汗水与磨砺，完美闪耀帝国剧场，正式华丽 CD 出道！"
+            f"🎉 恭喜 **{st.session_state.player_name}**！你携带【{st.session_state.lucky_item}】，与 **{st.session_state.group}** 的伙伴们历经 25 章的汗水与磨砺，完美闪耀帝国剧场，正式华丽 CD 出道！"
         )
       else:
         st.warning(
