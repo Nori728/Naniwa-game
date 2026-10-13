@@ -125,7 +125,7 @@ st.markdown(
 )
 
 
-# 4. 初始化数据
+# 4. 初始化数据（加入压力值系统）
 def init_game():
   st.session_state.game_started = False
   st.session_state.stage = 1
@@ -315,7 +315,7 @@ def render_dirt_dig_game():
 
 
 # -------------------------------------------------------------------
-# 👗 3. 纸娃娃换装搭配小游戏（全新升级：头发、上衣、裤子、鞋子实时换装）
+# 👗 3. 纸娃娃换装搭配小游戏
 # -------------------------------------------------------------------
 def render_dress_up_game():
   html_code = """
@@ -408,30 +408,24 @@ def render_dress_up_game():
             function drawDoll() {
                 ctx.clearRect(0, 0, 300, 170);
 
-                // 背景光晕
                 ctx.fillStyle = 'rgba(255, 128, 171, 0.15)';
                 ctx.beginPath(); ctx.arc(150, 85, 65, 0, Math.PI*2); ctx.fill();
 
-                // 1. 身体基础 (Q版模特)
                 ctx.fillStyle = '#fceade';
-                ctx.beginPath(); ctx.arc(150, 55, 22, 0, Math.PI*2); ctx.fill(); // 头部
+                ctx.beginPath(); ctx.arc(150, 55, 22, 0, Math.PI*2); ctx.fill();
 
-                // 2. 绘制鞋子
                 ctx.fillStyle = outfit.shoes.color;
                 ctx.fillRect(132, 138, 14, 15);
                 ctx.fillRect(154, 138, 14, 15);
 
-                // 3. 绘制裤装/下装
                 ctx.fillStyle = outfit.bottom.color;
                 ctx.fillRect(136, 100, 28, 40);
 
-                // 4. 绘制上衣
                 ctx.fillStyle = outfit.top.color;
                 ctx.beginPath();
                 ctx.roundRect(125, 65, 50, 42, 6);
                 ctx.fill();
 
-                // 5. 绘制发型
                 ctx.fillStyle = outfit.hair.color;
                 ctx.beginPath();
                 ctx.arc(150, 48, 24, Math.PI, Math.PI * 2);
@@ -443,7 +437,6 @@ def render_dress_up_game():
                 }
                 ctx.fill();
 
-                // 提示文字
                 ctx.fillStyle = '#ffeb3b'; ctx.font = '11px Arial';
                 ctx.fillText("✨ 当前搭配: " + outfit.top.name + " + " + outfit.bottom.name, 15, 20);
             }
@@ -454,7 +447,6 @@ def render_dress_up_game():
     </body>
     </html>
     """
-  ]
   components.html(html_code, height=275)
 
 
@@ -586,7 +578,7 @@ def render_pancake_stack_game(member_name):
     </body>
     </html>
     """
-  ]
+  )
   components.html(html_code, height=275)
 
 
@@ -661,7 +653,7 @@ def render_wardrobe_qte_game(member_name):
     </body>
     </html>
     """
-  ]
+  )
   components.html(html_code, height=295)
 
 
@@ -952,7 +944,6 @@ def render_dodge_canvas_game():
     </body>
     </html>
     """
-  ]
   components.html(html_code, height=300)
 
 
@@ -1115,7 +1106,7 @@ if not st.session_state.game_started:
       st.rerun()
 
 # -------------------------------------------------------------------
-# 游戏主流程（包含纸娃娃换装与所有互动游戏）
+# 游戏主流程
 # -------------------------------------------------------------------
 if st.session_state.game_started:
   curr_stage = st.session_state.stage
@@ -1293,7 +1284,7 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # 阶段 17（新增）：👗 杂志封面拍摄与舞台换装搭配小游戏
+  # 阶段 17：👗 杂志封面拍摄与舞台换装搭配小游戏
   elif curr_stage == 17:
     st.subheader("📍 Stage 17：【杂志封面拍摄】偶像纸娃娃换装间")
     st.markdown(
