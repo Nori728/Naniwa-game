@@ -1,6 +1,7 @@
 import random
 import time
 import streamlit as st
+import streamlit.components.v1 as components
 
 # 1. 页面基础配置
 st.set_page_config(
@@ -9,7 +10,7 @@ st.set_page_config(
     layout="centered",
 )
 
-# 2. 团队与成员数据（已按年龄从大到小严格排序）
+# 2. 团队与成员数据（按年龄从大到小严格排序）
 IDOL_GROUPS = {
     "ARASHI (岚)": ["大野智", "樱井翔", "相叶雅纪", "二宫和也", "松本润"],
     "WEST.": [
@@ -108,15 +109,6 @@ st.markdown(
         font-weight: 600;
         margin-bottom: 15px;
     }
-    .game-box {
-        background: #ffffff;
-        padding: 20px;
-        border-radius: 15px;
-        border: 2px solid #ab47bc;
-        text-align: center;
-        margin: 15px 0;
-        color: #4a148c;
-    }
     .stButton > button {
         background: linear-gradient(45deg, #ff4081, #ab47bc) !important;
         color: white !important;
@@ -159,12 +151,324 @@ def get_rand_member():
   return random.choice(members)
 
 
-# 丰富多元海量剧情库
+# 极速指针摆动小游戏渲染器
+def render_pointer_minigame(speed=3, target_start=40, target_width=20):
+  html_code = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {{
+                font-family: system-ui, sans-serif;
+                background-color: transparent;
+                margin: 0;
+                padding: 10px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }}
+            .game-container {{
+                background: #2d1b4e;
+                border: 3px solid #ff80ab;
+                border-radius: 16px;
+                padding: 20px;
+                width: 90%;
+                max-width: 400px;
+                text-align: center;
+                box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            }}
+            .bar-bg {{
+                position: relative;
+                width: 100%;
+                height: 36px;
+                background: #1a0f30;
+                border-radius: 18px;
+                overflow: hidden;
+                border: 2px solid #ea80fc;
+                margin: 15px 0;
+            }}
+            .target-zone {{
+                position: absolute;
+                left: {target_start}%;
+                width: {target_width}%;
+                height: 100%;
+                background: linear-gradient(90deg, #00e676, #b9f6ca, #00e676);
+                box-shadow: 0 0 10px #00e676;
+            }}
+            .pointer {{
+                position: absolute;
+                top: 0;
+                left: 0%;
+                width: 6px;
+                height: 100%;
+                background-color: #ffeb3b;
+                box-shadow: 0 0 12px #ffeb3b;
+                transition: transform 0.016s linear;
+            }}
+            .hit-btn {{
+                background: linear-gradient(45deg, #ff4081, #ab47bc);
+                color: white;
+                border: none;
+                padding: 14px 32px;
+                font-size: 18px;
+                font-weight: bold;
+                border-radius: 25px;
+                cursor: pointer;
+                box-shadow: 0 5px 15px rgba(255, 64, 129, 0.4);
+                touch-action: manipulation;
+                width: 100%;
+                margin-top: 10px;
+            }}
+            #result-msg {{
+                color: #ffeb3b;
+                font-size: 16px;
+                font-weight: bold;
+                margin-top: 10px;
+                min-height: 24px;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="game-container">
+            <div style="color: #ffffff; font-weight: bold; font-size: 15px;">🎯 看准时机！在指针进入【绿色判定区】时击打！</div>
+            <div class="bar-bg">
+                <div class="target-zone"></div>
+                <div class="pointer" id="pointer"></div>
+            </div>
+            <div id="result-msg">⏱️ 指针高速摆动中...</div>
+            <button class="hit-btn" id="stopBtn" onclick="stopPointer()">🔥 就是现在！看准按下！</button>
+        </div>
+        <script>
+            let pos = 0;
+            let dir = 1;
+            let speed = {speed};
+            let isStopped = false;
+            let animId;
+            const pointer = document.getElementById('pointer');
+            const resultMsg = document.getElementById('result-msg');
+            const targetStart = {target_start};
+            const targetEnd = {target_start} + {target_width};
+
+            function updatePointer() {{
+                if (isStopped) return;
+                pos += dir * speed;
+                if (pos >= 98) {{ pos = 98; dir = -1; }}
+                if (pos <= 0) {{ pos = 0; dir = 1; }}
+                pointer.style.left = pos + '%';
+                animId = requestAnimationFrame(updatePointer);
+            }}
+
+            function stopPointer() {{
+                if (isStopped) return;
+                isStopped = true;
+                cancelAnimationFrame(animId);
+                if (pos >= targetStart && pos <= targetEnd) {{
+                    resultMsg.innerHTML = "🎉 PERFECT! 完美命中目标点！";
+                    resultMsg.style.color = "#00e676";
+                }} else {{
+                    resultMsg.innerHTML = "⚠️ GREAT! 成功完成挑战！";
+                    resultMsg.style.color = "#ffeb3b";
+                }}
+                document.getElementById('stopBtn').disabled = true;
+                document.getElementById('stopBtn').style.opacity = '0.6';
+            }}
+            updatePointer();
+        </script>
+    </body>
+    </html>
+    """
+  components.html(html_code, height=210)
+
+
+# 真正能在屏幕上点、小人会动、躲避坠落障碍的【舞台跳格子躲避画布小游戏】
+def render_dodge_canvas_game():
+  html_code = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {
+                background: transparent;
+                margin: 0;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                font-family: system-ui, sans-serif;
+            }
+            .canvas-box {
+                background: #1a0f30;
+                border: 3px solid #ff80ab;
+                border-radius: 16px;
+                box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+                position: relative;
+                overflow: hidden;
+                width: 320px;
+                height: 200px;
+            }
+            canvas {
+                display: block;
+            }
+            .ctrl-panel {
+                display: flex;
+                gap: 15px;
+                margin-top: 12px;
+                width: 320px;
+                justify-content: center;
+            }
+            .move-btn {
+                background: linear-gradient(45deg, #ff4081, #ab47bc);
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                font-size: 16px;
+                font-weight: bold;
+                border-radius: 20px;
+                cursor: pointer;
+                box-shadow: 0 4px 10px rgba(255, 64, 129, 0.4);
+                touch-action: manipulation;
+                flex: 1;
+            }
+            .move-btn:active {
+                transform: scale(0.95);
+            }
+            #info-tip {
+                color: #4a148c;
+                font-weight: bold;
+                font-size: 14px;
+                margin-top: 8px;
+                text-align: center;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="canvas-box">
+            <canvas id="dodgeCanvas" width="320" height="200"></canvas>
+        </div>
+        <div class="ctrl-panel">
+            <button class="move-btn" onclick="movePlayer(-1)">⬅️ 往左闪避</button>
+            <button class="move-btn" onclick="movePlayer(1)">往右闪避 ➡️</button>
+        </div>
+        <div id="info-tip">⚡ 躲避坠落的舞台灯光！坚持 10 秒即为胜利！</div>
+
+        <script>
+            const canvas = document.getElementById('dodgeCanvas');
+            const ctx = canvas.getContext('2d');
+
+            // 玩家位置：3个跑道 (0: 左, 1: 中, 2: 右)
+            let lane = 1;
+            const lanesX = [60, 160, 260];
+            let playerY = 165;
+            
+            // 障碍物数组
+            let obstacles = [];
+            let score = 0;
+            let isGameOver = false;
+            let gameInterval;
+            let obstacleTimer;
+
+            function movePlayer(dir) {
+                if (isGameOver) return;
+                lane += dir;
+                if (lane < 0) lane = 0;
+                if (lane > 2) lane = 2;
+            }
+
+            // 键盘左右键支持
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowLeft') movePlayer(-1);
+                if (e.key === 'ArrowRight') movePlayer(1);
+            });
+
+            function spawnObstacle() {
+                if (isGameOver) return;
+                let randomLane = Math.floor(Math.random() * 3);
+                obstacles.push({ lane: randomLane, y: -20, speed: 3.5 });
+            }
+
+            function updateGame() {
+                ctx.clearRect(0, 0, 320, 200);
+
+                // 绘制舞台跑道线
+                ctx.strokeStyle = '#2d1b4e';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([4, 4]);
+                [110, 210].forEach(x => {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, 200);
+                    ctx.stroke();
+                });
+                ctx.setLineDash([]);
+
+                // 更新与绘制障碍物（坠落灯光）
+                for (let i = obstacles.length - 1; i >= 0; i--) {
+                    let obs = obstacles[i];
+                    obs.y += obs.speed;
+                    
+                    // 绘制坠落的舞台灯光/道具
+                    ctx.fillStyle = '#ff5252';
+                    ctx.beginPath();
+                    ctx.arc(lanesX[obs.lane], obs.y, 12, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = '10px Arial';
+                    ctx.fillText('💡', lanesX[obs.lane] - 6, obs.y + 4);
+
+                    // 碰撞检测
+                    if (obs.y >= playerY - 15 && obs.y <= playerY + 15 && obs.lane === lane) {
+                        isGameOver = true;
+                        document.getElementById('info-tip').innerHTML = "💥 哎呀被砸中了！不过有惊无险顺利过关！";
+                        document.getElementById('info-tip').style.color = "#d32f2f";
+                    }
+
+                    // 移除超出屏幕的障碍
+                    if (obs.y > 220) {
+                        obstacles.splice(i, 1);
+                        score += 10;
+                    }
+                }
+
+                // 绘制可爱的偶像小人
+                let px = lanesX[lane];
+                ctx.fillStyle = '#ff4081';
+                ctx.beginPath();
+                ctx.arc(px, playerY, 14, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '12px Arial';
+                ctx.fillText('⭐', px - 6, playerY + 4);
+
+                // 绘制分数
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '12px Arial';
+                ctx.fillText("得分: " + score, 15, 20);
+
+                if (!isGameOver) {
+                    requestAnimationFrame(updateGame);
+                } else {
+                    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+                    ctx.fillRect(0, 0, 320, 200);
+                    ctx.fillStyle = '#00e676';
+                    ctx.font = 'bold 18px Arial';
+                    ctx.fillText("🎉 成功闪避挑战完成！", 60, 105);
+                }
+            }
+
+            obstacleTimer = setInterval(spawnObstacle, 900);
+            updateGame();
+        </script>
+    </body>
+    </html>
+    """
+  components.html(html_code, height=270)
+
+
+# 核心海量剧情库
 def get_story_database(player_name, member, group):
   return {
       1: {
           "title": "🎵 Stage 1：雨后练习室的汗水",
-          "desc": f"雨后的东京空气潮湿，练习室的镜子蒙上一层雾气。今天基础舞步要求极其严苛，{member} 擦着汗走过来：“{player_name}，刚才那个转身重心有点偏哦，要不要再试一次？”",
+          "desc": f"雨后的东京空气潮湿，练习室镜子蒙上一层雾气。今天基础舞步极严，{member} 擦着汗过来：“{player_name}，刚才转身重心偏了，要不要再试一次？”",
           "opt1": "虚心请教，并独留练习室对着镜子练到深夜。",
           "opt2": "笑着递上买好的冰麦茶，和大家结伴回宿舍聊天。",
           "opt3": "谢过前辈，早点回宿舍休息保持第二天体能。",
@@ -260,7 +564,7 @@ def get_story_database(player_name, member, group):
 st.title("💖 星途闪耀：我的练习生日常")
 
 # -------------------------------------------------------------------
-# STAGE 0: 开局（名字 + 下拉框选团 + 扭蛋）
+# STAGE 0: 开局
 # -------------------------------------------------------------------
 if not st.session_state.game_started:
   st.markdown(
@@ -309,7 +613,7 @@ if not st.session_state.game_started:
       st.rerun()
 
 # -------------------------------------------------------------------
-# 游戏主流程（包含：互动小游戏 + 特训排程 + 海量 3 选项剧情）
+# 游戏主流程
 # -------------------------------------------------------------------
 if st.session_state.game_started:
   curr_stage = st.session_state.stage
@@ -357,81 +661,52 @@ if st.session_state.game_started:
         st.session_state.stage += 1
         st.rerun()
 
-  # 互动小游戏关卡（100% 完美适配手机）
-  elif curr_stage in [6, 12, 18]:
-    st.subheader(f"📍 Stage {curr_stage}：【舞台互动小游戏关卡】")
-
+  # 阶段 6 与 12：极速指针挑战
+  elif curr_stage in [6, 12]:
+    st.subheader(f"📍 Stage {curr_stage}：【极速指针挑战关卡】")
     if curr_stage == 6:
-      st.markdown(f"""
-            <div class="event-card">
-                <b>🎮 【舞台小游戏：舞台 Dance Break 爆发力控制】</b><br>
-                演唱会现场突然进入你的Solo Dance时间！你需要精准拖动滑块，将爆发力度锁定在完美数值 <b>88</b> 附近！
-            </div>
-            """, unsafe_allow_html=True)
+      st.markdown(
+          '<div class="event-card"><b>🎮 【舞台小游戏：Dance Break 绝佳卡点】</b><br>演唱会 Solo Dance 时间来临！指针极速摆动，在绿色区域瞬间按下按键！</div>',
+          unsafe_allow_html=True,
+      )
+      render_pointer_minigame(speed=3.0, target_start=42, target_width=15)
+    else:
+      st.markdown(
+          '<div class="event-card"><b>🎮 【舞台小游戏：少俱打歌高音定音】</b><br>全开麦高潮副歌段落！难度升级，请在中心瞬间精准点击！</div>',
+          unsafe_allow_html=True,
+      )
+      render_pointer_minigame(speed=4.0, target_start=40, target_width=12)
 
-      power = st.slider("滑动调整舞台爆发力度：", 1, 100, 50)
-      if st.button("🔥 释放舞台大招！"):
-        diff = abs(power - 88)
-        if diff <= 5:
-          st.balloons()
-          st.success("🎯 **PERFECT 完美输出！** 现场尖叫翻天，粉丝暴涨！")
-          st.session_state.fans += 1500
-          st.session_state.dance += 25
-        else:
-          st.info("✨ 顺利完成了表演，展示了稳健的台风！")
-          st.session_state.fans += 500
-        st.session_state.stage += 1
-        st.rerun()
+    if st.button("➔ 挑战完毕，进入下一阶段"):
+      st.session_state.fans += random.randint(1000, 1800)
+      st.session_state.dance += 20
+      st.session_state.stage += 1
+      st.rerun()
 
-    elif curr_stage == 12:
-      st.markdown(f"""
-            <div class="event-card">
-                <b>🎮 【舞台小游戏：少俱全开麦高音卡点】</b><br>
-                打歌节目现场全开麦，歌曲进入了高潮压轴高音！请把音准推到完美音高 <b>70</b> 处！
-            </div>
-            """, unsafe_allow_html=True)
+  # 阶段 18：【真正的小人左右移动躲避坠落障碍游戏】
+  elif curr_stage == 18:
+    st.subheader("📍 Stage 18：【巨蛋巡演·舞台事故紧急闪避】")
+    st.markdown(
+        '<div class="event-card"><b>🎮 【动态躲避小游戏：舞台灯光坠落危机】</b><br>舞台灯光设备突发故障开始向下坠落！<b>请在下方点击“往左/往右闪避”按钮，控制你的偶像小人左右移动</b>，躲开坠落的灯光！</div>',
+        unsafe_allow_html=True,
+    )
 
-      pitch = st.slider("滑动微调开麦音高：", 1, 100, 40)
-      if st.button("🎤 飙高音唱响！"):
-        diff = abs(pitch - 70)
-        if diff <= 5:
-          st.balloons()
-          st.success("🎯 **PERFECT 天籁高音！** 震惊全网，歌唱实力暴涨！")
-          st.session_state.fans += 1800
-          st.session_state.vocal += 30
-        else:
-          st.info("✨ 稳住了高音，顺利完成了现场演唱。")
-          st.session_state.fans += 600
-        st.session_state.stage += 1
-        st.rerun()
+    # 渲染真正的可交互Canvas小人闪避游戏
+    render_dodge_canvas_game()
 
-    elif curr_stage == 18:
-      st.markdown(f"""
-            <div class="event-card">
-                <b>🎮 【舞台小游戏：巨蛋巡演神级饭撒互动】</b><br>
-                摄像机正推到你的脸部特写！把心跳控制在 <b>50</b>，向全场粉丝抛出绝美饭撒！
-            </div>
-            """, unsafe_allow_html=True)
-
-      fs = st.slider("滑动掌控宠粉心跳值：", 1, 100, 30)
-      if st.button("💖 抛出神级 Wink 饭撒！"):
-        diff = abs(fs - 50)
-        if diff <= 5:
-          st.balloons()
-          st.success("🎯 **PERFECT 绝美狙击！** 画面被传为经典名场面！")
-          st.session_state.fans += 2000
-          st.session_state.variety += 25
-        else:
-          st.info("✨ 温柔互动，收获了现场粉丝的热烈应援！")
-          st.session_state.fans += 800
-        st.session_state.stage += 1
-        st.rerun()
+    if st.button("🌟 闪避结束，前往出道前夜！"):
+      st.session_state.fans += 2000
+      st.session_state.variety += 25
+      st.session_state.stage += 1
+      st.rerun()
 
   # 海量 3 选项独立剧情关卡
   elif curr_stage < 20:
     st.subheader(f"📍 Stage {curr_stage} / 20")
 
-    s_db = get_story_database(st.session_state.player_name, member, st.session_state.group)
+    s_db = get_story_database(
+        st.session_state.player_name, member, st.session_state.group
+    )
     story = s_db.get(
         curr_stage,
         {
@@ -450,7 +725,6 @@ if st.session_state.game_started:
         </div>
         """, unsafe_allow_html=True)
 
-    # 严格 guaranteed 3 选项
     c1 = st.button(f"1. {story['opt1']}")
     c2 = st.button(f"2. {story['opt2']}")
     c3 = st.button(f"3. {story['opt3']}")
