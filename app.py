@@ -134,6 +134,7 @@ def init_game():
   st.session_state.lucky_item = ""
 
   st.session_state.energy = 100
+  st.session_state.stress = 20
   st.session_state.dance = 20
   st.session_state.vocal = 20
   st.session_state.variety = 20
@@ -218,6 +219,7 @@ def render_piano_tiles_game():
     </body>
     </html>
     """
+  ]
   components.html(html_code, height=340)
 
 
@@ -310,11 +312,156 @@ def render_dirt_dig_game():
     </body>
     </html>
     """
+  ]
   components.html(html_code, height=310)
 
 
 # -------------------------------------------------------------------
-# 🥞 3. 双人动态互动【实体双层松饼左右摆动堆高游戏】（完美实现视觉交互）
+# 👗 3. 纸娃娃换装搭配小游戏（全新升级：头发、上衣、裤子、鞋子实时换装）
+# -------------------------------------------------------------------
+def render_dress_up_game():
+  html_code = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+            .dress-box { background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); padding: 10px; width: 320px; text-align: center; }
+            canvas { display: block; margin: 0 auto; background: #211035; border-radius: 10px; border: 2px solid #ff4081; }
+            .category-row { display: flex; justify-content: center; gap: 4px; margin-top: 8px; }
+            .cat-btn { background: #4a148c; color: white; border: 1px solid #ff80ab; padding: 6px 10px; font-size: 11px; font-weight: bold; border-radius: 8px; cursor: pointer; }
+            .cat-btn.active { background: #ff4081; }
+            .items-row { display: flex; justify-content: center; gap: 6px; margin-top: 6px; }
+            .item-btn { background: linear-gradient(45deg, #ab47bc, #7b1fa2); color: white; border: none; padding: 6px 12px; font-size: 11px; font-weight: bold; border-radius: 8px; cursor: pointer; }
+            .item-btn:active { transform: scale(0.95); }
+        </style>
+    </head>
+    <body>
+        <div class="dress-box">
+            <div style="color: #ffeb3b; font-weight: bold; font-size: 12px; margin-bottom: 4px;">👗 杂志封面拍摄：偶像纸娃娃换装间</div>
+            <canvas id="dollCanvas" width="300" height="170"></canvas>
+            
+            <div class="category-row">
+                <button class="cat-btn active" onclick="setCategory('hair')">💇 发型</button>
+                <button class="cat-btn" onclick="setCategory('top')">🧥 上衣</button>
+                <button class="cat-btn" onclick="setCategory('bottom')">👖 裤装</button>
+                <button class="cat-btn" onclick="setCategory('shoes')">👟 鞋子</button>
+            </div>
+            
+            <div class="items-row" id="itemOptions"></div>
+        </div>
+        <script>
+            const canvas = document.getElementById('dollCanvas');
+            const ctx = canvas.getContext('2d');
+
+            let currentCat = 'hair';
+            let outfit = {
+                hair: { name: '清爽短发', color: '#ffb703' },
+                top: { name: '闪光战袍', color: '#ff4081' },
+                bottom: { name: '修身潮裤', color: '#3a86ff' },
+                shoes: { name: '打歌高帮鞋', color: '#adb5bd' }
+            };
+
+            const options = {
+                hair: [
+                    { name: '清爽短发', color: '#ffb703' },
+                    { name: '优雅长卷', color: '#8338ec' },
+                    { name: '活力马尾', color: '#fb8500' }
+                ],
+                top: [
+                    { name: '闪光战袍', color: '#ff4081' },
+                    { name: '学院西装', color: '#2b2d42' },
+                    { name: '朋克皮衣', color: '#000000' }
+                ],
+                bottom: [
+                    { name: '修身潮裤', color: '#3a86ff' },
+                    { name: '舞台短裙', color: '#ff006e' },
+                    { name: '工装长裤', color: '#6c757d' }
+                ],
+                shoes: [
+                    { name: '打歌高帮鞋', color: '#adb5bd' },
+                    { name: '闪亮皮鞋', color: '#ffd166' },
+                    { name: '运动小白鞋', color: '#ffffff' }
+                ]
+            };
+
+            function setCategory(cat) {
+                currentCat = cat;
+                document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+                event.target.classList.add('active');
+                renderOptions();
+            }
+
+            function renderOptions() {
+                const row = document.getElementById('itemOptions');
+                row.innerHTML = '';
+                options[currentCat].forEach(opt => {
+                    let btn = document.createElement('button');
+                    btn.className = 'item-btn';
+                    btn.innerText = opt.name;
+                    btn.onclick = () => {
+                        outfit[currentCat] = opt;
+                        drawDoll();
+                    };
+                    row.appendChild(btn);
+                });
+            }
+
+            function drawDoll() {
+                ctx.clearRect(0, 0, 300, 170);
+
+                // 背景光晕
+                ctx.fillStyle = 'rgba(255, 128, 171, 0.15)';
+                ctx.beginPath(); ctx.arc(150, 85, 65, 0, Math.PI*2); ctx.fill();
+
+                // 1. 身体基础 (Q版模特)
+                ctx.fillStyle = '#fceade';
+                ctx.beginPath(); ctx.arc(150, 55, 22, 0, Math.PI*2); ctx.fill(); // 头部
+
+                // 2. 绘制鞋子
+                ctx.fillStyle = outfit.shoes.color;
+                ctx.fillRect(132, 138, 14, 15);
+                ctx.fillRect(154, 138, 14, 15);
+
+                // 3. 绘制裤装/下装
+                ctx.fillStyle = outfit.bottom.color;
+                ctx.fillRect(136, 100, 28, 40);
+
+                // 4. 绘制上衣
+                ctx.fillStyle = outfit.top.color;
+                ctx.beginPath();
+                ctx.roundRect(125, 65, 50, 42, 6);
+                ctx.fill();
+
+                // 5. 绘制发型
+                ctx.fillStyle = outfit.hair.color;
+                ctx.beginPath();
+                ctx.arc(150, 48, 24, Math.PI, Math.PI * 2);
+                if(outfit.hair.name === '活力马尾') {
+                    ctx.arc(175, 45, 10, 0, Math.PI*2);
+                } else if(outfit.hair.name === '优雅长卷') {
+                    ctx.fillRect(124, 45, 10, 30);
+                    ctx.fillRect(166, 45, 10, 30);
+                }
+                ctx.fill();
+
+                // 提示文字
+                ctx.fillStyle = '#ffeb3b'; ctx.font = '11px Arial';
+                ctx.fillText("✨ 当前搭配: " + outfit.top.name + " + " + outfit.bottom.name, 15, 20);
+            }
+
+            setCategory('hair');
+            drawDoll();
+        </script>
+    </body>
+    </html>
+    """
+  ]
+  components.html(html_code, height=275)
+
+
+# -------------------------------------------------------------------
+# 🥞 4. 双人动态互动【实体双层松饼左右摆动堆高游戏】
 # -------------------------------------------------------------------
 def render_pancake_stack_game(member_name):
   html_code = (
@@ -343,7 +490,7 @@ def render_pancake_stack_game(member_name):
             const ctx = canvas.getContext('2d');
 
             let swingX = 150, swingDir = 2.2;
-            let stack = [{x: 100, y: 165, w: 100, h: 22}]; // 底座松饼
+            let stack = [{x: 100, y: 165, w: 100, h: 22}];
             let current = {x: 150, y: 35, w: 90, h: 22, dropping: false, vy: 0};
             let score = 0, isGameOver = false;
             let memberComment = "加油！看准中心叠上去！";
@@ -356,7 +503,6 @@ def render_pancake_stack_game(member_name):
             }
 
             function drawPancakeEntity(ctx, x, y, w, h, isBase) {
-                // 绘制精致的实体金黄色松饼（带奶油和糖浆夹层）
                 ctx.fillStyle = '#d4a373';
                 ctx.beginPath();
                 ctx.roundRect(x, y, w, h, 6);
@@ -365,11 +511,9 @@ def render_pancake_stack_game(member_name):
                 ctx.lineWidth = 2;
                 ctx.stroke();
 
-                // 夹层糖浆纹理
                 ctx.fillStyle = '#faedcd';
                 ctx.fillRect(x + 10, y + 6, w - 20, 4);
 
-                // 顶层流心奶油
                 if (isBase || y < 140) {
                     ctx.fillStyle = '#ffffff';
                     ctx.beginPath();
@@ -381,7 +525,6 @@ def render_pancake_stack_game(member_name):
             function loop() {
                 ctx.clearRect(0, 0, 300, 195);
 
-                // 1. 绘制顶部双人互动立绘头像与对话框
                 ctx.fillStyle = '#2d1b4e';
                 ctx.fillRect(5, 5, 135, 30);
                 ctx.fillStyle = '#00e676'; ctx.font = 'bold 11px Arial';
@@ -392,7 +535,6 @@ def render_pancake_stack_game(member_name):
                 ctx.fillStyle = '#ff80ab'; ctx.font = 'bold 11px Arial';
                 ctx.fillText("🌟 """ + member_name + """", 168, 23);
 
-                // 吊绳与摇摆松饼
                 if (!current.dropping && !isGameOver) {
                     swingX += swingDir;
                     if (swingX > 230 || swingX < 70) swingDir *= -1;
@@ -418,19 +560,16 @@ def render_pancake_stack_game(member_name):
                     }
                 }
 
-                // 2. 渲染已经叠好的松饼塔
                 for (let i = 0; i < stack.length; i++) {
                     let p = stack[i];
                     drawPancakeEntity(ctx, p.x, p.y, p.w, p.h, i === 0);
                 }
 
-                // 3. 渲染正在摇摆或下落的松饼
                 if (!isGameOver) {
                     let drawX = current.dropping ? current.x : (swingX - current.w / 2);
                     drawPancakeEntity(ctx, drawX, current.dropping ? current.y : 60, current.w, current.h, false);
                 }
 
-                // 4. 底部实时互动气泡栏
                 ctx.fillStyle = 'rgba(0,0,0,0.4)';
                 ctx.fillRect(0, 172, 300, 23);
                 ctx.fillStyle = '#ffeb3b'; ctx.font = '11px Arial';
@@ -449,12 +588,87 @@ def render_pancake_stack_game(member_name):
     </body>
     </html>
     """
-  )
+  ]
   components.html(html_code, height=275)
 
 
 # -------------------------------------------------------------------
-# 🤝 4. 成员双人互动【默契猜拳对决】
+# ⏱️ 5. 演唱会后台紧急换装 QTE 小游戏
+# -------------------------------------------------------------------
+def render_wardrobe_qte_game(member_name):
+  html_code = (
+      """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+            .qte-box { background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); padding: 15px; width: 320px; text-align: center; }
+            .qte-target { font-size: 32px; background: #2d1b4e; border: 2px dashed #ff4081; border-radius: 12px; padding: 10px; margin: 10px 0; color: #fff; }
+            .qte-btns { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px; }
+            .q-btn { background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; border: none; padding: 12px 0; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
+            .q-btn:active { transform: scale(0.95); }
+        </style>
+    </head>
+    <body>
+        <div class="qte-box">
+            <div style="color: #ffeb3b; font-weight: bold; font-size: 13px;">⏱️ 演唱会暗场 30 秒：紧急换装 QTE！</div>
+            <div style="color: #fff; font-size: 11px; margin-top: 4px;">"""
+      + member_name
+      + """ 跑过来帮你一把！点击匹配的换装动作！</div>
+            <div class="qte-target" id="targetAction">🧥 扣上舞台战袍纽扣</div>
+            <div style="color: #00e676; font-size: 12px; font-weight: bold;">🔥 成功连击: <span id="qteScore">0</span> / 5 | ⏳ <span id="qTime">10</span>s</div>
+            <div class="qte-btns">
+                <button class="q-btn" onclick="pressQTE('扣纽扣')">🧥 扣纽扣</button>
+                <button class="q-btn" onclick="pressQTE('戴耳返')">🎧 戴耳返</button>
+                <button class="q-btn" onclick="pressQTE('拿话筒')">🎤 拿话筒</button>
+                <button class="q-btn" onclick="pressQTE('正领带')">👔 正领带</button>
+            </div>
+        </div>
+        <script>
+            const actions = ['扣纽扣', '戴耳返', '拿话筒', '正领带'];
+            const actionIcons = { '扣纽扣': '🧥 扣上舞台战袍纽扣', '戴耳返': '🎧 戴上专业无线耳返', '拿话筒': '🎤 拿起闪耀定制话筒', '正领带': '👔 快速整理好演出领带' };
+            let current = '扣纽扣', score = 0, timeLeft = 10, isOver = false;
+
+            function nextAction() {
+                if (isOver) return;
+                current = actions[Math.floor(Math.random() * actions.length)];
+                document.getElementById('targetAction').innerText = actionIcons[current];
+            }
+
+            let timer = setInterval(() => {
+                if (timeLeft > 0 && !isOver) {
+                    timeLeft--; document.getElementById('qTime').innerText = timeLeft;
+                } else {
+                    isOver = true; clearInterval(timer);
+                    document.getElementById('targetAction').innerText = score >= 5 ? "🎉 换装完美成功！闪亮登场！" : "💧 时间到！有点手忙脚乱...";
+                }
+            }, 1000);
+
+            function pressQTE(act) {
+                if (isOver) return;
+                if (act === current) {
+                    score++;
+                    document.getElementById('qteScore').innerText = score;
+                    if (score >= 5) {
+                        isOver = true;
+                        document.getElementById('targetAction').innerText = "🎉 换装完美成功！闪亮登场！";
+                    } else {
+                        nextAction();
+                    }
+                }
+            }
+            nextAction();
+        </script>
+    </body>
+    </html>
+    """
+  ]
+  components.html(html_code, height=295)
+
+
+# -------------------------------------------------------------------
+# 🤝 6. 成员双人互动【默契猜拳对决】
 # -------------------------------------------------------------------
 def render_member_duel_game(member_name):
   html_code = (
@@ -544,7 +758,7 @@ def render_member_duel_game(member_name):
 
 
 # -------------------------------------------------------------------
-# 🍜 5. 成员双人互动【深夜拉面大胃王比拼】
+# 🍜 7. 成员双人互动【深夜拉面大胃王比拼】
 # -------------------------------------------------------------------
 def render_ramen_battle_game(member_name):
   html_code = (
@@ -618,7 +832,7 @@ def render_ramen_battle_game(member_name):
 
 
 # -------------------------------------------------------------------
-# 🌟 6. 演唱会手灯狂热小游戏
+# 🌟 8. 演唱会手灯狂热小游戏
 # -------------------------------------------------------------------
 def render_lightstick_game():
   html_code = """
@@ -685,7 +899,7 @@ def render_lightstick_game():
 
 
 # -------------------------------------------------------------------
-# ⚡ 7. 15 秒灯光闪避生存小游戏
+# ⚡ 9. 15 秒灯光闪避生存小游戏
 # -------------------------------------------------------------------
 def render_dodge_canvas_game():
   html_code = """
@@ -740,6 +954,7 @@ def render_dodge_canvas_game():
     </body>
     </html>
     """
+  ]
   components.html(html_code, height=300)
 
 
@@ -902,18 +1117,25 @@ if not st.session_state.game_started:
       st.rerun()
 
 # -------------------------------------------------------------------
-# 游戏主流程（精简至 25 章）
+# 游戏主流程（包含纸娃娃换装与所有互动游戏）
 # -------------------------------------------------------------------
 if st.session_state.game_started:
   curr_stage = st.session_state.stage
   member = get_rand_member()
+
+  if st.session_state.stress >= 70:
+    st.warning(
+        f"⚠️ **【压力预警】** 压力值已达 **{st.session_state.stress}%**！{member} 悄悄塞给你一罐热可可：“别把自己逼太紧，大家都在呢。”"
+    )
+    st.session_state.stress = 30
+    st.session_state.bond += 10
 
   is_free_training_day = curr_stage in [3, 9, 20]
 
   if is_free_training_day and curr_stage < 25:
     st.subheader(f"🗓️ Stage {curr_stage}：自主特训与日常安排")
     st.info(
-        f"💡 **自主安排日** | 🎒 当前幸运物：【{st.session_state.lucky_item}】"
+        f"💡 **自主安排日** | 🎒 当前幸运物：【{st.session_state.lucky_item}】 | 🔥 压力值: {st.session_state.stress}%"
     )
 
     col1, col2 = st.columns(2)
@@ -924,6 +1146,7 @@ if st.session_state.game_started:
         else:
           st.session_state.dance += random.randint(15, 25)
           st.session_state.energy -= 20
+          st.session_state.stress += 15
           st.session_state.stage += 1
           st.rerun()
       if st.button("🎤 到声乐室练习高音发声"):
@@ -932,6 +1155,7 @@ if st.session_state.game_started:
         else:
           st.session_state.vocal += random.randint(15, 25)
           st.session_state.energy -= 20
+          st.session_state.stress += 10
           st.session_state.stage += 1
           st.rerun()
     with col2:
@@ -942,12 +1166,46 @@ if st.session_state.game_started:
           st.session_state.bond += 15
           st.session_state.fans += 300
           st.session_state.energy -= 15
+          st.session_state.stress = max(0, st.session_state.stress - 20)
           st.session_state.stage += 1
           st.rerun()
       if st.button("💤 回宿舍彻底躺平休息"):
         st.session_state.energy = min(100, st.session_state.energy + 40)
+        st.session_state.stress = max(0, st.session_state.stress - 30)
         st.session_state.stage += 1
         st.rerun()
+
+  # 阶段 3：🌙 宿舍深夜真心话卡牌
+  elif curr_stage == 3:
+    st.subheader(
+        f"📍 Stage 3：【宿舍深夜心跳】与 {member} 的真心话大冒险卡牌"
+    )
+    st.markdown(
+        f'<div class="event-card"><b>🃏 【真心话大冒险卡牌抉择】</b><br>深夜熄灯后，宿舍里几个人围坐在一起玩真心话卡牌。轮到你抽牌了，你抽到了一张闪光心跳卡：<b>“如果必须在组合里选一个人作为永远的搭档，你的真实想法是？”</b></div>',
+        unsafe_allow_html=True,
+    )
+
+    c1 = st.button(
+        f"1. 毫不犹豫指向身边的 {member}：“当然是选最懂我的你啦！”"
+    )
+    c2 = st.button("2. 大笑著把卡牌传给下一个人：“秘密，这是商业机密！”")
+    c3 = st.button(
+        "3. 认真地看向全员：“我想和大家所有人一起永远站在舞台上。”"
+    )
+
+    if c1:
+      st.session_state.bond += 25
+      st.session_state.stage += 1
+      st.rerun()
+    if c2:
+      st.session_state.variety += 15
+      st.session_state.stage += 1
+      st.rerun()
+    if c3:
+      st.session_state.fans += 500
+      st.session_state.trust += 10
+      st.session_state.stage += 1
+      st.rerun()
 
   # 阶段 6：🎹 钢琴块下落打歌
   elif curr_stage == 6:
@@ -964,7 +1222,35 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # 阶段 10：🍜 深夜拉面大胃王比拼（双人互动）
+  # 阶段 9：🔥 社内 Unit 小分队企划选拔
+  elif curr_stage == 9:
+    st.subheader("📍 Stage 9：【社内企划】限定 Unit 小分队选拔战")
+    st.markdown(
+        f'<div class="event-card"><b>🏆 【Unit 小分队选拔赛】</b><br>事务所突然下达了全新企划通知：将从所有练习生中选拔一支 3 人限定 Unit 小分队率先发布单曲！你需要决定和谁搭档以及主攻方向。</div>',
+        unsafe_allow_html=True,
+    )
+
+    u1 = st.button(f"1. 选择与实力超群的 {member} 强强联手，主攻炸裂双人舞曲")
+    u2 = st.button("2. 选择和擅长搞笑与气氛的队友组队，主攻综艺热单路线")
+    u3 = st.button("3. 独自一人报名全能 Ace 路线，展现个人综合实力")
+
+    if u1:
+      st.session_state.dance += 25
+      st.session_state.bond += 20
+      st.session_state.stage += 1
+      st.rerun()
+    if u2:
+      st.session_state.variety += 30
+      st.session_state.fans += 800
+      st.session_state.stage += 1
+      st.rerun()
+    if u3:
+      st.session_state.vocal += 20
+      st.session_state.dance += 15
+      st.session_state.stage += 1
+      st.rerun()
+
+  # 阶段 10：🍜 深夜拉面大胃王比拼
   elif curr_stage == 10:
     st.subheader(f"📍 Stage 10：【深夜食堂·与 {member} 的拉面大胃王决战】")
     st.markdown(
@@ -995,7 +1281,7 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # 阶段 15：🥞 实体双层松饼动态摆动堆高（双人实时互动）
+  # 阶段 15：🥞 实体双层松饼动态摆动堆高
   elif curr_stage == 15:
     st.subheader(f"📍 Stage 15：【后台双人互动·松饼动态摆动堆高】")
     st.markdown(
@@ -1006,6 +1292,21 @@ if st.session_state.game_started:
 
     if st.button("➔ 游戏结束，点击进入下一阶段"):
       st.session_state.bond += 25
+      st.session_state.stage += 1
+      st.rerun()
+
+  # 阶段 17（新增）：👗 杂志封面拍摄与舞台换装搭配小游戏
+  elif curr_stage == 17:
+    st.subheader("📍 Stage 17：【杂志封面拍摄】偶像纸娃娃换装间")
+    st.markdown(
+        '<div class="event-card"><b>👗 【换装搭配小游戏】</b><br>即将拍摄出道单曲的杂志封面！请在下方为模特自由搭配<b>发型、上衣、裤装与鞋子</b>，打造最亮眼的封面造型！</div>',
+        unsafe_allow_html=True,
+    )
+    render_dress_up_game()
+
+    if st.button("➔ 搭配完成，拍摄封面！"):
+      st.session_state.fans += 2000
+      st.session_state.variety += 20
       st.session_state.stage += 1
       st.rerun()
 
@@ -1021,6 +1322,20 @@ if st.session_state.game_started:
     if st.button("➔ 互动结束，点击进入下一阶段"):
       st.session_state.bond += 20
       st.session_state.fans += 1500
+      st.session_state.stage += 1
+      st.rerun()
+
+  # 阶段 20：⏱️ 演唱会后台紧急换装 QTE 小游戏
+  elif curr_stage == 20:
+    st.subheader(f"📍 Stage 20：【演唱会暗场】与 {member} 的紧急换装 QTE")
+    st.markdown(
+        f'<div class="event-card"><b>⏱️ 【后台紧急换装 QTE】</b><br>巨蛋演唱会现场两首歌之间的暗场只有短短 30 秒！你需要快速完成换装动作，{member} 会在旁边帮你递耳返和拿话筒！</div>',
+        unsafe_allow_html=True,
+    )
+    render_wardrobe_qte_game(member)
+
+    if st.button("➔ 换装完毕，冲上舞台！"):
+      st.session_state.fans += 1800
       st.session_state.stage += 1
       st.rerun()
 
@@ -1086,11 +1401,13 @@ if st.session_state.game_started:
     if c1:
       st.session_state.dance += 12
       st.session_state.fans += 400
+      st.session_state.stress += 10
       st.session_state.stage += 1
       st.rerun()
     if c2:
       st.session_state.vocal += 12
       st.session_state.fans += 450
+      st.session_state.stress += 10
       st.session_state.stage += 1
       st.rerun()
     if c3:
