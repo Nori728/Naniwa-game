@@ -222,7 +222,7 @@ def render_piano_tiles_game():
 
 
 # -------------------------------------------------------------------
-# ⛏️ 2. 铁锹敲击土块【地下仓库盲盒挖宝（带真实数值奖励）】
+# ⛏️ 2. 铁锹敲击土块【地下仓库盲盒挖宝】
 # -------------------------------------------------------------------
 def render_dirt_dig_game():
   html_code = """
@@ -314,9 +314,9 @@ def render_dirt_dig_game():
 
 
 # -------------------------------------------------------------------
-# 📦 3. 动态左右摆动物体下落堆高小游戏【箱子/松饼动态堆高】（全新升级）
+# 🥞 3. 双人动态互动【实体双层松饼左右摆动堆高游戏】（完美实现视觉交互）
 # -------------------------------------------------------------------
-def render_dynamic_stack_game(member_name):
+def render_pancake_stack_game(member_name):
   html_code = (
       """
     <!DOCTYPE html>
@@ -324,98 +324,122 @@ def render_dynamic_stack_game(member_name):
     <head>
         <style>
             body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
-            .swing-box { background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); padding: 10px; width: 320px; text-align: center; }
+            .pancake-box { background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); padding: 10px; width: 320px; text-align: center; }
             canvas { display: block; margin: 0 auto; background: #211035; border-radius: 10px; border: 2px solid #ff4081; }
-            .drop-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: white; border: none; padding: 10px 0; font-size: 15px; font-weight: bold; border-radius: 15px; cursor: pointer; width: 300px; margin-top: 8px; box-shadow: 0 4px 10px rgba(0,230,118,0.4); }
+            .drop-btn { background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; border: none; padding: 10px 0; font-size: 15px; font-weight: bold; border-radius: 15px; cursor: pointer; width: 300px; margin-top: 8px; box-shadow: 0 4px 10px rgba(255,64,129,0.4); }
             .drop-btn:active { transform: scale(0.95); }
         </style>
     </head>
     <body>
-        <div class="swing-box">
-            <div style="color: #ffeb3b; font-weight: bold; font-size: 12px; margin-bottom: 5px;">🥞 与 """
+        <div class="pancake-box">
+            <div style="color: #ffeb3b; font-weight: bold; font-size: 12px; margin-bottom: 4px;">🥞 后台双人互动：与 """
       + member_name
-      + """ 的动态摆动堆高挑战！</div>
-            <canvas id="stackCanvas" width="300" height="190"></canvas>
-            <button class="drop-btn" onclick="dropBox()">⬇️ 看准时机：松手落下！</button>
+      + """ 的松饼叠高挑战！</div>
+            <canvas id="pancakeCanvas" width="300" height="195"></canvas>
+            <button class="drop-btn" onclick="dropPancake()">🥞 看准时机：放下松饼！</button>
         </div>
         <script>
-            const canvas = document.getElementById('stackCanvas');
+            const canvas = document.getElementById('pancakeCanvas');
             const ctx = canvas.getContext('2d');
 
-            let swingX = 150, swingDir = 2.5; // 吊着左右摆动的物体位置
-            let stack = [{x: 100, y: 165, w: 100, h: 20}]; // 底座
-            let currentBox = {x: 150, y: 35, w: 90, h: 20, dropping: false, vy: 0};
+            let swingX = 150, swingDir = 2.2;
+            let stack = [{x: 100, y: 165, w: 100, h: 22}]; // 底座松饼
+            let current = {x: 150, y: 35, w: 90, h: 22, dropping: false, vy: 0};
             let score = 0, isGameOver = false;
+            let memberComment = "加油！看准中心叠上去！";
 
-            function dropBox() {
-                if (isGameOver || currentBox.dropping) return;
-                currentBox.dropping = true;
-                currentBox.x = swingX - currentBox.w / 2;
-                currentBox.vy = 4.5;
+            function dropPancake() {
+                if (isGameOver || current.dropping) return;
+                current.dropping = true;
+                current.x = swingX - current.w / 2;
+                current.vy = 4.0;
+            }
+
+            function drawPancakeEntity(ctx, x, y, w, h, isBase) {
+                // 绘制精致的实体金黄色松饼（带奶油和糖浆夹层）
+                ctx.fillStyle = '#d4a373';
+                ctx.beginPath();
+                ctx.roundRect(x, y, w, h, 6);
+                ctx.fill();
+                ctx.strokeStyle = '#bc6c25';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // 夹层糖浆纹理
+                ctx.fillStyle = '#faedcd';
+                ctx.fillRect(x + 10, y + 6, w - 20, 4);
+
+                // 顶层流心奶油
+                if (isBase || y < 140) {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.arc(x + w / 2, y + 4, 8, 0, Math.PI * 2);
+                    ctx.fill();
+                }
             }
 
             function loop() {
-                ctx.clearRect(0, 0, 300, 190);
+                ctx.clearRect(0, 0, 300, 195);
 
-                // 1. 绘制背景网格
-                ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-                for(let i=0; i<300; i+=30) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 190); ctx.stroke(); }
+                // 1. 绘制顶部双人互动立绘头像与对话框
+                ctx.fillStyle = '#2d1b4e';
+                ctx.fillRect(5, 5, 135, 30);
+                ctx.fillStyle = '#00e676'; ctx.font = 'bold 11px Arial';
+                ctx.fillText("🧑‍🎤 你 (层数: " + score + ")", 12, 23);
 
-                // 2. 如果物体在空中摆动（未落下）
-                if (!currentBox.dropping && !isGameOver) {
+                ctx.fillStyle = '#2d1b4e';
+                ctx.fillRect(160, 5, 135, 30);
+                ctx.fillStyle = '#ff80ab'; ctx.font = 'bold 11px Arial';
+                ctx.fillText("🌟 """ + member_name + """", 168, 23);
+
+                // 吊绳与摇摆松饼
+                if (!current.dropping && !isGameOver) {
                     swingX += swingDir;
                     if (swingX > 230 || swingX < 70) swingDir *= -1;
-                    // 画吊绳
                     ctx.strokeStyle = '#ff80ab'; ctx.lineWidth = 2;
-                    ctx.beginPath(); ctx.moveTo(swingX, 0); ctx.lineTo(swingX, 35); ctx.stroke();
-                } else if (currentBox.dropping) {
-                    currentBox.y += currentBox.vy;
-                    let topBox = stack[stack.length - 1];
-
-                    // 碰撞检测（落地）
-                    if (currentBox.y + currentBox.h >= topBox.y) {
-                        currentBox.dropping = false;
-                        let overlap = Math.min(currentBox.x + currentBox.w, topBox.x + topBox.w) - Math.max(currentBox.x, topBox.x);
-                        
-                        if (overlap > 30) { // 对齐成功
+                    ctx.beginPath(); ctx.moveTo(swingX, 40); ctx.lineTo(swingX, 60); ctx.stroke();
+                } else if (current.dropping) {
+                    current.y += current.vy;
+                    let top = stack[stack.length - 1];
+                    if (current.y + current.h >= top.y) {
+                        current.dropping = false;
+                        let overlap = Math.min(current.x + current.w, top.x + top.w) - Math.max(current.x, top.x);
+                        if (overlap > 25) {
                             score++;
-                            let newW = Math.max(40, currentBox.w - 4); // 越叠越有难度
-                            stack.push({ x: currentBox.x, y: topBox.y - 20, w: newW, h: 20 });
-                            currentBox = { x: 150, y: 35, w: newW, h: 20, dropping: false, vy: 0 };
-                            if (stack.length >= 8) { isGameOver = true; }
-                        } else { // 没对齐掉下去
+                            let newW = Math.max(45, current.w - 5);
+                            stack.push({ x: current.x, y: top.y - 22, w: newW, h: 22 });
+                            current = { x: 150, y: 35, w: newW, h: 22, dropping: false, vy: 0 };
+                            memberComment = score >= 5 ? "太稳了！绝佳默契！" : "干得漂亮！继续保持！";
+                            if (stack.length >= 7) isGameOver = true;
+                        } else {
+                            memberComment = "哎呀歪了！太可惜啦！";
                             isGameOver = true;
                         }
                     }
                 }
 
-                // 3. 绘制已经叠好的箱子/松饼
+                // 2. 渲染已经叠好的松饼塔
                 for (let i = 0; i < stack.length; i++) {
-                    let b = stack[i];
-                    ctx.fillStyle = i % 2 === 0 ? '#ff4081' : '#ab47bc';
-                    ctx.fillRect(b.x, b.y, b.w, b.h);
-                    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5;
-                    ctx.strokeRect(b.x, b.y, b.w, b.h);
-                    ctx.fillStyle = '#fff'; ctx.font = '10px Arial';
-                    ctx.fillText('📦松饼 #' + (i+1), b.x + 8, b.y + 14);
+                    let p = stack[i];
+                    drawPancakeEntity(ctx, p.x, p.y, p.w, p.h, i === 0);
                 }
 
-                // 4. 绘制正在摇摆或下落的物体
+                // 3. 渲染正在摇摆或下落的松饼
                 if (!isGameOver) {
-                    let drawX = currentBox.dropping ? currentBox.x : (swingX - currentBox.w / 2);
-                    ctx.fillStyle = '#00e676';
-                    ctx.fillRect(drawX, currentBox.y, currentBox.w, currentBox.h);
-                    ctx.strokeStyle = '#fff'; ctx.strokeRect(drawX, currentBox.y, currentBox.w, currentBox.h);
+                    let drawX = current.dropping ? current.x : (swingX - current.w / 2);
+                    drawPancakeEntity(ctx, drawX, current.dropping ? current.y : 60, current.w, current.h, false);
                 }
 
-                // 5. 显示得分
-                ctx.fillStyle = '#ffeb3b'; ctx.font = 'bold 12px Arial';
-                ctx.fillText("🏆 叠高层数: " + score, 15, 20);
+                // 4. 底部实时互动气泡栏
+                ctx.fillStyle = 'rgba(0,0,0,0.4)';
+                ctx.fillRect(0, 172, 300, 23);
+                ctx.fillStyle = '#ffeb3b'; ctx.font = '11px Arial';
+                ctx.fillText("💬 队友 """ + member_name + """: " + memberComment, 12, 188);
 
                 if (isGameOver) {
-                    ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(0,0,300,190);
+                    ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(0, 0, 300, 195);
                     ctx.fillStyle = '#00e676'; ctx.font = 'bold 16px Arial';
-                    ctx.fillText("🎉 堆高挑战完成！总得分: " + score, 30, 100);
+                    ctx.fillText("🎉 堆高挑战完成！总得分: " + score, 40, 100);
                 } else {
                     requestAnimationFrame(loop);
                 }
@@ -426,7 +450,7 @@ def render_dynamic_stack_game(member_name):
     </html>
     """
   )
-  components.html(html_code, height=270)
+  components.html(html_code, height=275)
 
 
 # -------------------------------------------------------------------
@@ -955,7 +979,7 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # 阶段 12：⛏️ 铁锹敲击土块【地下仓库盲盒挖宝（附带属性转化）】
+  # 阶段 12：⛏️ 铁锹敲击土块【地下仓库盲盒挖宝】
   elif curr_stage == 12:
     st.subheader("📍 Stage 12：【事务所地下仓库·铁锹盲盒挖宝】")
     st.markdown(
@@ -971,14 +995,14 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # 阶段 15：📦 动态摆动下落堆高小游戏（双人互动）
+  # 阶段 15：🥞 实体双层松饼动态摆动堆高（双人实时互动）
   elif curr_stage == 15:
-    st.subheader(f"📍 Stage 15：【后台整活·与 {member} 的动态摆动堆高】")
+    st.subheader(f"📍 Stage 15：【后台双人互动·松饼动态摆动堆高】")
     st.markdown(
-        f'<div class="event-card"><b>📦 【双人互动小游戏：左右摆动堆高挑战】</b><br>等待上台时，你和 <b>{member}</b> 用巡演器材箱/松饼玩起了左右摆动下落堆高游戏！看准时机点击落下！</div>',
+        f'<div class="event-card"><b>🥞 【双人互动小游戏：松饼左右摆动堆高】</b><br>在休息室里，你和 <b>{member}</b> 比赛叠松饼！上方松饼会自动左右摆动，看准时机点击落下，堆得越高你们的羁绊越深！</div>',
         unsafe_allow_html=True,
     )
-    render_dynamic_stack_game(member)
+    render_pancake_stack_game(member)
 
     if st.button("➔ 游戏结束，点击进入下一阶段"):
       st.session_state.bond += 25
