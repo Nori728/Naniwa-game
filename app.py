@@ -152,7 +152,7 @@ def get_rand_member():
 
 
 # -------------------------------------------------------------------
-# 🎹 真正的下落式【节奏钢琴块】小游戏（12秒倒计时，支持点击组件自动完成）
+# 🎹 1. 钢琴块下落打歌小游戏
 # -------------------------------------------------------------------
 def render_piano_tiles_game():
   html_code = """
@@ -160,340 +160,156 @@ def render_piano_tiles_game():
     <html>
     <head>
         <style>
-            body {
-                background: transparent;
-                margin: 0;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                font-family: system-ui, sans-serif;
-            }
-            .piano-box {
-                background: #1a0f30;
-                border: 3px solid #ff80ab;
-                border-radius: 16px;
-                box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-                position: relative;
-                overflow: hidden;
-                width: 320px;
-                height: 280px;
-            }
+            body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+            .piano-box { background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); position: relative; overflow: hidden; width: 320px; height: 260px; }
             canvas { display: block; }
-            .btn-row {
-                display: flex;
-                gap: 8px;
-                margin-top: 10px;
-                width: 320px;
-            }
-            .piano-btn {
-                background: linear-gradient(180deg, #ab47bc, #7b1fa2);
-                color: white;
-                border: 2px solid #ff80ab;
-                padding: 14px 0;
-                font-size: 18px;
-                font-weight: bold;
-                border-radius: 12px;
-                cursor: pointer;
-                touch-action: manipulation;
-                flex: 1;
-                text-align: center;
-            }
-            .piano-btn:active {
-                background: #ff4081;
-                transform: scale(0.92);
-            }
-            #piano-tip {
-                color: #4a148c;
-                font-weight: bold;
-                font-size: 13px;
-                margin-top: 6px;
-                text-align: center;
-            }
+            .btn-row { display: flex; gap: 8px; margin-top: 10px; width: 320px; }
+            .piano-btn { background: linear-gradient(180deg, #ab47bc, #7b1fa2); color: white; border: 2px solid #ff80ab; padding: 12px 0; font-size: 18px; font-weight: bold; border-radius: 12px; cursor: pointer; flex: 1; text-align: center; }
+            .piano-btn:active { background: #ff4081; transform: scale(0.92); }
         </style>
     </head>
     <body>
-        <div class="piano-box">
-            <canvas id="pianoCanvas" width="320" height="280"></canvas>
-        </div>
+        <div class="piano-box"><canvas id="pianoCanvas" width="320" height="260"></canvas></div>
         <div class="btn-row">
             <button class="piano-btn" onclick="tapTrack(0)">1</button>
             <button class="piano-btn" onclick="tapTrack(1)">2</button>
             <button class="piano-btn" onclick="tapTrack(2)">3</button>
             <button class="piano-btn" onclick="tapTrack(3)">4</button>
         </div>
-        <div id="piano-tip">🎹 钢琴块下落中！点击下方 1-2-3-4 键敲击！</div>
-
         <script>
             const canvas = document.getElementById('pianoCanvas');
             const ctx = canvas.getContext('2d');
             const trackWidth = 80;
-            let tiles = [];
-            let score = 0;
-            let combo = 0;
-            let timeLeft = 12;
-            let isGameOver = false;
-
-            let timerInterval = setInterval(() => {
-                if (timeLeft > 0 && !isGameOver) {
-                    timeLeft--;
-                } else {
-                    isGameOver = true;
-                    clearInterval(timerInterval);
-                    clearInterval(spawnInterval);
-                    // 时间到自动通知父页面或显示完成
-                    parent.postMessage({ type: 'piano_done', score: score }, '*');
+            let tiles = [], score = 0, combo = 0, timeLeft = 12, isGameOver = false;
+            let timer = setInterval(() => { if(timeLeft > 0 && !isGameOver) timeLeft--; else { isGameOver = true; clearInterval(timer); clearInterval(spawner); } }, 1000);
+            let spawner = setInterval(() => { if(!isGameOver) tiles.push({ track: Math.floor(Math.random()*4), y: -40, h: 40, hit: false }); }, 550);
+            function tapTrack(idx) {
+                if(isGameOver) return;
+                let ok = false;
+                for(let t of tiles) {
+                    if(t.track === idx && !t.hit && t.y >= 140 && t.y <= 250) { t.hit = true; ok = true; score += 100; combo++; break; }
                 }
-            }, 1000);
-
-            function spawnTile() {
-                if (isGameOver) return;
-                let track = Math.floor(Math.random() * 4);
-                tiles.push({ track: track, y: -50, h: 45, hit: false });
+                if(!ok) combo = 0;
             }
-
-            let spawnInterval = setInterval(spawnTile, 500);
-
-            function tapTrack(trackIndex) {
-                if (isGameOver) return;
-                let hitSuccess = false;
-                for (let i = 0; i < tiles.length; i++) {
-                    let t = tiles[i];
-                    if (t.track === trackIndex && !t.hit && t.y >= 150 && t.y <= 270) {
-                        t.hit = true;
-                        hitSuccess = true;
-                        score += 100 + (combo * 10);
-                        combo++;
-                        break;
-                    }
-                }
-                if (!hitSuccess) combo = 0;
-            }
-
-            function updatePiano() {
-                ctx.clearRect(0, 0, 320, 280);
+            function loop() {
+                ctx.clearRect(0, 0, 320, 260);
                 ctx.strokeStyle = '#2d1b4e';
-                ctx.lineWidth = 1;
-                for (let i = 1; i < 4; i++) {
-                    ctx.beginPath();
-                    ctx.moveTo(i * trackWidth, 0);
-                    ctx.lineTo(i * trackWidth, 280);
-                    ctx.stroke();
-                }
-
-                ctx.fillStyle = 'rgba(255, 64, 129, 0.25)';
-                ctx.fillRect(0, 190, 320, 60);
-
-                for (let i = tiles.length - 1; i >= 0; i--) {
+                for(let i=1; i<4; i++) { ctx.beginPath(); ctx.moveTo(i*trackWidth, 0); ctx.lineTo(i*trackWidth, 260); ctx.stroke(); }
+                ctx.fillStyle = 'rgba(255, 64, 129, 0.2)'; ctx.fillRect(0, 180, 320, 60);
+                for(let i=tiles.length-1; i>=0; i--) {
                     let t = tiles[i];
-                    if (!t.hit) {
-                        t.y += 3.8;
-                        ctx.fillStyle = '#211035';
-                        ctx.fillRect(t.track * trackWidth + 4, t.y, trackWidth - 8, t.h);
-                        ctx.strokeStyle = '#ea80fc';
-                        ctx.lineWidth = 2;
-                        ctx.strokeRect(t.track * trackWidth + 4, t.y, trackWidth - 8, t.h);
-                        ctx.fillStyle = '#ff80ab';
-                        ctx.font = '14px Arial';
-                        ctx.fillText('🎵', t.track * trackWidth + 30, t.y + 28);
-
-                        if (t.y > 280) {
-                            tiles.splice(i, 1);
-                            combo = 0;
-                        }
-                    } else {
-                        tiles.splice(i, 1);
-                    }
+                    if(!t.hit) {
+                        t.y += 3.5;
+                        ctx.fillStyle = '#211035'; ctx.fillRect(t.track*trackWidth+4, t.y, trackWidth-8, t.h);
+                        ctx.strokeStyle = '#ea80fc'; ctx.strokeRect(t.track*trackWidth+4, t.y, trackWidth-8, t.h);
+                        ctx.fillStyle = '#ff80ab'; ctx.font = '12px Arial'; ctx.fillText('🎵', t.track*trackWidth+30, t.y+25);
+                        if(t.y > 260) { tiles.splice(i, 1); combo = 0; }
+                    } else { tiles.splice(i, 1); }
                 }
-
-                ctx.fillStyle = '#ffffff';
-                ctx.font = 'bold 13px Arial';
-                ctx.fillText("⏳ 剩余: " + timeLeft + "s", 10, 22);
-                ctx.fillText("🔥 分数: " + score, 130, 22);
-                ctx.fillStyle = '#ffeb3b';
-                ctx.fillText("⚡ Combo: " + combo, 220, 22);
-
-                if (!isGameOver) {
-                    requestAnimationFrame(updatePiano);
-                } else {
-                    ctx.fillStyle = 'rgba(0,0,0,0.8)';
-                    ctx.fillRect(0, 0, 320, 280);
-                    ctx.fillStyle = '#00e676';
-                    ctx.font = 'bold 18px Arial';
-                    ctx.fillText("🎉 演奏完成！总分: " + score, 50, 140);
-                    document.getElementById('piano-tip').innerHTML = "✨ 演奏完美结束，请点击下方按钮推进！";
-                }
+                ctx.fillStyle = '#fff'; ctx.font = 'bold 12px Arial';
+                ctx.fillText("⏳ 剩余: " + timeLeft + "s", 10, 20);
+                ctx.fillText("🔥 分数: " + score, 130, 20);
+                ctx.fillText("⚡ Combo: " + combo, 220, 20);
+                if(!isGameOver) requestAnimationFrame(loop);
+                else { ctx.fillStyle = 'rgba(0,0,0,0.8)'; ctx.fillRect(0,0,320,260); ctx.fillStyle = '#00e676'; ctx.font = 'bold 18px Arial'; ctx.fillText("🎉 打歌结束！总分: " + score, 50, 135); }
             }
-            updatePiano();
+            loop();
         </script>
     </body>
     </html>
     """
-  components.html(html_code, height=360)
+  components.html(html_code, height=340)
 
 
 # -------------------------------------------------------------------
-# ⚡ 持续 15 秒的【舞台灯光极限闪避】画布（时间一到自动跳转）
+# 🪙 2. 地下仓库【黄金寻宝挖金矿】小游戏
 # -------------------------------------------------------------------
-def render_dodge_canvas_game():
+def render_gold_miner_game():
   html_code = """
     <!DOCTYPE html>
     <html>
     <head>
         <style>
-            body {
-                background: transparent;
-                margin: 0;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                font-family: system-ui, sans-serif;
-            }
-            .canvas-box {
-                background: #1a0f30;
-                border: 3px solid #ff80ab;
-                border-radius: 16px;
-                box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-                position: relative;
-                overflow: hidden;
-                width: 320px;
-                height: 220px;
-            }
+            body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+            .miner-box { background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); position: relative; overflow: hidden; width: 320px; height: 240px; }
             canvas { display: block; }
-            .ctrl-panel {
-                display: flex;
-                gap: 15px;
-                margin-top: 10px;
-                width: 320px;
-                justify-content: center;
-            }
-            .move-btn {
-                background: linear-gradient(45deg, #ff4081, #ab47bc);
-                color: white;
-                border: none;
-                padding: 12px 24px;
-                font-size: 16px;
-                font-weight: bold;
-                border-radius: 20px;
-                cursor: pointer;
-                touch-action: manipulation;
-                flex: 1;
-            }
-            .move-btn:active { transform: scale(0.95); }
-            #info-tip {
-                color: #4a148c;
-                font-weight: bold;
-                font-size: 13px;
-                margin-top: 6px;
-                text-align: center;
-            }
+            .hook-btn { background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; border: none; padding: 12px 30px; font-size: 16px; font-weight: bold; border-radius: 20px; cursor: pointer; margin-top: 10px; width: 320px; box-shadow: 0 4px 10px rgba(255,64,129,0.4); }
+            .hook-btn:active { transform: scale(0.95); }
         </style>
     </head>
     <body>
-        <div class="canvas-box">
-            <canvas id="dodgeCanvas" width="320" height="220"></canvas>
-        </div>
-        <div class="ctrl-panel">
-            <button class="move-btn" onclick="movePlayer(-1)">⬅️ 往左闪避</button>
-            <button class="move-btn" onclick="movePlayer(1)">往右闪避 ➡️</button>
-        </div>
-        <div id="info-tip">⚡ 左右按钮控制小人躲避灯光！坚持 15 秒自动通关！</div>
-
+        <div class="miner-box"><canvas id="minerCanvas" width="320" height="240"></canvas></div>
+        <button class="hook-btn" onclick="fireHook()">🎣 抓取绝版宝物！</button>
         <script>
-            const canvas = document.getElementById('dodgeCanvas');
+            const canvas = document.getElementById('minerCanvas');
             const ctx = canvas.getContext('2d');
-            let lane = 1;
-            const lanesX = [60, 160, 260];
-            let playerY = 180;
-            let obstacles = [];
-            let hp = 3;
-            let timeLeft = 15;
-            let isGameOver = false;
+            let angle = 0, dir = 1, state = 0; // 0: 摇摆, 1: 抓取中
+            let hookX = 160, hookY = 20, len = 20;
+            let treasures = [
+                {x: 70, y: 170, r: 16, type: '💎 绝版金唱片', val: 500},
+                {x: 160, y: 200, r: 12, type: '✨ 亲笔签名照', val: 300},
+                {x: 250, y: 160, r: 18, type: '🏆 历年奖杯', val: 800}
+            ];
+            let caught = null;
+            let score = 0;
 
-            let timerInterval = setInterval(() => {
-                if (timeLeft > 0 && !isGameOver) {
-                    timeLeft--;
-                } else {
-                    isGameOver = true;
-                    clearInterval(timerInterval);
-                    clearInterval(spawnInterval);
-                }
-            }, 1000);
-
-            function movePlayer(dir) {
-                if (isGameOver) return;
-                lane += dir;
-                if (lane < 0) lane = 0;
-                if (lane > 2) lane = 2;
+            function fireHook() {
+                if (state === 0) state = 1;
             }
 
-            function spawnObstacle() {
-                if (isGameOver) return;
-                let randomLane = Math.floor(Math.random() * 3);
-                obstacles.push({ lane: randomLane, y: -20, speed: 4.0 });
-            }
+            function loop() {
+                ctx.clearRect(0, 0, 320, 240);
+                
+                // 绘制仓库背景
+                ctx.fillStyle = '#2d1b4e'; ctx.fillRect(0, 0, 320, 40);
+                ctx.fillStyle = '#fff'; ctx.font = 'bold 12px Arial';
+                ctx.fillText("💰 寻宝得分: " + score, 15, 25);
 
-            let spawnInterval = setInterval(spawnObstacle, 550);
-
-            function updateGame() {
-                ctx.clearRect(0, 0, 320, 220);
-                ctx.strokeStyle = '#2d1b4e';
-                ctx.lineWidth = 2;
-                ctx.setLineDash([4, 4]);
-                [110, 210].forEach(x => {
-                    ctx.beginPath();
-                    ctx.moveTo(x, 0);
-                    ctx.lineTo(x, 220);
-                    ctx.stroke();
-                });
-                ctx.setLineDash([]);
-
-                for (let i = obstacles.length - 1; i >= 0; i--) {
-                    let obs = obstacles[i];
-                    obs.y += obs.speed;
-                    ctx.fillStyle = '#ff5252';
-                    ctx.beginPath();
-                    ctx.arc(lanesX[obs.lane], obs.y, 14, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.fillStyle = '#ffffff';
-                    ctx.font = '11px Arial';
-                    ctx.fillText('💡', lanesX[obs.lane] - 6, obs.y + 4);
-
-                    if (obs.y >= playerY - 15 && obs.y <= playerY + 15 && obs.lane === lane) {
-                        hp--;
-                        obstacles.splice(i, 1);
-                        if (hp <= 0) isGameOver = true;
-                    } else if (obs.y > 240) {
-                        obstacles.splice(i, 1);
+                // 摇摆计算
+                if (state === 0) {
+                    angle += dir * 0.03;
+                    if (angle > 1.2 || angle < -1.2) dir *= -1;
+                } else if (state === 1) {
+                    len += 5;
+                    hookX = 160 + len * Math.sin(angle);
+                    hookY = 20 + len * Math.cos(angle);
+                    
+                    // 碰撞检测
+                    for(let i=0; i<treasures.length; i++) {
+                        let t = treasures[i];
+                        let dist = Math.hypot(hookX - t.x, hookY - t.y);
+                        if(dist < t.r + 10) {
+                            caught = treasures.splice(i, 1)[0];
+                            score += caught.val;
+                            state = 2; // 回收
+                            break;
+                        }
                     }
+                    if (hookY > 240 || hookX < 0 || hookX > 320) state = 2;
+                } else if (state === 2) {
+                    len -= 5;
+                    hookX = 160 + len * Math.sin(angle);
+                    hookY = 20 + len * Math.cos(angle);
+                    if (len <= 20) { state = 0; caught = null; len = 20; }
                 }
 
-                let px = lanesX[lane];
-                ctx.fillStyle = '#ff4081';
-                ctx.beginPath();
-                ctx.arc(px, playerY, 15, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.fillStyle = '#ffffff';
-                ctx.font = '12px Arial';
-                ctx.fillText('⭐', px - 6, playerY + 4);
+                // 绘制绳子与钩子
+                ctx.strokeStyle = '#ffeb3b'; ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.moveTo(160, 20); ctx.lineTo(hookX, hookY); ctx.stroke();
+                ctx.fillStyle = '#ff4081'; ctx.beginPath(); ctx.arc(hookX, hookY, 8, 0, Math.PI*2); ctx.fill();
 
-                ctx.fillStyle = '#ffffff';
-                ctx.font = 'bold 13px Arial';
-                ctx.fillText("⏱️ 倒计时: " + timeLeft + "s", 15, 22);
-                ctx.fillStyle = '#ff4081';
-                ctx.fillText("❤️ 生命: " + "❤️".repeat(Math.max(0, hp)), 210, 22);
-
-                if (!isGameOver) {
-                    requestAnimationFrame(updateGame);
-                } else {
-                    ctx.fillStyle = 'rgba(0,0,0,0.85)';
-                    ctx.fillRect(0, 0, 320, 220);
-                    ctx.fillStyle = '#00e676';
-                    ctx.font = 'bold 18px Arial';
-                    ctx.fillText("🎉 15秒生存成功！完美通关！", 40, 115);
-                    document.getElementById('info-tip').innerHTML = "✨ 挑战成功！请点击下方按钮继续！";
+                // 绘制宝物
+                for(let t of treasures) {
+                    ctx.fillStyle = '#ffeb3b'; ctx.beginPath(); ctx.arc(t.x, t.y, t.r, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = '#4a148c'; ctx.font = '10px Arial'; ctx.fillText(t.type[0], t.x-4, t.y+4);
                 }
+                if(caught) {
+                    ctx.fillStyle = '#00e676'; ctx.font = '11px Arial'; ctx.fillText("抓到了: " + caught.type, hookX-30, hookY-15);
+                }
+
+                requestAnimationFrame(loop);
             }
-            updateGame();
+            loop();
         </script>
     </body>
     </html>
@@ -501,7 +317,129 @@ def render_dodge_canvas_game():
   components.html(html_code, height=310)
 
 
-# 剧情数据库
+# -------------------------------------------------------------------
+# 🧩 3. 巨型应援海报【拼图解密】小游戏
+# -------------------------------------------------------------------
+def render_puzzle_game():
+  html_code = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+            .puzzle-box { background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); padding: 15px; width: 320px; text-align: center; }
+            .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px; }
+            .tile { background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; padding: 25px 0; font-size: 18px; font-weight: bold; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+            .tile:active { transform: scale(0.95); }
+            #puzzle-tip { color: #fff; font-size: 13px; margin-top: 8px; font-weight: bold; }
+        </style>
+    </head>
+    <body>
+        <div class="puzzle-box">
+            <div style="color: #ffeb3b; font-weight: bold; font-size: 14px;">🧩 点击方块将打乱的 CD 海报拼回 1-2-3-4 顺序！</div>
+            <div class="grid" id="grid"></div>
+            <div id="puzzle-tip">✨ 点击相邻方块移动它们！</div>
+        </div>
+        <script>
+            let tiles = [2, 4, 1, 3]; // 初始打乱
+            const target = [1, 2, 3, 4];
+            const grid = document.getElementById('grid');
+
+            function render() {
+                grid.innerHTML = '';
+                tiles.forEach((val, idx) => {
+                    let btn = document.createElement('div');
+                    btn.className = 'tile';
+                    btn.innerHTML = val === 4 ? '⭐' : '片 ' + val;
+                    btn.onclick = () => {
+                        // 简单互换模拟拼图移动
+                        let emptyIdx = tiles.indexOf(4);
+                        if (Math.abs(idx - emptyIdx) === 1 || Math.abs(idx - emptyIdx) === 2) {
+                            let temp = tiles[idx];
+                            tiles[idx] = tiles[emptyIdx];
+                            tiles[emptyIdx] = temp;
+                            render();
+                            checkWin();
+                        }
+                    };
+                    grid.appendChild(btn);
+                });
+            }
+
+            function checkWin() {
+                if (tiles[0] === 1 && tiles[1] === 2 && tiles[2] === 3 && tiles[3] === 4) {
+                    document.getElementById('puzzle-tip').innerHTML = "🎉 拼图还原成功！海报完美复原！";
+                    document.getElementById('puzzle-tip').style.color = "#00e676";
+                }
+            }
+            render();
+        </script>
+    </body>
+    </html>
+    """
+  components.html(html_code, height=270)
+
+
+# -------------------------------------------------------------------
+# ⚡ 4. 长达 15 秒的【舞台灯光极限闪避】生存小游戏
+# -------------------------------------------------------------------
+def render_dodge_canvas_game():
+  html_code = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+            .canvas-box { background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); position: relative; overflow: hidden; width: 320px; height: 220px; }
+            canvas { display: block; }
+            .ctrl-panel { display: flex; gap: 15px; margin-top: 10px; width: 320px; justify-content: center; }
+            .move-btn { background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; border-radius: 20px; cursor: pointer; flex: 1; }
+            .move-btn:active { transform: scale(0.95); }
+        </style>
+    </head>
+    <body>
+        <div class="canvas-box"><canvas id="dodgeCanvas" width="320" height="220"></canvas></div>
+        <div class="ctrl-panel">
+            <button class="move-btn" onclick="movePlayer(-1)">⬅️ 往左闪避</button>
+            <button class="move-btn" onclick="movePlayer(1)">往右闪避 ➡️</button>
+        </div>
+        <script>
+            const canvas = document.getElementById('dodgeCanvas');
+            const ctx = canvas.getContext('2d');
+            let lane = 1, lanesX = [60, 160, 260], playerY = 180, obstacles = [], hp = 3, timeLeft = 15, isGameOver = false;
+            let timer = setInterval(() => { if(timeLeft > 0 && !isGameOver) timeLeft--; else { isGameOver = true; clearInterval(timer); clearInterval(spawner); } }, 1000);
+            let spawner = setInterval(() => { if(!isGameOver) obstacles.push({ lane: Math.floor(Math.random()*3), y: -20, speed: 4.0 }); }, 550);
+            function movePlayer(dir) { if(!isGameOver) { lane += dir; if(lane < 0) lane = 0; if(lane > 2) lane = 2; } }
+            function loop() {
+                ctx.clearRect(0, 0, 320, 220);
+                ctx.strokeStyle = '#2d1b4e'; ctx.lineWidth = 2; ctx.setLineDash([4, 4]);
+                [110, 210].forEach(x => { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 220); ctx.stroke(); });
+                ctx.setLineDash([]);
+                for (let i = obstacles.length - 1; i >= 0; i--) {
+                    let obs = obstacles[i]; obs.y += obs.speed;
+                    ctx.fillStyle = '#ff5252'; ctx.beginPath(); ctx.arc(lanesX[obs.lane], obs.y, 14, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = '#fff'; ctx.font = '11px Arial'; ctx.fillText('💡', lanesX[obs.lane]-6, obs.y+4);
+                    if (obs.y >= playerY-15 && obs.y <= playerY+15 && obs.lane === lane) {
+                        hp--; obstacles.splice(i, 1); if(hp <= 0) isGameOver = true;
+                    } else if (obs.y > 240) { obstacles.splice(i, 1); }
+                }
+                let px = lanesX[lane];
+                ctx.fillStyle = '#ff4081'; ctx.beginPath(); ctx.arc(px, playerY, 15, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#fff'; ctx.font = '12px Arial'; ctx.fillText('⭐', px-6, playerY+4);
+                ctx.fillStyle = '#fff'; ctx.font = 'bold 13px Arial'; ctx.fillText("⏱️ 倒计时: " + timeLeft + "s", 15, 22);
+                ctx.fillStyle = '#ff4081'; ctx.fillText("❤️ 生命: " + "❤️".repeat(Math.max(0, hp)), 210, 22);
+                if (!isGameOver) requestAnimationFrame(loop);
+                else { ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(0,0,320,220); ctx.fillStyle = '#00e676'; ctx.font = 'bold 18px Arial'; ctx.fillText("🎉 生存挑战成功！", 70, 115); }
+            }
+            loop();
+        </script>
+    </body>
+    </html>
+    """
+  components.html(html_code, height=310)
+
+
+# 海量剧情库
 def get_story_database(player_name, member, group):
   return {
       1: {
@@ -698,26 +636,56 @@ if st.session_state.game_started:
         st.session_state.stage += 1
         st.rerun()
 
-  # 阶段 6 与 12：🎹 真正下落式【节奏钢琴块】小游戏
-  elif curr_stage in [6, 12]:
-    st.subheader(f"📍 Stage {curr_stage}：【全开麦打歌·节奏钢琴块】")
+  # 阶段 6：🎹 钢琴块下落打歌
+  elif curr_stage == 6:
+    st.subheader("📍 Stage 6：【全开麦打歌·节奏钢琴块】")
     st.markdown(
-        '<div class="event-card"><b>🎹 【动态打歌小游戏：下落式节奏钢琴块】</b><br>打歌现场高能来临！点击下方 1-2-3-4 按钮敲击下落的钢琴块，持续 12 秒！</div>',
+        '<div class="event-card"><b>🎹 【打歌小游戏：下落式节奏钢琴块】</b><br>打歌现场高能来临！点击下方 1-2-3-4 按钮敲击下落的钢琴块，持续 12 秒！</div>',
         unsafe_allow_html=True,
     )
     render_piano_tiles_game()
 
     if st.button("➔ 演奏结束，点击进入下一阶段"):
-      st.session_state.fans += random.randint(1200, 2000)
+      st.session_state.fans += 1500
       st.session_state.dance += 20
       st.session_state.stage += 1
       st.rerun()
 
-  # 阶段 18：⚡ 持续 15 秒的【舞台灯光极限闪避】生存小游戏（自动倒计时判定）
+  # 阶段 12：🪙 地下仓库寻宝挖金矿
+  elif curr_stage == 12:
+    st.subheader("📍 Stage 12：【事务所地下仓库·绝版宝物发掘】")
+    st.markdown(
+        '<div class="event-card"><b>🪙 【寻宝小游戏：黄金矿工抓取绝版周边】</b><br>在事务所地下仓库翻找前辈留下的绝版金唱片与奖杯！看准时机点击抓取！</div>',
+        unsafe_allow_html=True,
+    )
+    render_gold_miner_game()
+
+    if st.button("➔ 寻宝结束，点击进入下一阶段"):
+      st.session_state.fans += 1800
+      st.session_state.variety += 20
+      st.session_state.stage += 1
+      st.rerun()
+
+  # 阶段 16：🧩 应援海报拼图还原
+  elif curr_stage == 16:
+    st.subheader("📍 Stage 16：【新单曲宣传·巨型海报拼图还原】")
+    st.markdown(
+        '<div class="event-card"><b>🧩 【拼图小游戏：CD 海报还原重组】</b><br>新单曲海报在运送途中被不小心打乱了！请在下方点击方块将其复原！</div>',
+        unsafe_allow_html=True,
+    )
+    render_puzzle_game()
+
+    if st.button("➔ 拼图完成，点击进入下一阶段"):
+      st.session_state.fans += 2000
+      st.session_state.vocal += 20
+      st.session_state.stage += 1
+      st.rerun()
+
+  # 阶段 18：⚡ 15 秒灯光闪避生存
   elif curr_stage == 18:
     st.subheader("📍 Stage 18：【巨蛋巡演·舞台事故紧急闪避】")
     st.markdown(
-        '<div class="event-card"><b>🎮 【动态生存闪避小游戏：15秒极限危机】</b><br>舞台灯光坠落！<b>点击左右闪避按钮控制小人躲避，坚持 15 秒倒计时结束即可自动通关</b>！</div>',
+        '<div class="event-card"><b>🎮 【生存闪避小游戏：15秒极限危机】</b><br>舞台灯光坠落！点击左右闪避按钮坚持 15 秒自动通关！</div>',
         unsafe_allow_html=True,
     )
     render_dodge_canvas_game()
