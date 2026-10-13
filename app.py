@@ -9,13 +9,24 @@ st.set_page_config(
     layout="centered",
 )
 
-# 2. STARTO / 杰尼斯组合与成员数据（已按年龄排序，并附带纯音频 MP3 链接）
+# 2. STARTO / 杰尼斯组合与成员数据（已按年龄严格从大到小排序）
 IDOL_GROUPS = {
+    "ARASHI (岚)": {
+        "members": ["大野智", "樱井翔", "相叶雅纪", "二宫和也", "松本润"]
+    },
+    "WEST.": {
+        "members": [
+            "中间淳太",
+            "桐山照史",
+            "滨田崇裕",
+            "重冈大毅",
+            "神山智洋",
+            "藤井流星",
+            "小泷望",
+        ]
+    },
     "SUPER EIGHT": {
-        "members": ["横山裕", "村上信五", "丸山隆平", "安田章大", "大仓忠义"],
-        "music_url": (
-            "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
-        ),
+        "members": ["横山裕", "村上信五", "丸山隆平", "安田章大", "大仓忠义"]
     },
     "Snow Man": {
         "members": [
@@ -28,10 +39,7 @@ IDOL_GROUPS = {
             "向井康二",
             "目黑莲",
             "ラウール",
-        ],
-        "music_url": (
-            "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
-        ),
+        ]
     },
     "SixTONES": {
         "members": [
@@ -41,10 +49,7 @@ IDOL_GROUPS = {
             "田中树",
             "松村北斗",
             "森本慎太郎",
-        ],
-        "music_url": (
-            "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
-        ),
+        ]
     },
     "Aぇ! group (A少年)": {
         "members": [
@@ -53,10 +58,7 @@ IDOL_GROUPS = {
             "正门良规",
             "小岛健",
             "佐野晶哉",
-        ],
-        "music_url": (
-            "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
-        ),
+        ]
     },
     "浪花男子 (なにわ男子)": {
         "members": [
@@ -67,16 +69,10 @@ IDOL_GROUPS = {
             "高桥恭平",
             "道枝骏佑",
             "长尾谦杜",
-        ],
-        "music_url": (
-            "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"
-        ),
+        ]
     },
     "King & Prince": {
-        "members": ["岸优太", "平野紫耀", "神宫寺勇太", "永濑廉", "高桥海人"],
-        "music_url": (
-            "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"
-        ),
+        "members": ["岸优太", "平野紫耀", "神宫寺勇太", "永濑廉", "高桥海人"]
     },
     "Travis Japan": {
         "members": [
@@ -87,14 +83,10 @@ IDOL_GROUPS = {
             "宫近海斗",
             "松仓海斗",
             "松田元太",
-        ],
-        "music_url": (
-            "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3"
-        ),
+        ]
     },
     "KEY TO LIT": {
-        "members": ["岩崎大昇", "井上瑞稀", "中村岭亚", "猪狩苍弥", "佐佐木大光"],
-        "music_url": None,
+        "members": ["岩崎大昇", "井上瑞稀", "中村岭亚", "猪狩苍弥", "佐佐木大光"]
     },
     "B&ZAI": {
         "members": [
@@ -106,13 +98,9 @@ IDOL_GROUPS = {
             "铃木悠仁",
             "川崎星辉",
             "稻叶通阳",
-        ],
-        "music_url": None,
+        ]
     },
-    "ACEes": {
-        "members": ["浮所飞贵", "那须雄登", "作间龙斗", "深田龙生", "佐藤龙我"],
-        "music_url": None,
-    },
+    "ACEes": {"members": ["浮所飞贵", "那须雄登", "作间龙斗", "深田龙生", "佐藤龙我"]},
 }
 
 # 3. 极简高颜值 UI 设计
@@ -245,23 +233,10 @@ st.title("💖 偶像培养计划：星途甄选")
 
 # 游戏开始后渲染顶部栏
 if st.session_state.game_started:
-  group_info = IDOL_GROUPS.get(st.session_state.group, {})
-
   st.markdown(
       f'<div class="top-dashboard">👑 当前研修生：<b>{st.session_state.member}</b>（所属：{st.session_state.group}） | 🎒 幸运物：{st.session_state.lucky_item}</div>',
       unsafe_allow_html=True,
   )
-
-  # 纯后台自动播放音频，不渲染任何文字或控制条！
-  if group_info.get("music_url"):
-    st.markdown(
-        f"""
-        <audio autoplay loop style="display:none;">
-            <source src="{group_info['music_url']}" type="audio/mp3">
-        </audio>
-        """,
-        unsafe_allow_html=True,
-    )
 
 # -------------------------------------------------------------------
 # STAGE 0: 选角与幸运物抽取
@@ -321,7 +296,7 @@ if not st.session_state.game_started:
     st.rerun()
 
 # -------------------------------------------------------------------
-# 剧情数据大表
+# 剧情数据大表（共 20 关）
 # -------------------------------------------------------------------
 STAGES_DATA = {
     1: {
