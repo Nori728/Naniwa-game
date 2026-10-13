@@ -222,7 +222,7 @@ def render_piano_tiles_game():
 
 
 # -------------------------------------------------------------------
-# 🪙 2. 地下仓库【黄金寻宝挖金矿】小游戏
+# 🪙 2. 玩家可实时控制角度的【地下仓库黄金寻宝】小游戏
 # -------------------------------------------------------------------
 def render_gold_miner_game():
   html_code = """
@@ -231,82 +231,82 @@ def render_gold_miner_game():
     <head>
         <style>
             body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
-            .miner-box { background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); position: relative; overflow: hidden; width: 320px; height: 240px; }
+            .miner-box { background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); position: relative; overflow: hidden; width: 320px; height: 230px; }
             canvas { display: block; }
-            .hook-btn { background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; border: none; padding: 12px 30px; font-size: 16px; font-weight: bold; border-radius: 20px; cursor: pointer; margin-top: 10px; width: 320px; box-shadow: 0 4px 10px rgba(255,64,129,0.4); }
-            .hook-btn:active { transform: scale(0.95); }
+            .ctrl-row { display: flex; gap: 8px; margin-top: 10px; width: 320px; }
+            .miner-btn { background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; border: none; padding: 12px 0; font-size: 15px; font-weight: bold; border-radius: 15px; cursor: pointer; flex: 1; box-shadow: 0 4px 10px rgba(255,64,129,0.4); }
+            .miner-btn:active { transform: scale(0.95); }
         </style>
     </head>
     <body>
-        <div class="miner-box"><canvas id="minerCanvas" width="320" height="240"></canvas></div>
-        <button class="hook-btn" onclick="fireHook()">🎣 抓取绝版宝物！</button>
+        <div class="miner-box"><canvas id="minerCanvas" width="320" height="230"></canvas></div>
+        <div class="ctrl-row">
+            <button class="miner-btn" onclick="adjustAngle(-0.2)">⬅️ 往左偏</button>
+            <button class="miner-btn" style="flex: 1.5; background: linear-gradient(45deg, #00e676, #00b0ff);" onclick="fireHook()">🎣 抓取！</button>
+            <button class="miner-btn" onclick="adjustAngle(0.2)">往右偏 ➡️</button>
+        </div>
         <script>
             const canvas = document.getElementById('minerCanvas');
             const ctx = canvas.getContext('2d');
-            let angle = 0, dir = 1, state = 0; // 0: 摇摆, 1: 抓取中
+            let angle = 0, dir = 1, state = 0;
             let hookX = 160, hookY = 20, len = 20;
             let treasures = [
-                {x: 70, y: 170, r: 16, type: '💎 绝版金唱片', val: 500},
-                {x: 160, y: 200, r: 12, type: '✨ 亲笔签名照', val: 300},
-                {x: 250, y: 160, r: 18, type: '🏆 历年奖杯', val: 800}
+                {x: 60, y: 160, r: 16, type: '💎 绝版金唱片', val: 500},
+                {x: 160, y: 190, r: 13, type: '✨ 亲笔签名照', val: 300},
+                {x: 260, y: 150, r: 18, type: '🏆 历年奖杯', val: 800}
             ];
-            let caught = null;
-            let score = 0;
+            let caught = null, score = 0;
 
-            function fireHook() {
-                if (state === 0) state = 1;
+            function adjustAngle(val) {
+                if (state === 0) {
+                    angle += val;
+                    if (angle > 1.3) angle = 1.3;
+                    if (angle < -1.3) angle = -1.3;
+                }
             }
+            function fireHook() { if (state === 0) state = 1; }
 
             function loop() {
-                ctx.clearRect(0, 0, 320, 240);
-                
-                // 绘制仓库背景
-                ctx.fillStyle = '#2d1b4e'; ctx.fillRect(0, 0, 320, 40);
+                ctx.clearRect(0, 0, 320, 230);
+                ctx.fillStyle = '#2d1b4e'; ctx.fillRect(0, 0, 320, 35);
                 ctx.fillStyle = '#fff'; ctx.font = 'bold 12px Arial';
-                ctx.fillText("💰 寻宝得分: " + score, 15, 25);
+                ctx.fillText("💰 寻宝得分: " + score, 15, 22);
 
-                // 摇摆计算
                 if (state === 0) {
-                    angle += dir * 0.03;
+                    angle += dir * 0.022;
                     if (angle > 1.2 || angle < -1.2) dir *= -1;
                 } else if (state === 1) {
-                    len += 5;
+                    len += 6;
                     hookX = 160 + len * Math.sin(angle);
                     hookY = 20 + len * Math.cos(angle);
-                    
-                    // 碰撞检测
-                    for(let i=0; i<treasures.length; i++) {
+                    for(let i = 0; i < treasures.length; i++) {
                         let t = treasures[i];
-                        let dist = Math.hypot(hookX - t.x, hookY - t.y);
-                        if(dist < t.r + 10) {
+                        if(Math.hypot(hookX - t.x, hookY - t.y) < t.r + 10) {
                             caught = treasures.splice(i, 1)[0];
                             score += caught.val;
-                            state = 2; // 回收
+                            state = 2;
                             break;
                         }
                     }
-                    if (hookY > 240 || hookX < 0 || hookX > 320) state = 2;
+                    if (hookY > 230 || hookX < 0 || hookX > 320) state = 2;
                 } else if (state === 2) {
-                    len -= 5;
+                    len -= 6;
                     hookX = 160 + len * Math.sin(angle);
                     hookY = 20 + len * Math.cos(angle);
                     if (len <= 20) { state = 0; caught = null; len = 20; }
                 }
 
-                // 绘制绳子与钩子
                 ctx.strokeStyle = '#ffeb3b'; ctx.lineWidth = 3;
                 ctx.beginPath(); ctx.moveTo(160, 20); ctx.lineTo(hookX, hookY); ctx.stroke();
                 ctx.fillStyle = '#ff4081'; ctx.beginPath(); ctx.arc(hookX, hookY, 8, 0, Math.PI*2); ctx.fill();
 
-                // 绘制宝物
                 for(let t of treasures) {
                     ctx.fillStyle = '#ffeb3b'; ctx.beginPath(); ctx.arc(t.x, t.y, t.r, 0, Math.PI*2); ctx.fill();
-                    ctx.fillStyle = '#4a148c'; ctx.font = '10px Arial'; ctx.fillText(t.type[0], t.x-4, t.y+4);
+                    ctx.fillStyle = '#4a148c'; ctx.font = '10px Arial'; ctx.fillText(t.type[0], t.x-5, t.y+4);
                 }
                 if(caught) {
-                    ctx.fillStyle = '#00e676'; ctx.font = '11px Arial'; ctx.fillText("抓到了: " + caught.type, hookX-30, hookY-15);
+                    ctx.fillStyle = '#00e676'; ctx.font = '11px Arial'; ctx.fillText("抓到了: " + caught.type, hookX-35, hookY-15);
                 }
-
                 requestAnimationFrame(loop);
             }
             loop();
@@ -318,66 +318,84 @@ def render_gold_miner_game():
 
 
 # -------------------------------------------------------------------
-# 🧩 3. 巨型应援海报【拼图解密】小游戏
+# 💡 3. 演唱会【粉丝应援手灯狂热】小游戏（替代拼图）
 # -------------------------------------------------------------------
-def render_puzzle_game():
+def render_lightstick_game():
   html_code = """
     <!DOCTYPE html>
     <html>
     <head>
         <style>
             body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
-            .puzzle-box { background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); padding: 15px; width: 320px; text-align: center; }
-            .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px; }
-            .tile { background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; padding: 25px 0; font-size: 18px; font-weight: bold; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-            .tile:active { transform: scale(0.95); }
-            #puzzle-tip { color: #fff; font-size: 13px; margin-top: 8px; font-weight: bold; }
+            .light-box { background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); padding: 15px; width: 320px; text-align: center; }
+            .color-display { width: 100px; height: 100px; border-radius: 50%; margin: 10px auto; box-shadow: 0 0 20px rgba(255,255,255,0.4); border: 3px solid #fff; transition: background 0.2s; }
+            .color-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 12px; }
+            .color-btn { padding: 15px 0; font-size: 16px; font-weight: bold; border-radius: 12px; border: none; color: white; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+            .color-btn:active { transform: scale(0.95); }
         </style>
     </head>
     <body>
-        <div class="puzzle-box">
-            <div style="color: #ffeb3b; font-weight: bold; font-size: 14px;">🧩 点击方块将打乱的 CD 海报拼回 1-2-3-4 顺序！</div>
-            <div class="grid" id="grid"></div>
-            <div id="puzzle-tip">✨ 点击相邻方块移动它们！</div>
+        <div class="light-box">
+            <div style="color: #ffeb3b; font-weight: bold; font-size: 14px;">🌟 演唱会手灯狂热！按下与上方匹配的颜色！</div>
+            <div class="color-display" id="targetColorBox"></div>
+            <div id="light-tip" style="color: #fff; font-size: 13px; font-weight: bold;">⏳ 剩余时间: <span id="timeVal">12</span>s | 得分: <span id="scoreVal">0</span></div>
+            <div class="color-grid">
+                <button class="color-btn" style="background: #ff5252;" onclick="checkColor('red')">❤️ 红色</button>
+                <button class="color-btn" style="background: #448aff;" onclick="checkColor('blue')">💙 蓝色</button>
+                <button class="color-btn" style="background: #ffeb3b; color:#333;" onclick="checkColor('yellow')">💛 黄色</button>
+                <button class="color-btn" style="background: #00e676;" onclick="checkColor('green')">💚 绿色</button>
+            </div>
         </div>
         <script>
-            let tiles = [2, 4, 1, 3]; // 初始打乱
-            const target = [1, 2, 3, 4];
-            const grid = document.getElementById('grid');
+            const colors = ['red', 'blue', 'yellow', 'green'];
+            const colorHex = { red: '#ff5252', blue: '#448aff', yellow: '#ffeb3b', green: '#00e676' };
+            let currentTarget = 'red';
+            let score = 0;
+            let timeLeft = 12;
+            let isGameOver = false;
 
-            function render() {
-                grid.innerHTML = '';
-                tiles.forEach((val, idx) => {
-                    let btn = document.createElement('div');
-                    btn.className = 'tile';
-                    btn.innerHTML = val === 4 ? '⭐' : '片 ' + val;
-                    btn.onclick = () => {
-                        // 简单互换模拟拼图移动
-                        let emptyIdx = tiles.indexOf(4);
-                        if (Math.abs(idx - emptyIdx) === 1 || Math.abs(idx - emptyIdx) === 2) {
-                            let temp = tiles[idx];
-                            tiles[idx] = tiles[emptyIdx];
-                            tiles[emptyIdx] = temp;
-                            render();
-                            checkWin();
-                        }
-                    };
-                    grid.appendChild(btn);
-                });
+            const box = document.getElementById('targetColorBox');
+            const timeSpan = document.getElementById('timeVal');
+            const scoreSpan = document.getElementById('scoreVal');
+
+            function changeTarget() {
+                if (isGameOver) return;
+                currentTarget = colors[Math.floor(Math.random() * colors.length)];
+                box.style.background = colorHex[currentTarget];
             }
 
-            function checkWin() {
-                if (tiles[0] === 1 && tiles[1] === 2 && tiles[2] === 3 && tiles[3] === 4) {
-                    document.getElementById('puzzle-tip').innerHTML = "🎉 拼图还原成功！海报完美复原！";
-                    document.getElementById('puzzle-tip').style.color = "#00e676";
+            let targetInterval = setInterval(changeTarget, 1000);
+            changeTarget();
+
+            let gameTimer = setInterval(() => {
+                if (timeLeft > 0 && !isGameOver) {
+                    timeLeft--;
+                    timeSpan.innerText = timeLeft;
+                } else {
+                    isGameOver = true;
+                    clearInterval(gameTimer);
+                    clearInterval(targetInterval);
+                    box.style.background = '#ab47bc';
+                    document.getElementById('light-tip').innerHTML = "🎉 应援结束！总得分: " + score;
+                }
+            }, 1000);
+
+            function checkColor(c) {
+                if (isGameOver) return;
+                if (c === currentTarget) {
+                    score += 150;
+                    scoreSpan.innerText = score;
+                    changeTarget();
+                } else {
+                    score = Math.max(0, score - 50);
+                    scoreSpan.innerText = score;
                 }
             }
-            render();
         </script>
     </body>
     </html>
     """
-  components.html(html_code, height=270)
+  components.html(html_code, height=310)
 
 
 # -------------------------------------------------------------------
@@ -651,11 +669,11 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # 阶段 12：🪙 地下仓库寻宝挖金矿
+  # 阶段 12：🪙 地下仓库可控抓夹寻宝
   elif curr_stage == 12:
     st.subheader("📍 Stage 12：【事务所地下仓库·绝版宝物发掘】")
     st.markdown(
-        '<div class="event-card"><b>🪙 【寻宝小游戏：黄金矿工抓取绝版周边】</b><br>在事务所地下仓库翻找前辈留下的绝版金唱片与奖杯！看准时机点击抓取！</div>',
+        '<div class="event-card"><b>🪙 【寻宝小游戏：控制抓夹方向挖金矿】</b><br>在事务所地下仓库寻找绝版金唱片！<b>点击“往左偏 / 往右偏”调整角度，看准时机点击“抓取！”</b></div>',
         unsafe_allow_html=True,
     )
     render_gold_miner_game()
@@ -666,16 +684,16 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # 阶段 16：🧩 应援海报拼图还原
+  # 阶段 16：🌟 演唱会手灯狂热互动小游戏（替代拼图）
   elif curr_stage == 16:
-    st.subheader("📍 Stage 16：【新单曲宣传·巨型海报拼图还原】")
+    st.subheader("📍 Stage 16：【巨蛋巡演·全场手灯狂热互动】")
     st.markdown(
-        '<div class="event-card"><b>🧩 【拼图小游戏：CD 海报还原重组】</b><br>新单曲海报在运送途中被不小心打乱了！请在下方点击方块将其复原！</div>',
+        '<div class="event-card"><b>🌟 【手灯狂热小游戏：全场应援色同步】</b><br>演唱会高潮来临！全场粉丝手灯颜色在不断变化，<b>请点击下方对应的颜色按钮与上方保持一致</b>！</div>',
         unsafe_allow_html=True,
     )
-    render_puzzle_game()
+    render_lightstick_game()
 
-    if st.button("➔ 拼图完成，点击进入下一阶段"):
+    if st.button("➔ 应援结束，点击进入下一阶段"):
       st.session_state.fans += 2000
       st.session_state.vocal += 20
       st.session_state.stage += 1
