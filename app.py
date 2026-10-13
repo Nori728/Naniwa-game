@@ -219,7 +219,6 @@ def render_piano_tiles_game():
     </body>
     </html>
     """
-  ]
   components.html(html_code, height=340)
 
 
