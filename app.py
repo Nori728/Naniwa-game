@@ -222,7 +222,7 @@ def render_piano_tiles_game():
 
 
 # -------------------------------------------------------------------
-# ⛏️ 2. 铁锹敲击土块【地下仓库盲盒挖宝】（全新替换）
+# ⛏️ 2. 铁锹敲击土块【地下仓库盲盒挖宝】
 # -------------------------------------------------------------------
 def render_dirt_dig_game():
   html_code = """
@@ -246,14 +246,12 @@ def render_dirt_dig_game():
             <div id="dig-tip">点击土块开始向下挖掘！</div>
         </div>
         <script>
-            // 12个格子：随机藏有宝物
             let tiles = Array(12).fill(false);
             let contents = Array(12).fill('💨 空空如也');
             let shovels = 6;
             let treasuresFound = 0;
             let isOver = false;
 
-            // 随机埋藏 3 个宝物
             let placed = 0;
             const prizePool = ['💎 绝版金唱片', '✨ 亲笔签名照', '🏆 历年奖杯'];
             while(placed < 3) {
@@ -825,13 +823,13 @@ if not st.session_state.game_started:
       st.rerun()
 
 # -------------------------------------------------------------------
-# 游戏主流程（精简至 25 章）
+# 游戏主流程（精简至 25 章，包含挖宝与箱子堆高双人互动）
 # -------------------------------------------------------------------
 if st.session_state.game_started:
   curr_stage = st.session_state.stage
   member = get_rand_member()
 
-  is_free_training_day = curr_stage in [3, 9, 15, 20]
+  is_free_training_day = curr_stage in [3, 9, 20]
 
   if is_free_training_day and curr_stage < 25:
     st.subheader(f"🗓️ Stage {curr_stage}：自主特训与日常安排")
@@ -902,7 +900,7 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # 阶段 12：⛏️ 铁锹敲击土块【地下仓库盲盒挖宝】（全新替换）
+  # 阶段 12：⛏️ 铁锹敲击土块【地下仓库盲盒挖宝】
   elif curr_stage == 12:
     st.subheader("📍 Stage 12：【事务所地下仓库·铁锹盲盒挖宝】")
     st.markdown(
