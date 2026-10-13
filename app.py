@@ -222,94 +222,93 @@ def render_piano_tiles_game():
 
 
 # -------------------------------------------------------------------
-# 🪙 2. 地下仓库可控抓夹寻宝
+# ⛏️ 2. 铁锹敲击土块【地下仓库盲盒挖宝】（全新替换）
 # -------------------------------------------------------------------
-def render_gold_miner_game():
+def render_dirt_dig_game():
   html_code = """
     <!DOCTYPE html>
     <html>
     <head>
         <style>
             body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
-            .miner-box { background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); position: relative; overflow: hidden; width: 320px; height: 230px; }
-            canvas { display: block; }
-            .ctrl-row { display: flex; gap: 8px; margin-top: 10px; width: 320px; }
-            .miner-btn { background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; border: none; padding: 12px 0; font-size: 15px; font-weight: bold; border-radius: 15px; cursor: pointer; flex: 1; box-shadow: 0 4px 10px rgba(255,64,129,0.4); }
-            .miner-btn:active { transform: scale(0.95); }
+            .dig-box { background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); padding: 15px; width: 320px; text-align: center; }
+            .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0; }
+            .dirt-tile { background: #5d4037; border: 2px solid #8d6e63; color: #d7ccc8; height: 50px; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+            .dirt-tile:active { transform: scale(0.95); }
+            .dirt-tile.dug { background: #3e2723; border: 2px dashed #6d4c41; color: #fff; cursor: default; }
+            #dig-tip { color: #ffeb3b; font-size: 13px; font-weight: bold; min-height: 20px; }
         </style>
     </head>
     <body>
-        <div class="miner-box"><canvas id="minerCanvas" width="320" height="230"></canvas></div>
-        <div class="ctrl-row">
-            <button class="miner-btn" onclick="adjustAngle(-0.2)">⬅️ 往左偏</button>
-            <button class="miner-btn" style="flex: 1.5; background: linear-gradient(45deg, #00e676, #00b0ff);" onclick="fireHook()">🎣 抓取！</button>
-            <button class="miner-btn" onclick="adjustAngle(0.2)">往右偏 ➡️</button>
+        <div class="dig-box">
+            <div style="color: #fff; font-weight: bold; font-size: 13px;">⛏️ 用铁锹敲开土块寻找绝版宝物！(剩余铲子: <span id="shovels">6</span>)</div>
+            <div class="grid" id="dirtGrid"></div>
+            <div id="dig-tip">点击土块开始向下挖掘！</div>
         </div>
         <script>
-            const canvas = document.getElementById('minerCanvas');
-            const ctx = canvas.getContext('2d');
-            let angle = 0, dir = 1, state = 0;
-            let hookX = 160, hookY = 20, len = 20;
-            let treasures = [
-                {x: 60, y: 160, r: 16, type: '💎 绝版金唱片', val: 500},
-                {x: 160, y: 190, r: 13, type: '✨ 亲笔签名照', val: 300},
-                {x: 260, y: 150, r: 18, type: '🏆 历年奖杯', val: 800}
-            ];
-            let caught = null, score = 0;
+            // 12个格子：随机藏有宝物
+            let tiles = Array(12).fill(false);
+            let contents = Array(12).fill('💨 空空如也');
+            let shovels = 6;
+            let treasuresFound = 0;
+            let isOver = false;
 
-            function adjustAngle(val) {
-                if (state === 0) {
-                    angle += val;
-                    if (angle > 1.3) angle = 1.3;
-                    if (angle < -1.3) angle = -1.3;
+            // 随机埋藏 3 个宝物
+            let placed = 0;
+            const prizePool = ['💎 绝版金唱片', '✨ 亲笔签名照', '🏆 历年奖杯'];
+            while(placed < 3) {
+                let idx = Math.floor(Math.random() * 12);
+                if(!tiles[idx]) {
+                    tiles[idx] = true;
+                    contents[idx] = prizePool[placed % prizePool.length];
+                    placed++;
                 }
             }
-            function fireHook() { if (state === 0) state = 1; }
 
-            function loop() {
-                ctx.clearRect(0, 0, 320, 230);
-                ctx.fillStyle = '#2d1b4e'; ctx.fillRect(0, 0, 320, 35);
-                ctx.fillStyle = '#fff'; ctx.font = 'bold 12px Arial';
-                ctx.fillText("💰 寻宝得分: " + score, 15, 22);
+            const gridEl = document.getElementById('dirtGrid');
+            const tipEl = document.getElementById('dig-tip');
+            const shovelEl = document.getElementById('shovels');
 
-                if (state === 0) {
-                    angle += dir * 0.022;
-                    if (angle > 1.2 || angle < -1.2) dir *= -1;
-                } else if (state === 1) {
-                    len += 6;
-                    hookX = 160 + len * Math.sin(angle);
-                    hookY = 20 + len * Math.cos(angle);
-                    for(let i = 0; i < treasures.length; i++) {
-                        let t = treasures[i];
-                        if(Math.hypot(hookX - t.x, hookY - t.y) < t.r + 10) {
-                            caught = treasures.splice(i, 1)[0];
-                            score += caught.val;
-                            state = 2;
-                            break;
-                        }
+            function renderGrid() {
+                gridEl.innerHTML = '';
+                for(let i=0; i<12; i++) {
+                    let btn = document.createElement('div');
+                    btn.className = 'dirt-tile';
+                    btn.innerHTML = '🧱 土块';
+                    btn.onclick = () => digTile(i, btn);
+                    gridEl.appendChild(btn);
+                }
+            }
+
+            function digTile(idx, el) {
+                if (isOver || shovels <= 0 || el.classList.contains('dug')) return;
+                shovels--;
+                shovelEl.innerText = shovels;
+                el.classList.add('dug');
+
+                if (tiles[idx]) {
+                    el.innerHTML = contents[idx];
+                    el.style.background = '#00e676';
+                    el.style.color = '#000';
+                    treasuresFound++;
+                    tipEl.innerHTML = "🎉 挖到了 " + contents[idx] + "！";
+                    tipEl.style.color = "#00e676";
+                    if (treasuresFound === 3 || shovels === 0) {
+                        isOver = true;
+                        tipEl.innerHTML = "🏆 挖宝结束！共找到 " + treasuresFound + " 件宝物！";
                     }
-                    if (hookY > 230 || hookX < 0 || hookX > 320) state = 2;
-                } else if (state === 2) {
-                    len -= 6;
-                    hookX = 160 + len * Math.sin(angle);
-                    hookY = 20 + len * Math.cos(angle);
-                    if (len <= 20) { state = 0; caught = null; len = 20; }
+                } else {
+                    el.innerHTML = '🕳️ 泥土';
+                    tipEl.innerHTML = "💧 这块土下面什么都没有...";
+                    tipEl.style.color = "#ff5252";
+                    if (shovels === 0) {
+                        isOver = true;
+                        tipEl.innerHTML = "💧 铲子用光啦！共找到 " + treasuresFound + " 件宝物！";
+                    }
                 }
-
-                ctx.strokeStyle = '#ffeb3b'; ctx.lineWidth = 3;
-                ctx.beginPath(); ctx.moveTo(160, 20); ctx.lineTo(hookX, hookY); ctx.stroke();
-                ctx.fillStyle = '#ff4081'; ctx.beginPath(); ctx.arc(hookX, hookY, 8, 0, Math.PI*2); ctx.fill();
-
-                for(let t of treasures) {
-                    ctx.fillStyle = '#ffeb3b'; ctx.beginPath(); ctx.arc(t.x, t.y, t.r, 0, Math.PI*2); ctx.fill();
-                    ctx.fillStyle = '#4a148c'; ctx.font = '10px Arial'; ctx.fillText(t.type[0], t.x-5, t.y+4);
-                }
-                if(caught) {
-                    ctx.fillStyle = '#00e676'; ctx.font = '11px Arial'; ctx.fillText("抓到了: " + caught.type, hookX-35, hookY-15);
-                }
-                requestAnimationFrame(loop);
             }
-            loop();
+
+            renderGrid();
         </script>
     </body>
     </html>
@@ -903,16 +902,16 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # 阶段 12：🪙 地下仓库可控抓夹寻宝
+  # 阶段 12：⛏️ 铁锹敲击土块【地下仓库盲盒挖宝】（全新替换）
   elif curr_stage == 12:
-    st.subheader("📍 Stage 12：【事务所地下仓库·绝版宝物发掘】")
+    st.subheader("📍 Stage 12：【事务所地下仓库·铁锹盲盒挖宝】")
     st.markdown(
-        '<div class="event-card"><b>🪙 【寻宝小游戏：控制抓夹方向挖金矿】</b><br>在事务所地下仓库寻找绝版金唱片！<b>点击“往左偏 / 往右偏”调整角度，看准时机点击“抓取！”</b></div>',
+        '<div class="event-card"><b>⛏️ 【挖宝小游戏：铁锹敲开土块寻找盲盒】</b><br>在事务所地下仓库的土层中隐藏着绝版宝物！<b>点击下方的土块用铁锹敲开，看谁能挖出大奖！</b></div>',
         unsafe_allow_html=True,
     )
-    render_gold_miner_game()
+    render_dirt_dig_game()
 
-    if st.button("➔ 寻宝结束，点击进入下一阶段"):
+    if st.button("➔ 挖宝结束，点击进入下一阶段"):
       st.session_state.fans += 1800
       st.session_state.variety += 20
       st.session_state.stage += 1
