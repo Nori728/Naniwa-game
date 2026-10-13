@@ -311,12 +311,11 @@ def render_dirt_dig_game():
     </body>
     </html>
     """
-  ]
   components.html(html_code, height=310)
 
 
 # -------------------------------------------------------------------
-# 🔥 Stage 9 新增：限定 Unit 小分队概念选拔配对小游戏
+# 🔥 Stage 9：限定 Unit 小分队概念选拔配对小游戏
 # -------------------------------------------------------------------
 def render_unit_selection_game():
   html_code = """
@@ -414,7 +413,6 @@ def render_unit_selection_game():
     </body>
     </html>
     """
-  ]
   components.html(html_code, height=275)
 
 
@@ -1061,7 +1059,7 @@ def render_lightstick_game():
     </body>
     </html>
     """
-  ]
+  )
   components.html(html_code, height=290)
 
 
@@ -1114,14 +1112,14 @@ def render_dodge_canvas_game():
                 ctx.fillStyle = '#fff'; ctx.font = 'bold 13px Arial'; ctx.fillText("⏱️ 倒计时: " + timeLeft + "s", 15, 20);
                 ctx.fillStyle = '#ff4081'; ctx.fillText("❤️ 生命: " + "❤️".repeat(Math.max(0, hp)), 210, 20);
                 if (!isGameOver) requestAnimationFrame(loop);
-                else { ctx.fillStyle = 'rgba(0,0,0,0.85);'; ctx.fillRect(0,0,320,210); ctx.fillStyle = '#00e676'; ctx.font = 'bold 18px Arial'; ctx.fillText("🎉 生存挑战成功！", 70, 105); }
+                else { ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(0,0,320,210); ctx.fillStyle = '#00e676'; ctx.font = 'bold 18px Arial'; ctx.fillText("🎉 生存挑战成功！", 70, 105); }
             }
             loop();
         </script>
     </body>
     </html>
     """
-  ]
+  )
   components.html(html_code, height=300)
 
 
@@ -1209,7 +1207,7 @@ def get_story_database(player_name, member, group):
       },
       19: {
           "title": "🏢 Stage 19：社长办公室的神秘闭门谈话",
-          "desc": "深夜排练结束后，你被社长助理单独叫进了顶楼办公室.社长看着你厚厚的一叠成长记录，露出了意味深长的笑容。",
+          "desc": "深夜排练结束后，你被社长助理单独叫进了顶楼办公室。社长看着你厚厚的一叠成长记录，露出了意味深长的笑容。",
           "opt1": "目光坚定地直视社长：“我已经准备好承担更大的责任了！”",
           "opt2": "谦逊地向社长鞠躬：“感谢事务所一直以来的培养与照顾。”",
           "opt3": "坦诚说出自己对未来音乐风格的构想与野心。",
@@ -1297,7 +1295,7 @@ if st.session_state.game_started:
     st.session_state.stress = 30
     st.session_state.bond += 10
 
-  is_free_training_day = curr_stage in [3, 20]  # Stage 9 改为了选拔小游戏
+  is_free_training_day = curr_stage in [3, 20]  # Stage 9 为小分队选拔互动游戏
 
   if is_free_training_day and curr_stage < 25:
     st.subheader(f"🗓️ Stage {curr_stage}：自主特训与日常安排")
@@ -1389,7 +1387,7 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # 阶段 9 🔥（新增：限定 Unit 小分队概念选拔小游戏）
+  # 阶段 9 🔥（限定 Unit 小分队概念选拔小游戏）
   elif curr_stage == 9:
     st.subheader("📍 Stage 9：【社内企划】限定 Unit 小分队概念选拔赛")
     st.markdown(
