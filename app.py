@@ -92,31 +92,31 @@ st.markdown(
     .event-card {
         background: #2d1b4e;
         color: #ffffff;
-        padding: 24px;
-        border-radius: 18px;
+        padding: 20px;
+        border-radius: 16px;
         border: 3px solid #ff80ab;
-        box-shadow: 0px 10px 25px rgba(255, 128, 171, 0.3);
-        margin: 15px 0;
-        font-size: 16px;
-        line-height: 1.7;
+        box-shadow: 0px 8px 20px rgba(255, 128, 171, 0.3);
+        margin: 12px 0;
+        font-size: 15px;
+        line-height: 1.6;
     }
     .cute-info {
         background-color: #ffffff;
-        border-radius: 15px;
-        padding: 18px;
+        border-radius: 14px;
+        padding: 15px;
         border: 2px dashed #ff4081;
         color: #4a148c;
         font-weight: 600;
-        margin-bottom: 15px;
+        margin-bottom: 12px;
     }
     .stButton > button {
         background: linear-gradient(45deg, #ff4081, #ab47bc) !important;
         color: white !important;
-        font-size: 16px !important;
+        font-size: 15px !important;
         font-weight: bold !important;
-        border-radius: 20px !important;
+        border-radius: 18px !important;
         border: none !important;
-        padding: 10px 25px !important;
+        padding: 8px 20px !important;
         touch-action: manipulation;
     }
     </style>
@@ -162,15 +162,15 @@ def render_piano_tiles_game():
     <head>
         <style>
             body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
-            .piano-box { background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); position: relative; overflow: hidden; width: 320px; height: 260px; }
+            .piano-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 14px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); position: relative; overflow: hidden; width: 300px; height: 220px; }
             canvas { display: block; }
-            .btn-row { display: flex; gap: 8px; margin-top: 10px; width: 320px; }
-            .piano-btn { background: linear-gradient(180deg, #ab47bc, #7b1fa2); color: white; border: 2px solid #ff80ab; padding: 12px 0; font-size: 18px; font-weight: bold; border-radius: 12px; cursor: pointer; flex: 1; text-align: center; }
+            .btn-row { display: flex; gap: 6px; margin-top: 8px; width: 300px; }
+            .piano-btn { background: linear-gradient(180deg, #ab47bc, #7b1fa2); color: white; border: 2px solid #ff80ab; padding: 10px 0; font-size: 16px; font-weight: bold; border-radius: 10px; cursor: pointer; flex: 1; text-align: center; }
             .piano-btn:active { background: #ff4081; transform: scale(0.92); }
         </style>
     </head>
     <body>
-        <div class="piano-box"><canvas id="pianoCanvas" width="320" height="260"></canvas></div>
+        <div class="piano-box"><canvas id="pianoCanvas" width="300" height="220"></canvas></div>
         <div class="btn-row">
             <button class="piano-btn" onclick="tapTrack(0)">1</button>
             <button class="piano-btn" onclick="tapTrack(1)">2</button>
@@ -180,46 +180,46 @@ def render_piano_tiles_game():
         <script>
             const canvas = document.getElementById('pianoCanvas');
             const ctx = canvas.getContext('2d');
-            const trackWidth = 80;
+            const trackWidth = 75;
             let tiles = [], score = 0, combo = 0, timeLeft = 12, isGameOver = false;
             let timer = setInterval(() => { if(timeLeft > 0 && !isGameOver) timeLeft--; else { isGameOver = true; clearInterval(timer); clearInterval(spawner); } }, 1000);
-            let spawner = setInterval(() => { if(!isGameOver) tiles.push({ track: Math.floor(Math.random()*4), y: -40, h: 40, hit: false }); }, 550);
+            let spawner = setInterval(() => { if(!isGameOver) tiles.push({ track: Math.floor(Math.random()*4), y: -35, h: 35, hit: false }); }, 550);
             function tapTrack(idx) {
                 if(isGameOver) return;
                 let ok = false;
                 for(let t of tiles) {
-                    if(t.track === idx && !t.hit && t.y >= 140 && t.y <= 250) { t.hit = true; ok = true; score += 100; combo++; break; }
+                    if(t.track === idx && !t.hit && t.y >= 120 && t.y <= 210) { t.hit = true; ok = true; score += 100; combo++; break; }
                 }
                 if(!ok) combo = 0;
             }
             function loop() {
-                ctx.clearRect(0, 0, 320, 260);
+                ctx.clearRect(0, 0, 300, 220);
                 ctx.strokeStyle = '#2d1b4e';
-                for(let i=1; i<4; i++) { ctx.beginPath(); ctx.moveTo(i*trackWidth, 0); ctx.lineTo(i*trackWidth, 260); ctx.stroke(); }
-                ctx.fillStyle = 'rgba(255, 64, 129, 0.2)'; ctx.fillRect(0, 180, 320, 60);
+                for(let i=1; i<4; i++) { ctx.beginPath(); ctx.moveTo(i*trackWidth, 0); ctx.lineTo(i*trackWidth, 220); ctx.stroke(); }
+                ctx.fillStyle = 'rgba(255, 64, 129, 0.2)'; ctx.fillRect(0, 150, 300, 50);
                 for(let i=tiles.length-1; i>=0; i--) {
                     let t = tiles[i];
                     if(!t.hit) {
                         t.y += 3.5;
                         ctx.fillStyle = '#211035'; ctx.fillRect(t.track*trackWidth+4, t.y, trackWidth-8, t.h);
                         ctx.strokeStyle = '#ea80fc'; ctx.strokeRect(t.track*trackWidth+4, t.y, trackWidth-8, t.h);
-                        ctx.fillStyle = '#ff80ab'; ctx.font = '12px Arial'; ctx.fillText('🎵', t.track*trackWidth+30, t.y+25);
-                        if(t.y > 260) { tiles.splice(i, 1); combo = 0; }
+                        ctx.fillStyle = '#ff80ab'; ctx.font = '11px Arial'; ctx.fillText('🎵', t.track*trackWidth+26, t.y+22);
+                        if(t.y > 220) { tiles.splice(i, 1); combo = 0; }
                     } else { tiles.splice(i, 1); }
                 }
-                ctx.fillStyle = '#fff'; ctx.font = 'bold 12px Arial';
-                ctx.fillText("⏳ 剩余: " + timeLeft + "s", 10, 20);
-                ctx.fillText("🔥 分数: " + score, 130, 20);
-                ctx.fillText("⚡ Combo: " + combo, 220, 20);
+                ctx.fillStyle = '#fff'; ctx.font = 'bold 11px Arial';
+                ctx.fillText("⏳ 剩余: " + timeLeft + "s", 10, 18);
+                ctx.fillText("🔥 分数: " + score, 120, 18);
+                ctx.fillText("⚡ Combo: " + combo, 210, 18);
                 if(!isGameOver) requestAnimationFrame(loop);
-                else { ctx.fillStyle = 'rgba(0,0,0,0.8)'; ctx.fillRect(0,0,320,260); ctx.fillStyle = '#00e676'; ctx.font = 'bold 18px Arial'; ctx.fillText("🎉 打歌结束！总分: " + score, 50, 135); }
+                else { ctx.fillStyle = 'rgba(0,0,0,0.8)'; ctx.fillRect(0,0,300,220); ctx.fillStyle = '#00e676'; ctx.font = 'bold 16px Arial'; ctx.fillText("🎉 打歌结束！总分: " + score, 45, 115); }
             }
             loop();
         </script>
     </body>
     </html>
     """
-  components.html(html_code, height=340)
+  components.html(html_code, height=295)
 
 
 # -------------------------------------------------------------------
@@ -232,19 +232,19 @@ def render_dirt_dig_game():
     <head>
         <style>
             body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
-            .dig-box { background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); padding: 15px; width: 320px; text-align: center; }
-            .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0; }
-            .dirt-tile { background: #5d4037; border: 2px solid #8d6e63; color: #d7ccc8; height: 50px; border-radius: 10px; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+            .dig-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 14px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); padding: 10px; width: 300px; text-align: center; }
+            .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 8px 0; }
+            .dirt-tile { background: #5d4037; border: 2px solid #8d6e63; color: #d7ccc8; height: 42px; border-radius: 8px; font-size: 11px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 5px rgba(0,0,0,0.3); }
             .dirt-tile:active { transform: scale(0.95); }
             .dirt-tile.dug { background: #3e2723; border: 2px dashed #6d4c41; color: #fff; cursor: default; }
-            #dig-tip { color: #ffeb3b; font-size: 13px; font-weight: bold; min-height: 20px; }
+            #dig-tip { color: #ffeb3b; font-size: 11px; font-weight: bold; min-height: 18px; }
         </style>
     </head>
     <body>
         <div class="dig-box">
-            <div style="color: #fff; font-weight: bold; font-size: 12px;">⛏️ 用铁锹敲开土块！(剩余铲子: <span id="shovels">6</span>)</div>
+            <div style="color: #fff; font-weight: bold; font-size: 11px;">⛏️ 用铁锹敲开土块！(剩余铲子: <span id="shovels">6</span>)</div>
             <div class="grid" id="dirtGrid"></div>
-            <div id="dig-tip">点击土块挖掘，宝物可转化为实际属性！</div>
+            <div id="dig-tip">点击土块挖掘宝物转化为实际属性！</div>
         </div>
         <script>
             let tiles = Array(12).fill(false);
@@ -294,7 +294,7 @@ def render_dirt_dig_game():
                     tipEl.style.color = "#00e676";
                     if (treasuresFound === 3 || shovels === 0) {
                         isOver = true;
-                        tipEl.innerHTML = "🏆 挖宝完成！共获得 " + treasuresFound + " 件宝物加成！";
+                        tipEl.innerHTML = "🏆 挖宝完成！共获得 " + treasuresFound + " 件宝物！";
                     }
                 } else {
                     el.innerHTML = '🕳️ 泥土';
@@ -302,7 +302,7 @@ def render_dirt_dig_game():
                     tipEl.style.color = "#ff5252";
                     if (shovels === 0) {
                         isOver = true;
-                        tipEl.innerHTML = "💧 铲子用光啦！共找到 " + treasuresFound + " 件宝物！";
+                        tipEl.innerHTML = "💧 铲子用光啦！找到 " + treasuresFound + " 件宝物！";
                     }
                 }
             }
@@ -311,11 +311,11 @@ def render_dirt_dig_game():
     </body>
     </html>
     """
-  components.html(html_code, height=310)
+  components.html(html_code, height=255)
 
 
 # -------------------------------------------------------------------
-# 🔥 Stage 9：限定 Unit 小分队概念选拔配对小游戏
+# 🔥 Stage 9：限定 Unit 小分队随机题目多选答题选拔游戏
 # -------------------------------------------------------------------
 def render_unit_selection_game():
   html_code = """
@@ -324,86 +324,92 @@ def render_unit_selection_game():
     <head>
         <style>
             body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
-            .unit-box { background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); padding: 12px; width: 320px; text-align: center; }
-            .card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 10px 0; }
-            .concept-card { background: linear-gradient(135deg, #4a148c, #7b1fa2); border: 2px solid #ff4081; color: #fff; padding: 12px 8px; border-radius: 10px; font-size: 12px; font-weight: bold; cursor: pointer; }
+            .unit-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 14px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); padding: 10px; width: 300px; text-align: center; }
+            .question-title { color: #ffeb3b; font-weight: bold; font-size: 12px; margin-bottom: 4px; line-height: 1.4; }
+            .card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin: 8px 0; }
+            .concept-card { background: linear-gradient(135deg, #4a148c, #7b1fa2); border: 2px solid #ff4081; color: #fff; padding: 8px 6px; border-radius: 8px; font-size: 11px; font-weight: bold; cursor: pointer; min-height: 38px; display: flex; align-items: center; justify-content: center; text-align: center; }
             .concept-card:active { transform: scale(0.95); }
             .concept-card.selected { background: #00e676; color: #000; border-color: #fff; }
-            #unit-tip { color: #ffeb3b; font-size: 12px; font-weight: bold; min-height: 25px; margin-top: 5px; }
+            .submit-btn { background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; border: none; padding: 7px 0; font-size: 12px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 4px; }
+            #unit-tip { color: #fff; font-size: 11px; font-weight: bold; min-height: 18px; margin-top: 4px; }
         </style>
     </head>
     <body>
         <div class="unit-box">
-            <div style="color: #ffeb3b; font-weight: bold; font-size: 13px;">🏆 限定 Unit 小分队概念选拔赛</div>
-            <div style="color: #fff; font-size: 11px; margin-top: 4px;">请在 10 秒内点击选择 3 个最契合的舞台核心词汇！</div>
-            <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 4px;">⏳ 剩余: <span id="uTime">10</span>s | 已选: <span id="selectedCount">0</span>/3</div>
+            <div style="color: #fff; font-weight: bold; font-size: 11px;">🏆 小分队企划考题选拔 (至少选2个正确项)</div>
+            <div class="question-title" id="qText">加载中...</div>
             
             <div class="card-grid" id="cardContainer"></div>
-            <div id="unit-tip">点击卡片组合你的梦幻小分队！</div>
+            <button class="submit-btn" onclick="submitAnswers()">✨ 提交企划答案</button>
+            <div id="unit-tip">点击卡片多选，选好后点击提交！</div>
         </div>
         <script>
-            const pool = [
-                {id: 1, text: '🔥 炸裂齐舞', valid: true},
-                {id: 2, text: '🎸 摇滚乐队', valid: true},
-                {id: 3, text: '✨ 王道耀眼', valid: true},
-                {id: 4, text: '🤡 爆笑综艺', valid: false},
-                {id: 5, text: '💧 忧伤抒情', valid: false},
-                {id: 6, text: '🌙 暗黑吸血鬼', valid: true}
+            const questions = [
+                {
+                    title: "题目1：为了迎合年度巨蛋巡演，小分队单曲必须具备哪些现场爆发力？",
+                    options: [
+                        {text: "🔥 炸裂齐舞", correct: true},
+                        {text: "🤡 纯搞笑串场", correct: false},
+                        {text: "✨ 耀眼灯光应援配合", correct: true},
+                        {text: "💤 慢节奏摇篮曲", correct: false}
+                    ]
+                },
+                {
+                    title: "题目2：在电视台打歌节目中，如何让新人小分队瞬间抓住观众眼球？",
+                    options: [
+                        {text: "🎸 强劲摇滚乐队编曲", correct: true},
+                        {text: "📷 镜头前绝杀 Wink 放电", correct: true},
+                        {text: "📖 现场背诵社长讲话", correct: false},
+                        {text: "🧍 呆立舞台毫无表情", correct: false}
+                    ]
+                },
+                {
+                    title: "题目3：当粉丝票选暗黑吸血鬼主题时，你们需要展现的舞台特质是？",
+                    options: [
+                        {text: "🌙 极致神秘张力", correct: true},
+                        {text: "🎈 幼儿园童趣风格", correct: false},
+                        {text: "⚡ 高燃高音爆发", correct: true},
+                        {text: "🍲 在台上现场煮拉面", correct: false}
+                    ]
+                }
             ];
-            let selected = [];
-            let timeLeft = 10;
-            let isOver = false;
 
+            const currentQ = questions[Math.floor(Math.random() * questions.length)];
+            document.getElementById('qText').innerText = currentQ.title;
+
+            let selectedIndices = [];
             const container = document.getElementById('cardContainer');
             const tipEl = document.getElementById('unit-tip');
-            const timeEl = document.getElementById('uTime');
-            const countEl = document.getElementById('selectedCount');
 
             function renderCards() {
                 container.innerHTML = '';
-                pool.forEach(item => {
+                currentQ.options.forEach((opt, idx) => {
                     let card = document.createElement('div');
-                    card.className = 'concept-card' + (selected.includes(item.id) ? ' selected' : '');
-                    card.innerText = item.text;
-                    card.onclick = () => selectCard(item.id, card);
+                    card.className = 'concept-card' + (selectedIndices.includes(idx) ? ' selected' : '');
+                    card.innerText = opt.text;
+                    card.onclick = () => toggleSelect(idx);
                     container.appendChild(card);
                 });
             }
 
-            let timer = setInterval(() => {
-                if (timeLeft > 0 && !isOver) {
-                    timeLeft--;
-                    timeEl.innerText = timeLeft;
-                } else if (!isOver) {
-                    finishSelection();
-                }
-            }, 1000);
-
-            function selectCard(id, el) {
-                if (isOver) return;
-                if (selected.includes(id)) {
-                    selected = selected.filter(i => i !== id);
+            function toggleSelect(idx) {
+                if (selectedIndices.includes(idx)) {
+                    selectedIndices = selectedIndices.filter(i => i !== idx);
                 } else {
-                    if (selected.length < 3) {
-                        selected.push(id);
+                    if (selectedIndices.length < 3) {
+                        selectedIndices.push(idx);
                     }
                 }
-                countEl.innerText = selected.length;
                 renderCards();
-                if (selected.length === 3) {
-                    finishSelection();
-                }
             }
 
-            function finishSelection() {
-                isOver = true;
-                clearInterval(timer);
-                let correctCount = selected.filter(id => pool.find(p => p.id === id).valid).length;
-                if (correctCount >= 2) {
-                    tipEl.innerHTML = "🎉 企划大获成功！小分队出道预定！";
+            function submitAnswers() {
+                let correctSelected = selectedIndices.filter(idx => currentQ.options[idx].correct).length;
+                if (correctSelected >= 2) {
+                    tipEl.innerHTML = "🎉 答题成功！企划完美，小分队出道！";
                     tipEl.style.color = "#00e676";
                 } else {
-                    tipEl.innerHTML = "💧 风格略显杂乱，需调整再接再厉！";
+                    tipEl.innerHTML = "💧 未达到至少2个正确项，企划遗憾流产！";
                     tipEl.style.color = "#ff5252";
                 }
             }
@@ -417,7 +423,7 @@ def render_unit_selection_game():
 
 
 # -------------------------------------------------------------------
-# 👗 3. 精致暖暖风：偶像男装/多风格纸娃娃换装间
+# 👗 3. 精致暖暖风：偶像男装/多风格纸娃娃换装间（完美压缩高度，完全可视）
 # -------------------------------------------------------------------
 def render_dress_up_game():
   html_code = """
@@ -426,20 +432,20 @@ def render_dress_up_game():
     <head>
         <style>
             body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
-            .dress-box { background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); padding: 12px; width: 320px; text-align: center; }
-            canvas { display: block; margin: 0 auto; background: linear-gradient(135deg, #2b1055, #7597de); border-radius: 12px; border: 2px solid #ff4081; box-shadow: inset 0 0 15px rgba(0,0,0,0.4); }
-            .category-row { display: flex; justify-content: center; gap: 4px; margin-top: 10px; }
-            .cat-btn { background: #4a148c; color: white; border: 1px solid #ff80ab; padding: 6px 10px; font-size: 11px; font-weight: bold; border-radius: 8px; cursor: pointer; }
-            .cat-btn.active { background: #ff4081; box-shadow: 0 0 8px #ff4081; }
-            .items-row { display: flex; justify-content: center; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
-            .item-btn { background: linear-gradient(45deg, #ab47bc, #7b1fa2); color: white; border: 1px solid #ea80fc; padding: 6px 10px; font-size: 11px; font-weight: bold; border-radius: 8px; cursor: pointer; }
+            .dress-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); padding: 8px; width: 290px; text-align: center; }
+            canvas { display: block; margin: 0 auto; background: linear-gradient(135deg, #2b1055, #7597de); border-radius: 8px; border: 1.5px solid #ff4081; }
+            .category-row { display: flex; justify-content: center; gap: 3px; margin-top: 6px; }
+            .cat-btn { background: #4a148c; color: white; border: 1px solid #ff80ab; padding: 4px 8px; font-size: 10px; font-weight: bold; border-radius: 6px; cursor: pointer; }
+            .cat-btn.active { background: #ff4081; box-shadow: 0 0 6px #ff4081; }
+            .items-row { display: flex; justify-content: center; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
+            .item-btn { background: linear-gradient(45deg, #ab47bc, #7b1fa2); color: white; border: 1px solid #ea80fc; padding: 4px 8px; font-size: 10px; font-weight: bold; border-radius: 6px; cursor: pointer; }
             .item-btn:active { transform: scale(0.95); }
         </style>
     </head>
     <body>
         <div class="dress-box">
-            <div style="color: #ffeb3b; font-weight: bold; font-size: 13px; margin-bottom: 6px;">✨ 杂志封面：偶像纸娃娃高级定制间</div>
-            <canvas id="dollCanvas" width="296" height="185"></canvas>
+            <div style="color: #ffeb3b; font-weight: bold; font-size: 11px; margin-bottom: 4px;">✨ 杂志封面：偶像高级定制换装间</div>
+            <canvas id="dollCanvas" width="270" height="135"></canvas>
             
             <div class="category-row">
                 <button class="cat-btn active" onclick="setCategory('hair')">💇 发型</button>
@@ -523,82 +529,68 @@ def render_dress_up_game():
             }
 
             function drawDoll() {
-                ctx.clearRect(0, 0, 296, 185);
+                ctx.clearRect(0, 0, 270, 135);
 
-                let grad = ctx.createRadialGradient(148, 92, 10, 148, 92, 90);
-                grad.addColorStop(0, 'rgba(255, 255, 255, 0.25)');
-                grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-                ctx.fillStyle = grad;
-                ctx.fillRect(0, 0, 296, 185);
-
+                // 身体与脸部微调缩小以匹配 135 高度画布
                 ctx.fillStyle = '#fceade';
-                ctx.fillRect(141, 62, 14, 15);
+                ctx.fillRect(131, 44, 8, 12);
                 ctx.beginPath();
-                ctx.arc(148, 48, 20, 0, Math.PI*2);
+                ctx.arc(135, 34, 14, 0, Math.PI*2);
                 ctx.fill();
 
                 ctx.fillStyle = '#2b1055';
                 ctx.beginPath();
-                ctx.arc(141, 47, 2, 0, Math.PI*2);
-                ctx.arc(155, 47, 2, 0, Math.PI*2);
+                ctx.arc(131, 33, 1.5, 0, Math.PI*2);
+                ctx.arc(139, 33, 1.5, 0, Math.PI*2);
                 ctx.fill();
 
                 ctx.fillStyle = outfit.bottom.type === 'bot1' ? '#1f2421' : (outfit.bottom.type === 'bot2' ? '#5c677d' : '#4a3000');
                 if(outfit.bottom.type === 'bot1') {
-                    ctx.fillRect(135, 110, 12, 45);
-                    ctx.fillRect(149, 110, 12, 45);
+                    ctx.fillRect(126, 76, 7, 34);
+                    ctx.fillRect(137, 76, 7, 34);
                 } else if(outfit.bottom.type === 'bot2') {
-                    ctx.fillRect(133, 110, 14, 45);
-                    ctx.fillRect(149, 110, 14, 45);
+                    ctx.fillRect(125, 76, 8, 34);
+                    ctx.fillRect(137, 76, 8, 34);
                 } else {
                     ctx.fillStyle = '#b5838d';
-                    ctx.fillRect(134, 110, 13, 45);
-                    ctx.fillRect(149, 110, 13, 45);
+                    ctx.fillRect(125, 76, 8, 34);
+                    ctx.fillRect(137, 76, 8, 34);
                 }
 
                 if(outfit.top.type === 'top1') {
                     ctx.fillStyle = '#2b2d42';
-                    drawRoundedRect(ctx, 125, 72, 46, 42, 6);
-                    ctx.fillStyle = '#ffffff';
-                    ctx.beginPath(); ctx.moveTo(148, 72); ctx.lineTo(142, 88); ctx.lineTo(154, 88); ctx.fill();
-                    ctx.fillStyle = '#d90429';
-                    ctx.fillRect(146, 85, 4, 14);
+                    drawRoundedRect(ctx, 118, 52, 34, 30, 4);
                 } else if(outfit.top.type === 'top2') {
                     ctx.fillStyle = '#ffb703';
-                    drawRoundedRect(ctx, 122, 70, 52, 44, 8);
-                    ctx.fillStyle = '#fb8500';
-                    ctx.fillRect(122, 90, 52, 6);
+                    drawRoundedRect(ctx, 116, 50, 38, 32, 6);
                 } else {
                     ctx.fillStyle = '#8338ec';
-                    drawRoundedRect(ctx, 126, 72, 44, 42, 10);
-                    ctx.fillStyle = '#3a86ff';
-                    ctx.fillRect(140, 72, 16, 12);
+                    drawRoundedRect(ctx, 118, 52, 34, 30, 6);
                 }
 
                 ctx.fillStyle = outfit.shoes.type === 'shoe1' ? '#000000' : (outfit.shoes.type === 'shoe2' ? '#382b22' : '#ffffff');
-                ctx.fillRect(131, 155, 14, 10);
-                ctx.fillRect(151, 155, 14, 10);
+                ctx.fillRect(125, 110, 9, 7);
+                ctx.fillRect(136, 110, 9, 7);
 
                 ctx.fillStyle = '#3a0ca3';
                 if(outfit.hair.type === 'hair1') {
                     ctx.beginPath();
-                    ctx.arc(148, 42, 22, Math.PI, Math.PI * 2);
-                    ctx.lineTo(172, 50); ctx.lineTo(148, 30); ctx.lineTo(124, 50);
+                    ctx.arc(135, 30, 15, Math.PI, Math.PI * 2);
                     ctx.fill();
                 } else if(outfit.hair.type === 'hair2') {
                     ctx.beginPath();
-                    ctx.arc(148, 40, 23, 0, Math.PI * 2);
+                    ctx.arc(135, 29, 16, 0, Math.PI * 2);
                     ctx.fill();
                 } else {
                     ctx.beginPath();
-                    ctx.arc(148, 42, 22, Math.PI, Math.PI * 2);
-                    ctx.fillRect(123, 40, 6, 22);
-                    ctx.fillRect(167, 40, 6, 22);
+                    ctx.arc(135, 30, 15, Math.PI, Math.PI * 2);
+                    ctx.fillRect(118, 28, 4, 15);
+                    ctx.fillRect(148, 28, 4, 15);
                     ctx.fill();
                 }
 
-                ctx.fillStyle = '#ffeb3b'; ctx.font = 'bold 11px Arial';
-                ctx.fillText("🎨 穿搭: " + outfit.top.name + " + " + outfit.bottom.name, 12, 20);
+                ctx.fillStyle = '#ffeb3b'; ctx.font = 'bold 10px Arial';
+                ctx.fillText("🎨 " + outfit.top.name + " + " + outfit.bottom.name, 10, 15);
             }
 
             setCategory('hair');
@@ -607,7 +599,7 @@ def render_dress_up_game():
     </body>
     </html>
     """
-  components.html(html_code, height=275)
+  components.html(html_code, height=225)
 
 
 # -------------------------------------------------------------------
@@ -621,27 +613,27 @@ def render_pancake_stack_game(member_name):
     <head>
         <style>
             body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
-            .pancake-box { background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); padding: 10px; width: 320px; text-align: center; }
-            canvas { display: block; margin: 0 auto; background: #211035; border-radius: 10px; border: 2px solid #ff4081; }
-            .drop-btn { background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; border: none; padding: 10px 0; font-size: 15px; font-weight: bold; border-radius: 15px; cursor: pointer; width: 300px; margin-top: 8px; box-shadow: 0 4px 10px rgba(255,64,129,0.4); }
+            .pancake-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); padding: 8px; width: 300px; text-align: center; }
+            canvas { display: block; margin: 0 auto; background: #211035; border-radius: 8px; border: 1.5px solid #ff4081; }
+            .drop-btn { background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; border: none; padding: 8px 0; font-size: 13px; font-weight: bold; border-radius: 12px; cursor: pointer; width: 280px; margin-top: 6px; box-shadow: 0 3px 8px rgba(255,64,129,0.4); }
             .drop-btn:active { transform: scale(0.95); }
         </style>
     </head>
     <body>
         <div class="pancake-box">
-            <div style="color: #ffeb3b; font-weight: bold; font-size: 12px; margin-bottom: 4px;">🥞 后台双人互动：与 """
+            <div style="color: #ffeb3b; font-weight: bold; font-size: 11px; margin-bottom: 3px;">🥞 后台互动：与 """
       + member_name
       + """ 的松饼叠高挑战！</div>
-            <canvas id="pancakeCanvas" width="300" height="195"></canvas>
+            <canvas id="pancakeCanvas" width="280" height="165"></canvas>
             <button class="drop-btn" onclick="dropPancake()">🥞 看准时机：放下松饼！</button>
         </div>
         <script>
             const canvas = document.getElementById('pancakeCanvas');
             const ctx = canvas.getContext('2d');
 
-            let swingX = 150, swingDir = 2.2;
-            let stack = [{x: 100, y: 165, w: 100, h: 22}];
-            let current = {x: 150, y: 35, w: 90, h: 22, dropping: false, vy: 0};
+            let swingX = 140, swingDir = 2.0;
+            let stack = [{x: 95, y: 140, w: 90, h: 18}];
+            let current = {x: 140, y: 30, w: 80, h: 18, dropping: false, vy: 3.5};
             let score = 0, isGameOver = false;
             let memberComment = "加油！看准中心叠上去！";
 
@@ -649,7 +641,7 @@ def render_pancake_stack_game(member_name):
                 if (isGameOver || current.dropping) return;
                 current.dropping = true;
                 current.x = swingX - current.w / 2;
-                current.vy = 4.0;
+                current.vy = 3.5;
             }
 
             function drawRoundedRect(ctx, x, y, width, height, radius) {
@@ -669,53 +661,53 @@ def render_pancake_stack_game(member_name):
 
             function drawPancakeEntity(ctx, x, y, w, h, isBase) {
                 ctx.fillStyle = '#d4a373';
-                drawRoundedRect(ctx, x, y, w, h, 6);
+                drawRoundedRect(ctx, x, y, w, h, 5);
                 ctx.strokeStyle = '#bc6c25';
-                ctx.lineWidth = 2;
+                ctx.lineWidth = 1.5;
                 ctx.stroke();
 
                 ctx.fillStyle = '#faedcd';
-                ctx.fillRect(x + 10, y + 6, w - 20, 4);
+                ctx.fillRect(x + 8, y + 5, w - 16, 3);
 
-                if (isBase || y < 140) {
+                if (isBase || y < 120) {
                     ctx.fillStyle = '#ffffff';
                     ctx.beginPath();
-                    ctx.arc(x + w / 2, y + 4, 8, 0, Math.PI * 2);
+                    ctx.arc(x + w / 2, y + 3, 6, 0, Math.PI * 2);
                     ctx.fill();
                 }
             }
 
             function loop() {
-                ctx.clearRect(0, 0, 300, 195);
+                ctx.clearRect(0, 0, 280, 165);
 
                 ctx.fillStyle = '#2d1b4e';
-                ctx.fillRect(5, 5, 135, 30);
-                ctx.fillStyle = '#00e676'; ctx.font = 'bold 11px Arial';
-                ctx.fillText("🧑‍🎤 你 (层数: " + score + ")", 12, 23);
+                ctx.fillRect(5, 4, 125, 24);
+                ctx.fillStyle = '#00e676'; ctx.font = 'bold 10px Arial';
+                ctx.fillText("🧑‍🎤 你 (层数: " + score + ")", 10, 20);
 
                 ctx.fillStyle = '#2d1b4e';
-                ctx.fillRect(160, 5, 135, 30);
-                ctx.fillStyle = '#ff80ab'; ctx.font = 'bold 11px Arial';
-                ctx.fillText("🌟 """ + member_name + """", 168, 23);
+                ctx.fillRect(150, 4, 125, 24);
+                ctx.fillStyle = '#ff80ab'; ctx.font = 'bold 10px Arial';
+                ctx.fillText("🌟 """ + member_name + """", 155, 20);
 
                 if (!current.dropping && !isGameOver) {
                     swingX += swingDir;
-                    if (swingX > 230 || swingX < 70) swingDir *= -1;
-                    ctx.strokeStyle = '#ff80ab'; ctx.lineWidth = 2;
-                    ctx.beginPath(); ctx.moveTo(swingX, 40); ctx.lineTo(swingX, 60); ctx.stroke();
+                    if (swingX > 210 || swingX < 70) swingDir *= -1;
+                    ctx.strokeStyle = '#ff80ab'; ctx.lineWidth = 1.5;
+                    ctx.beginPath(); ctx.moveTo(swingX, 32); ctx.lineTo(swingX, 48); ctx.stroke();
                 } else if (current.dropping) {
                     current.y += current.vy;
                     let top = stack[stack.length - 1];
                     if (current.y + current.h >= top.y) {
                         current.dropping = false;
                         let overlap = Math.min(current.x + current.w, top.x + top.w) - Math.max(current.x, top.x);
-                        if (overlap > 25) {
+                        if (overlap > 20) {
                             score++;
-                            let newW = Math.max(45, current.w - 5);
-                            stack.push({ x: current.x, y: top.y - 22, w: newW, h: 22 });
-                            current = { x: 150, y: 35, w: newW, h: 22, dropping: false, vy: 0 };
+                            let newW = Math.max(40, current.w - 4);
+                            stack.push({ x: current.x, y: top.y - 18, w: newW, h: 18 });
+                            current = { x: 140, y: 30, w: newW, h: 18, dropping: false, vy: 3.5 };
                             memberComment = score >= 5 ? "太稳了！绝佳默契！" : "干得漂亮！继续保持！";
-                            if (stack.length >= 7) isGameOver = true;
+                            if (stack.length >= 6) isGameOver = true;
                         } else {
                             memberComment = "哎呀歪了！太可惜啦！";
                             isGameOver = true;
@@ -730,18 +722,18 @@ def render_pancake_stack_game(member_name):
 
                 if (!isGameOver) {
                     let drawX = current.dropping ? current.x : (swingX - current.w / 2);
-                    drawPancakeEntity(ctx, drawX, current.dropping ? current.y : 60, current.w, current.h, false);
+                    drawPancakeEntity(ctx, drawX, current.dropping ? current.y : 48, current.w, current.h, false);
                 }
 
                 ctx.fillStyle = 'rgba(0,0,0,0.4)';
-                ctx.fillRect(0, 172, 300, 23);
-                ctx.fillStyle = '#ffeb3b'; ctx.font = '11px Arial';
-                ctx.fillText("💬 队友 """ + member_name + """: " + memberComment, 12, 188);
+                ctx.fillRect(0, 146, 280, 19);
+                ctx.fillStyle = '#ffeb3b'; ctx.font = '10px Arial';
+                ctx.fillText("💬 队友 """ + member_name + """: " + memberComment, 10, 160);
 
                 if (isGameOver) {
-                    ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(0, 0, 300, 195);
-                    ctx.fillStyle = '#00e676'; ctx.font = 'bold 16px Arial';
-                    ctx.fillText("🎉 堆高挑战完成！总得分: " + score, 40, 100);
+                    ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(0, 0, 280, 165);
+                    ctx.fillStyle = '#00e676'; ctx.font = 'bold 15px Arial';
+                    ctx.fillText("🎉 堆高完成！总得分: " + score, 40, 90);
                 } else {
                     requestAnimationFrame(loop);
                 }
@@ -752,7 +744,7 @@ def render_pancake_stack_game(member_name):
     </html>
     """
   )
-  components.html(html_code, height=275)
+  components.html(html_code, height=245)
 
 
 # -------------------------------------------------------------------
@@ -766,21 +758,21 @@ def render_wardrobe_qte_game(member_name):
     <head>
         <style>
             body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
-            .qte-box { background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); padding: 15px; width: 320px; text-align: center; }
-            .qte-target { font-size: 32px; background: #2d1b4e; border: 2px dashed #ff4081; border-radius: 12px; padding: 10px; margin: 10px 0; color: #fff; }
-            .qte-btns { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px; }
-            .q-btn { background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; border: none; padding: 12px 0; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
+            .qte-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); padding: 10px; width: 300px; text-align: center; }
+            .qte-target { font-size: 24px; background: #2d1b4e; border: 2px dashed #ff4081; border-radius: 10px; padding: 8px; margin: 8px 0; color: #fff; }
+            .qte-btns { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 8px; }
+            .q-btn { background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; border: none; padding: 10px 0; font-size: 13px; font-weight: bold; border-radius: 10px; cursor: pointer; }
             .q-btn:active { transform: scale(0.95); }
         </style>
     </head>
     <body>
         <div class="qte-box">
-            <div style="color: #ffeb3b; font-weight: bold; font-size: 13px;">⏱️ 演唱会暗场 30 秒：紧急换装 QTE！</div>
-            <div style="color: #fff; font-size: 11px; margin-top: 4px;">"""
+            <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">⏱️ 演唱会暗场 30 秒：紧急换装 QTE！</div>
+            <div style="color: #fff; font-size: 11px; margin-top: 3px;">"""
       + member_name
-      + """ 跑过来帮你一把！点击匹配的换装动作！</div>
-            <div class="qte-target" id="targetAction">🧥 扣上舞台战袍纽扣</div>
-            <div style="color: #00e676; font-size: 12px; font-weight: bold;">🔥 成功连击: <span id="qteScore">0</span> / 5 | ⏳ <span id="qTime">10</span>s</div>
+      + """ 帮你一把！点击匹配动作！</div>
+            <div class="qte-target" id="targetAction">🧥 扣上战袍纽扣</div>
+            <div style="color: #00e676; font-size: 11px; font-weight: bold;">🔥 连击: <span id="qteScore">0</span> / 5 | ⏳ <span id="qTime">10</span>s</div>
             <div class="qte-btns">
                 <button class="q-btn" onclick="pressQTE('扣纽扣')">🧥 扣纽扣</button>
                 <button class="q-btn" onclick="pressQTE('戴耳返')">🎧 戴耳返</button>
@@ -790,7 +782,7 @@ def render_wardrobe_qte_game(member_name):
         </div>
         <script>
             const actions = ['扣纽扣', '戴耳返', '拿话筒', '正领带'];
-            const actionIcons = { '扣纽扣': '🧥 扣上舞台战袍纽扣', '戴耳返': '🎧 戴上专业无线耳返', '拿话筒': '🎤 拿起闪耀定制话筒', '正领带': '👔 快速整理好演出领带' };
+            const actionIcons = { '扣纽扣': '🧥 扣上战袍纽扣', '戴耳返': '🎧 戴上无线耳返', '拿话筒': '🎤 拿起定制话筒', '正领带': '👔 整理演出领带' };
             let current = '扣纽扣', score = 0, timeLeft = 10, isOver = false;
 
             function nextAction() {
@@ -804,7 +796,7 @@ def render_wardrobe_qte_game(member_name):
                     timeLeft--; document.getElementById('qTime').innerText = timeLeft;
                 } else {
                     isOver = true; clearInterval(timer);
-                    document.getElementById('targetAction').innerText = score >= 5 ? "🎉 换装完美成功！闪亮登场！" : "💧 时间到！有点手忙脚乱...";
+                    document.getElementById('targetAction').innerText = score >= 5 ? "🎉 换装成功！登场！" : "💧 时间到！手忙脚乱...";
                 }
             }, 1000);
 
@@ -815,7 +807,7 @@ def render_wardrobe_qte_game(member_name):
                     document.getElementById('qteScore').innerText = score;
                     if (score >= 5) {
                         isOver = true;
-                        document.getElementById('targetAction').innerText = "🎉 换装完美成功！闪亮登场！";
+                        document.getElementById('targetAction').innerText = "🎉 换装成功！登场！";
                     } else {
                         nextAction();
                     }
@@ -827,7 +819,7 @@ def render_wardrobe_qte_game(member_name):
     </html>
     """
   )
-  components.html(html_code, height=295)
+  components.html(html_code, height=270)
 
 
 # -------------------------------------------------------------------
@@ -841,38 +833,38 @@ def render_member_duel_game(member_name):
     <head>
         <style>
             body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
-            .duel-box { background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); padding: 15px; width: 320px; text-align: center; }
-            .vs-display { display: flex; justify-content: space-around; align-items: center; margin: 15px 0; color: #fff; font-size: 16px; font-weight: bold; }
-            .avatar { background: #2d1b4e; border: 2px solid #ff4081; border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 5px auto; }
-            .duel-btns { display: flex; gap: 8px; margin-top: 10px; }
-            .d-btn { background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; border: none; padding: 12px 0; font-size: 15px; font-weight: bold; border-radius: 12px; cursor: pointer; flex: 1; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+            .duel-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); padding: 10px; width: 300px; text-align: center; }
+            .vs-display { display: flex; justify-content: space-around; align-items: center; margin: 10px 0; color: #fff; font-size: 14px; font-weight: bold; }
+            .avatar { background: #2d1b4e; border: 2px solid #ff4081; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 20px; margin: 0 auto 4px auto; }
+            .duel-btns { display: flex; gap: 6px; margin-top: 8px; }
+            .d-btn { background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; border: none; padding: 10px 0; font-size: 14px; font-weight: bold; border-radius: 10px; cursor: pointer; flex: 1; box-shadow: 0 3px 8px rgba(0,0,0,0.3); }
             .d-btn:active { transform: scale(0.95); }
-            #duel-result { color: #ffeb3b; font-size: 14px; font-weight: bold; margin-top: 10px; min-height: 24px; }
+            #duel-result { color: #ffeb3b; font-size: 12px; font-weight: bold; margin-top: 8px; min-height: 20px; }
         </style>
     </head>
     <body>
         <div class="duel-box">
-            <div style="color: #ffeb3b; font-weight: bold; font-size: 14px;">🤝 与 """
+            <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">🤝 与 """
       + member_name
-      + """ 的后台默契猜拳对决！</div>
+      + """ 的后台猜拳对决！</div>
             <div class="vs-display">
                 <div>
                     <div class="avatar">🧑‍🎤</div>
                     <div>你</div>
-                    <div id="playerChoice" style="font-size: 20px; margin-top: 5px;">❓</div>
+                    <div id="playerChoice" style="font-size: 18px; margin-top: 3px;">❓</div>
                 </div>
-                <div style="color:#ff4081; font-size: 20px; font-weight:bold;">VS</div>
+                <div style="color:#ff4081; font-size: 18px; font-weight:bold;">VS</div>
                 <div>
                     <div class="avatar">🌟</div>
                     <div>"""
       + member_name
       + """</div>
-                    <div id="memberChoice" style="font-size: 20px; margin-top: 5px;">❓</div>
+                    <div id="memberChoice" style="font-size: 18px; margin-top: 3px;">❓</div>
                 </div>
             </div>
-            <div id="duel-result">请选择你的出拳，赢过 """
+            <div id="duel-result">请出拳，赢过 """
       + member_name
-      + """ 提升团员羁绊！</div>
+      + """ 提升羁绊！</div>
             <div class="duel-btns">
                 <button class="d-btn" onclick="playDuel('石头')">✊ 石头</button>
                 <button class="d-btn" onclick="playDuel('剪刀')">✌️ 剪刀</button>
@@ -892,7 +884,7 @@ def render_member_duel_game(member_name):
                 let resMsg = "";
                 let resColor = "#ffeb3b";
                 if (pChoice === mChoice) {
-                    resMsg = "🤝 平局！两人默契十足！";
+                    resMsg = "🤝 平局！默契十足！";
                 } else if (
                     (pChoice === '石头' && mChoice === '剪刀') ||
                     (pChoice === '剪刀' && mChoice === '布') ||
@@ -900,13 +892,13 @@ def render_member_duel_game(member_name):
                 ) {
                     resMsg = "🎉 赢了！"""
       + member_name
-      + """ 为你鼓掌欢呼！";
+      + """ 为你欢呼！";
                     resColor = "#00e676";
                     wins++;
                 } else {
                     resMsg = "💧 输啦！"""
       + member_name
-      + """ 得意地笑了起来！";
+      + """ 得意地笑！";
                     resColor = "#ff5252";
                 }
                 document.getElementById('duel-result').innerHTML = resMsg + " (胜场: " + wins + ")";
@@ -917,7 +909,7 @@ def render_member_duel_game(member_name):
     </html>
     """
   )
-  components.html(html_code, height=310)
+  components.html(html_code, height=275)
 
 
 # -------------------------------------------------------------------
@@ -931,26 +923,26 @@ def render_ramen_battle_game(member_name):
     <head>
         <style>
             body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
-            .battle-box { background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); padding: 15px; width: 320px; text-align: center; }
-            .bowl { font-size: 45px; margin: 10px 0; }
-            .score-row { display: flex; justify-content: space-around; color: #fff; font-size: 14px; font-weight: bold; margin-bottom: 10px; }
-            .eat-btn { background: linear-gradient(45deg, #ff5252, #ffeb3b); color: #333; border: none; padding: 14px 0; font-size: 17px; font-weight: bold; border-radius: 20px; cursor: pointer; width: 100%; box-shadow: 0 4px 15px rgba(255,82,82,0.5); }
+            .battle-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); padding: 10px; width: 300px; text-align: center; }
+            .bowl { font-size: 38px; margin: 6px 0; }
+            .score-row { display: flex; justify-content: space-around; color: #fff; font-size: 13px; font-weight: bold; margin-bottom: 8px; }
+            .eat-btn { background: linear-gradient(45deg, #ff5252, #ffeb3b); color: #333; border: none; padding: 12px 0; font-size: 15px; font-weight: bold; border-radius: 16px; cursor: pointer; width: 100%; box-shadow: 0 3px 10px rgba(255,82,82,0.5); }
             .eat-btn:active { transform: scale(0.95); }
         </style>
     </head>
     <body>
         <div class="battle-box">
-            <div style="color: #ffeb3b; font-weight: bold; font-size: 14px;">🍜 深夜食堂：与 """
+            <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">🍜 深夜食堂：与 """
       + member_name
-      + """ 的拉面大胃王对决！</div>
+      + """ 的拉面大胃王！</div>
             <div class="bowl" id="bowlIcon">🍜</div>
             <div class="score-row">
-                <div>你吃面: <span id="playerBowls" style="color:#00e676; font-size:16px;">0</span> 碗</div>
+                <div>你吃面: <span id="playerBowls" style="color:#00e676; font-size:15px;">0</span> 碗</div>
                 <div>"""
       + member_name
-      + """: <span id="memberBowls" style="color:#ff4081; font-size:16px;">0</span> 碗</div>
+      + """: <span id="memberBowls" style="color:#ff4081; font-size:15px;">0</span> 碗</div>
             </div>
-            <div id="ramen-tip" style="color: #fff; font-size: 12px; font-weight: bold; margin-bottom: 8px;">⏳ 倒计时: <span id="rTime">10</span>s | 疯狂猛点按钮炫面！</div>
+            <div id="ramen-tip" style="color: #fff; font-size: 11px; font-weight: bold; margin-bottom: 6px;">⏳ 倒计时: <span id="rTime">10</span>s | 疯狂猛点按钮炫面！</div>
             <button class="eat-btn" onclick="eatRamen()">🥢 狂炫拉面！</button>
         </div>
         <script>
@@ -971,9 +963,9 @@ def render_ramen_battle_game(member_name):
                     timeLeft--; tSpan.innerText = timeLeft;
                 } else {
                     isOver = true; clearInterval(clock); clearInterval(aiTimer);
-                    let resultText = pBowls > mBowls ? "🎉 你赢了！打破了大胃王纪录！" : "💧 输给 """
+                    let resultText = pBowls > mBowls ? "🎉 你赢了！大胃王纪录！" : "💧 输给 """
       + member_name
-      + """ 了！对方吃得太快了！";
+      + """ 了！吃太快啦！";
                     document.getElementById('ramen-tip').innerHTML = resultText;
                     document.getElementById('ramen-tip').style.color = pBowls > mBowls ? "#00e676" : "#ff5252";
                 }
@@ -991,7 +983,7 @@ def render_ramen_battle_game(member_name):
     </html>
     """
   )
-  components.html(html_code, height=310)
+  components.html(html_code, height=275)
 
 
 # -------------------------------------------------------------------
@@ -1004,18 +996,18 @@ def render_lightstick_game():
     <head>
         <style>
             body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
-            .light-box { background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); padding: 15px; width: 320px; text-align: center; }
-            .color-display { width: 90px; height: 90px; border-radius: 50%; margin: 10px auto; box-shadow: 0 0 20px rgba(255,255,255,0.4); border: 3px solid #fff; }
-            .color-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
-            .color-btn { padding: 12px 0; font-size: 15px; font-weight: bold; border-radius: 12px; border: none; color: white; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+            .light-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); padding: 10px; width: 300px; text-align: center; }
+            .color-display { width: 75px; height: 75px; border-radius: 50%; margin: 8px auto; box-shadow: 0 0 15px rgba(255,255,255,0.4); border: 2.5px solid #fff; }
+            .color-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 8px; }
+            .color-btn { padding: 10px 0; font-size: 13px; font-weight: bold; border-radius: 10px; border: none; color: white; cursor: pointer; box-shadow: 0 3px 8px rgba(0,0,0,0.3); }
             .color-btn:active { transform: scale(0.95); }
         </style>
     </head>
     <body>
         <div class="light-box">
-            <div style="color: #ffeb3b; font-weight: bold; font-size: 13px;">🌟 演唱会手灯狂热！按下与上方匹配的颜色！</div>
+            <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">🌟 手灯狂热！按下与上方匹配的颜色！</div>
             <div class="color-display" id="targetColorBox"></div>
-            <div id="light-tip" style="color: #fff; font-size: 12px; font-weight: bold;">⏳ 剩余: <span id="timeVal">12</span>s | 得分: <span id="scoreVal">0</span></div>
+            <div id="light-tip" style="color: #fff; font-size: 11px; font-weight: bold;">⏳ 剩余: <span id="timeVal">12</span>s | 得分: <span id="scoreVal">0</span></div>
             <div class="color-grid">
                 <button class="color-btn" style="background: #ff5252;" onclick="checkColor('red')">❤️ 红色</button>
                 <button class="color-btn" style="background: #448aff;" onclick="checkColor('blue')">💙 蓝色</button>
@@ -1058,7 +1050,7 @@ def render_lightstick_game():
     </body>
     </html>
     """
-  components.html(html_code, height=290)
+  components.html(html_code, height=265)
 
 
 # -------------------------------------------------------------------
@@ -1071,15 +1063,15 @@ def render_dodge_canvas_game():
     <head>
         <style>
             body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
-            .canvas-box { background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); position: relative; overflow: hidden; width: 320px; height: 210px; }
+            .canvas-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); position: relative; overflow: hidden; width: 300px; height: 185px; }
             canvas { display: block; }
-            .ctrl-panel { display: flex; gap: 15px; margin-top: 10px; width: 320px; justify-content: center; }
-            .move-btn { background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; border-radius: 20px; cursor: pointer; flex: 1; }
+            .ctrl-panel { display: flex; gap: 10px; margin-top: 8px; width: 300px; justify-content: center; }
+            .move-btn { background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; border: none; padding: 10px 0; font-size: 14px; font-weight: bold; border-radius: 16px; cursor: pointer; flex: 1; }
             .move-btn:active { transform: scale(0.95); }
         </style>
     </head>
     <body>
-        <div class="canvas-box"><canvas id="dodgeCanvas" width="320" height="210"></canvas></div>
+        <div class="canvas-box"><canvas id="dodgeCanvas" width="300" height="185"></canvas></div>
         <div class="ctrl-panel">
             <button class="move-btn" onclick="movePlayer(-1)">⬅️ 往左闪避</button>
             <button class="move-btn" onclick="movePlayer(1)">往右闪避 ➡️</button>
@@ -1087,37 +1079,37 @@ def render_dodge_canvas_game():
         <script>
             const canvas = document.getElementById('dodgeCanvas');
             const ctx = canvas.getContext('2d');
-            let lane = 1, lanesX = [60, 160, 260], playerY = 170, obstacles = [], hp = 3, timeLeft = 15, isGameOver = false;
+            let lane = 1, lanesX = [55, 150, 245], playerY = 150, obstacles = [], hp = 3, timeLeft = 15, isGameOver = false;
             let timer = setInterval(() => { if(timeLeft > 0 && !isGameOver) timeLeft--; else { isGameOver = true; clearInterval(timer); clearInterval(spawner); } }, 1000);
             let spawner = setInterval(() => { if(!isGameOver) obstacles.push({ lane: Math.floor(Math.random()*3), y: -20, speed: 4.0 }); }, 550);
             function movePlayer(dir) { if(!isGameOver) { lane += dir; if(lane < 0) lane = 0; if(lane > 2) lane = 2; } }
             function loop() {
-                ctx.clearRect(0, 0, 320, 210);
+                ctx.clearRect(0, 0, 300, 185);
                 ctx.strokeStyle = '#2d1b4e'; ctx.lineWidth = 2; ctx.setLineDash([4, 4]);
-                [110, 210].forEach(x => { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 210); ctx.stroke(); });
+                [100, 200].forEach(x => { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 185); ctx.stroke(); });
                 ctx.setLineDash([]);
                 for (let i = obstacles.length - 1; i >= 0; i--) {
                     let obs = obstacles[i]; obs.y += obs.speed;
-                    ctx.fillStyle = '#ff5252'; ctx.beginPath(); ctx.arc(lanesX[obs.lane], obs.y, 13, 0, Math.PI*2); ctx.fill();
-                    ctx.fillStyle = '#fff'; ctx.font = '11px Arial'; ctx.fillText('💡', lanesX[obs.lane]-6, obs.y+4);
-                    if (obs.y >= playerY-15 && obs.y <= playerY+15 && obs.lane === lane) {
+                    ctx.fillStyle = '#ff5252'; ctx.beginPath(); ctx.arc(lanesX[obs.lane], obs.y, 11, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = '#fff'; ctx.font = '10px Arial'; ctx.fillText('💡', lanesX[obs.lane]-5, obs.y+3);
+                    if (obs.y >= playerY-13 && obs.y <= playerY+13 && obs.lane === lane) {
                         hp--; obstacles.splice(i, 1); if(hp <= 0) isGameOver = true;
-                    } else if (obs.y > 230) { obstacles.splice(i, 1); }
+                    } else if (obs.y > 200) { obstacles.splice(i, 1); }
                 }
                 let px = lanesX[lane];
-                ctx.fillStyle = '#ff4081'; ctx.beginPath(); ctx.arc(px, playerY, 14, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = '#fff'; ctx.font = '12px Arial'; ctx.fillText('⭐', px-6, playerY+4);
-                ctx.fillStyle = '#fff'; ctx.font = 'bold 13px Arial'; ctx.fillText("⏱️ 倒计时: " + timeLeft + "s", 15, 20);
-                ctx.fillStyle = '#ff4081'; ctx.fillText("❤️ 生命: " + "❤️".repeat(Math.max(0, hp)), 210, 20);
+                ctx.fillStyle = '#ff4081'; ctx.beginPath(); ctx.arc(px, playerY, 12, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#fff'; ctx.font = '11px Arial'; ctx.fillText('⭐', px-5, playerY+3);
+                ctx.fillStyle = '#fff'; ctx.font = 'bold 12px Arial'; ctx.fillText("⏱️ 倒计时: " + timeLeft + "s", 12, 18);
+                ctx.fillStyle = '#ff4081'; ctx.fillText("❤️ 生命: " + "❤️".repeat(Math.max(0, hp)), 195, 18);
                 if (!isGameOver) requestAnimationFrame(loop);
-                else { ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(0,0,320,210); ctx.fillStyle = '#00e676'; ctx.font = 'bold 18px Arial'; ctx.fillText("🎉 生存挑战成功！", 70, 105); }
+                else { ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(0,0,300,185); ctx.fillStyle = '#00e676'; ctx.font = 'bold 16px Arial'; ctx.fillText("🎉 生存挑战成功！", 75, 98); }
             }
             loop();
         </script>
     </body>
     </html>
     """
-  components.html(html_code, height=300)
+  components.html(html_code, height=250)
 
 
 # -------------------------------------------------------------------
@@ -1292,7 +1284,7 @@ if st.session_state.game_started:
     st.session_state.stress = 30
     st.session_state.bond += 10
 
-  is_free_training_day = curr_stage in [3, 20]  # Stage 9 为小分队选拔互动游戏
+  is_free_training_day = curr_stage in [3, 20]
 
   if is_free_training_day and curr_stage < 25:
     st.subheader(f"🗓️ Stage {curr_stage}：自主特训与日常安排")
@@ -1384,16 +1376,16 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # 阶段 9 🔥（限定 Unit 小分队概念选拔小游戏）
+  # 阶段 9 🔥（限定 Unit 小分队随机企划题目多选答题游戏）
   elif curr_stage == 9:
-    st.subheader("📍 Stage 9：【社内企划】限定 Unit 小分队概念选拔赛")
+    st.subheader("📍 Stage 9：【社内企划】限定 Unit 小分队答题选拔赛")
     st.markdown(
-        f'<div class="event-card"><b>🏆 【小分队概念选拔游戏】</b><br>事务所突然下达了全新企划通知！要在 10 秒内为 <b>{member}</b> 与你所在的组合挑选出 3 个最核心的舞台概念卡牌，冲击限定单曲出道！</div>',
+        f'<div class="event-card"><b>🏆 【小分队企划选拔游戏】</b><br>事务所派发了核心企划考题！请为 <b>{member}</b> 与你所在的组合在下方选项中<b>选出至少 2 个正确选项</b>提交！</div>',
         unsafe_allow_html=True,
     )
     render_unit_selection_game()
 
-    if st.button("➔ 选拔结束，锁定小分队企划！"):
+    if st.button("➔ 选拔答题完毕，锁定企划！"):
       st.session_state.dance += 25
       st.session_state.fans += 1200
       st.session_state.bond += 20
