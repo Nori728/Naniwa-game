@@ -4,7 +4,7 @@ import streamlit as st
 
 # 1. 页面基础配置
 st.set_page_config(
-    page_title="偶像培养计划：星途甄选 5.0",
+    page_title="偶像培养计划：星途甄选",
     page_icon="🌟",
     layout="centered",
 )
@@ -273,7 +273,7 @@ if not st.session_state.game_started:
     st.rerun()
 
 # -------------------------------------------------------------------
-# 剧情数据大表（共 20 关）
+# 剧情数据大表
 # -------------------------------------------------------------------
 STAGES_DATA = {
     1: {
