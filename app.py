@@ -222,7 +222,7 @@ def render_piano_tiles_game():
 
 
 # -------------------------------------------------------------------
-# ⛏️ 2. 铁锹敲击土块【地下仓库盲盒挖宝】
+# ⛏️ 2. 铁锹敲击土块【地下仓库盲盒挖宝（带真实数值奖励）】
 # -------------------------------------------------------------------
 def render_dirt_dig_game():
   html_code = """
@@ -233,7 +233,7 @@ def render_dirt_dig_game():
             body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
             .dig-box { background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); padding: 15px; width: 320px; text-align: center; }
             .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0; }
-            .dirt-tile { background: #5d4037; border: 2px solid #8d6e63; color: #d7ccc8; height: 50px; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+            .dirt-tile { background: #5d4037; border: 2px solid #8d6e63; color: #d7ccc8; height: 50px; border-radius: 10px; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
             .dirt-tile:active { transform: scale(0.95); }
             .dirt-tile.dug { background: #3e2723; border: 2px dashed #6d4c41; color: #fff; cursor: default; }
             #dig-tip { color: #ffeb3b; font-size: 13px; font-weight: bold; min-height: 20px; }
@@ -241,19 +241,19 @@ def render_dirt_dig_game():
     </head>
     <body>
         <div class="dig-box">
-            <div style="color: #fff; font-weight: bold; font-size: 13px;">⛏️ 用铁锹敲开土块寻找绝版宝物！(剩余铲子: <span id="shovels">6</span>)</div>
+            <div style="color: #fff; font-weight: bold; font-size: 12px;">⛏️ 用铁锹敲开土块！(剩余铲子: <span id="shovels">6</span>)</div>
             <div class="grid" id="dirtGrid"></div>
-            <div id="dig-tip">点击土块开始向下挖掘！</div>
+            <div id="dig-tip">点击土块挖掘，宝物可转化为实际属性！</div>
         </div>
         <script>
             let tiles = Array(12).fill(false);
-            let contents = Array(12).fill('💨 空空如也');
+            let contents = Array(12).fill('💨 空');
             let shovels = 6;
             let treasuresFound = 0;
             let isOver = false;
 
             let placed = 0;
-            const prizePool = ['💎 绝版金唱片', '✨ 亲笔签名照', '🏆 历年奖杯'];
+            const prizePool = ['💎 金唱片(+500粉)', '✨ 签名照(+15绊)', '🏆 奖杯(+20能力)'];
             while(placed < 3) {
                 let idx = Math.floor(Math.random() * 12);
                 if(!tiles[idx]) {
@@ -289,11 +289,11 @@ def render_dirt_dig_game():
                     el.style.background = '#00e676';
                     el.style.color = '#000';
                     treasuresFound++;
-                    tipEl.innerHTML = "🎉 挖到了 " + contents[idx] + "！";
+                    tipEl.innerHTML = "🎉 挖到 " + contents[idx] + "！";
                     tipEl.style.color = "#00e676";
                     if (treasuresFound === 3 || shovels === 0) {
                         isOver = true;
-                        tipEl.innerHTML = "🏆 挖宝结束！共找到 " + treasuresFound + " 件宝物！";
+                        tipEl.innerHTML = "🏆 挖宝完成！共获得 " + treasuresFound + " 件宝物加成！";
                     }
                 } else {
                     el.innerHTML = '🕳️ 泥土';
@@ -305,7 +305,6 @@ def render_dirt_dig_game():
                     }
                 }
             }
-
             renderGrid();
         </script>
     </body>
@@ -315,7 +314,123 @@ def render_dirt_dig_game():
 
 
 # -------------------------------------------------------------------
-# 🤝 3. 成员双人互动【默契猜拳对决】
+# 📦 3. 动态左右摆动物体下落堆高小游戏【箱子/松饼动态堆高】（全新升级）
+# -------------------------------------------------------------------
+def render_dynamic_stack_game(member_name):
+  html_code = (
+      """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+            .swing-box { background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); padding: 10px; width: 320px; text-align: center; }
+            canvas { display: block; margin: 0 auto; background: #211035; border-radius: 10px; border: 2px solid #ff4081; }
+            .drop-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: white; border: none; padding: 10px 0; font-size: 15px; font-weight: bold; border-radius: 15px; cursor: pointer; width: 300px; margin-top: 8px; box-shadow: 0 4px 10px rgba(0,230,118,0.4); }
+            .drop-btn:active { transform: scale(0.95); }
+        </style>
+    </head>
+    <body>
+        <div class="swing-box">
+            <div style="color: #ffeb3b; font-weight: bold; font-size: 12px; margin-bottom: 5px;">🥞 与 """
+      + member_name
+      + """ 的动态摆动堆高挑战！</div>
+            <canvas id="stackCanvas" width="300" height="190"></canvas>
+            <button class="drop-btn" onclick="dropBox()">⬇️ 看准时机：松手落下！</button>
+        </div>
+        <script>
+            const canvas = document.getElementById('stackCanvas');
+            const ctx = canvas.getContext('2d');
+
+            let swingX = 150, swingDir = 2.5; // 吊着左右摆动的物体位置
+            let stack = [{x: 100, y: 165, w: 100, h: 20}]; // 底座
+            let currentBox = {x: 150, y: 35, w: 90, h: 20, dropping: false, vy: 0};
+            let score = 0, isGameOver = false;
+
+            function dropBox() {
+                if (isGameOver || currentBox.dropping) return;
+                currentBox.dropping = true;
+                currentBox.x = swingX - currentBox.w / 2;
+                currentBox.vy = 4.5;
+            }
+
+            function loop() {
+                ctx.clearRect(0, 0, 300, 190);
+
+                // 1. 绘制背景网格
+                ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+                for(let i=0; i<300; i+=30) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 190); ctx.stroke(); }
+
+                // 2. 如果物体在空中摆动（未落下）
+                if (!currentBox.dropping && !isGameOver) {
+                    swingX += swingDir;
+                    if (swingX > 230 || swingX < 70) swingDir *= -1;
+                    // 画吊绳
+                    ctx.strokeStyle = '#ff80ab'; ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.moveTo(swingX, 0); ctx.lineTo(swingX, 35); ctx.stroke();
+                } else if (currentBox.dropping) {
+                    currentBox.y += currentBox.vy;
+                    let topBox = stack[stack.length - 1];
+
+                    // 碰撞检测（落地）
+                    if (currentBox.y + currentBox.h >= topBox.y) {
+                        currentBox.dropping = false;
+                        let overlap = Math.min(currentBox.x + currentBox.w, topBox.x + topBox.w) - Math.max(currentBox.x, topBox.x);
+                        
+                        if (overlap > 30) { // 对齐成功
+                            score++;
+                            let newW = Math.max(40, currentBox.w - 4); // 越叠越有难度
+                            stack.push({ x: currentBox.x, y: topBox.y - 20, w: newW, h: 20 });
+                            currentBox = { x: 150, y: 35, w: newW, h: 20, dropping: false, vy: 0 };
+                            if (stack.length >= 8) { isGameOver = true; }
+                        } else { // 没对齐掉下去
+                            isGameOver = true;
+                        }
+                    }
+                }
+
+                // 3. 绘制已经叠好的箱子/松饼
+                for (let i = 0; i < stack.length; i++) {
+                    let b = stack[i];
+                    ctx.fillStyle = i % 2 === 0 ? '#ff4081' : '#ab47bc';
+                    ctx.fillRect(b.x, b.y, b.w, b.h);
+                    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5;
+                    ctx.strokeRect(b.x, b.y, b.w, b.h);
+                    ctx.fillStyle = '#fff'; ctx.font = '10px Arial';
+                    ctx.fillText('📦松饼 #' + (i+1), b.x + 8, b.y + 14);
+                }
+
+                // 4. 绘制正在摇摆或下落的物体
+                if (!isGameOver) {
+                    let drawX = currentBox.dropping ? currentBox.x : (swingX - currentBox.w / 2);
+                    ctx.fillStyle = '#00e676';
+                    ctx.fillRect(drawX, currentBox.y, currentBox.w, currentBox.h);
+                    ctx.strokeStyle = '#fff'; ctx.strokeRect(drawX, currentBox.y, currentBox.w, currentBox.h);
+                }
+
+                // 5. 显示得分
+                ctx.fillStyle = '#ffeb3b'; ctx.font = 'bold 12px Arial';
+                ctx.fillText("🏆 叠高层数: " + score, 15, 20);
+
+                if (isGameOver) {
+                    ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(0,0,300,190);
+                    ctx.fillStyle = '#00e676'; ctx.font = 'bold 16px Arial';
+                    ctx.fillText("🎉 堆高挑战完成！总得分: " + score, 30, 100);
+                } else {
+                    requestAnimationFrame(loop);
+                }
+            }
+            loop();
+        </script>
+    </body>
+    </html>
+    """
+  )
+  components.html(html_code, height=270)
+
+
+# -------------------------------------------------------------------
+# 🤝 4. 成员双人互动【默契猜拳对决】
 # -------------------------------------------------------------------
 def render_member_duel_game(member_name):
   html_code = (
@@ -405,7 +520,7 @@ def render_member_duel_game(member_name):
 
 
 # -------------------------------------------------------------------
-# 🍜 4. 成员双人互动【深夜拉面大胃王比拼】
+# 🍜 5. 成员双人互动【深夜拉面大胃王比拼】
 # -------------------------------------------------------------------
 def render_ramen_battle_game(member_name):
   html_code = (
@@ -469,66 +584,6 @@ def render_ramen_battle_game(member_name):
                 pSpan.innerText = pBowls;
                 bowl.style.transform = "scale(1.2)";
                 setTimeout(() => bowl.style.transform = "scale(1)", 100);
-            }
-        </script>
-    </body>
-    </html>
-    """
-  )
-  components.html(html_code, height=310)
-
-
-# -------------------------------------------------------------------
-# 📦 5. 成员双人互动【后台箱子平衡堆高挑战】
-# -------------------------------------------------------------------
-def render_box_stack_game(member_name):
-  html_code = (
-      """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <style>
-            body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
-            .stack-box { background: #1a0f30; border: 3px solid #ff80ab; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); padding: 15px; width: 320px; text-align: center; }
-            .tower { height: 110px; display: flex; flex-direction: column-reverse; align-items: center; justify-content: flex-start; border-bottom: 3px solid #ff4081; margin: 10px 0; overflow: hidden; }
-            .box-item { background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; width: 140px; height: 20px; border-radius: 4px; margin: 2px 0; font-size: 11px; font-weight: bold; line-height: 20px; }
-            .stack-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: white; border: none; padding: 12px 0; font-size: 16px; font-weight: bold; border-radius: 15px; cursor: pointer; width: 100%; box-shadow: 0 4px 10px rgba(0,230,118,0.4); }
-            .stack-btn:active { transform: scale(0.95); }
-        </style>
-    </head>
-    <body>
-        <div class="stack-box">
-            <div style="color: #ffeb3b; font-weight: bold; font-size: 13px;">📦 后台整活：与 """
-      + member_name
-      + """ 的箱子堆高挑战！</div>
-            <div class="tower" id="towerContainer">
-                <div class="box-item">🎵 基底箱子 #1</div>
-            </div>
-            <div id="stack-tip" style="color: #fff; font-size: 12px; font-weight: bold; margin-bottom: 8px;">已叠高度: <span id="stackHeight">1</span> 层 (目标: 6层)</div>
-            <button class="stack-btn" onclick="addBox()">📦 稳稳叠上新箱子！</button>
-        </div>
-        <script>
-            let height = 1;
-            const maxH = 6;
-            const container = document.getElementById('towerContainer');
-            const tip = document.getElementById('stack-tip');
-            const hSpan = document.getElementById('stackHeight');
-
-            function addBox() {
-                if (height >= maxH) return;
-                height++;
-                hSpan.innerText = height;
-                let div = document.createElement('div');
-                div.className = 'box-item';
-                div.innerHTML = '📦 巡演器材箱 #' + height;
-                container.appendChild(div);
-
-                if (height === maxH) {
-                    tip.innerHTML = "🎉 完美叠到 6 层！"""
-      + member_name
-      + """ 惊叹鼓掌！";
-                    tip.style.color = "#00e676";
-                }
             }
         </script>
     </body>
@@ -823,7 +878,7 @@ if not st.session_state.game_started:
       st.rerun()
 
 # -------------------------------------------------------------------
-# 游戏主流程（精简至 25 章，包含挖宝与箱子堆高双人互动）
+# 游戏主流程（精简至 25 章）
 # -------------------------------------------------------------------
 if st.session_state.game_started:
   curr_stage = st.session_state.stage
@@ -900,32 +955,33 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # 阶段 12：⛏️ 铁锹敲击土块【地下仓库盲盒挖宝】
+  # 阶段 12：⛏️ 铁锹敲击土块【地下仓库盲盒挖宝（附带属性转化）】
   elif curr_stage == 12:
     st.subheader("📍 Stage 12：【事务所地下仓库·铁锹盲盒挖宝】")
     st.markdown(
-        '<div class="event-card"><b>⛏️ 【挖宝小游戏：铁锹敲开土块寻找盲盒】</b><br>在事务所地下仓库的土层中隐藏着绝版宝物！<b>点击下方的土块用铁锹敲开，看谁能挖出大奖！</b></div>',
+        '<div class="event-card"><b>⛏️ 【挖宝小游戏：铁锹敲开土块寻找盲盒】</b><br>在事务所地下仓库的土层中隐藏着绝版宝物！敲开土块，获得的宝物将直接转化为你的粉丝与能力加成！</div>',
         unsafe_allow_html=True,
     )
     render_dirt_dig_game()
 
-    if st.button("➔ 挖宝结束，点击进入下一阶段"):
-      st.session_state.fans += 1800
-      st.session_state.variety += 20
+    if st.button("➔ 挖宝结束，领取属性并进入下一阶段"):
+      st.session_state.fans += 1500
+      st.session_state.dance += 10
+      st.session_state.variety += 15
       st.session_state.stage += 1
       st.rerun()
 
-  # 阶段 15：📦 后台箱子平衡堆高挑战（双人互动）
+  # 阶段 15：📦 动态摆动下落堆高小游戏（双人互动）
   elif curr_stage == 15:
-    st.subheader(f"📍 Stage 15：【后台整活·与 {member} 的箱子平衡堆高】")
+    st.subheader(f"📍 Stage 15：【后台整活·与 {member} 的动态摆动堆高】")
     st.markdown(
-        f'<div class="event-card"><b>📦 【双人互动小游戏：器材箱平衡堆高】</b><br>等待上台时，你和 <b>{member}</b> 开始比拼谁能把巡演器材箱稳稳叠到最高！</div>',
+        f'<div class="event-card"><b>📦 【双人互动小游戏：左右摆动堆高挑战】</b><br>等待上台时，你和 <b>{member}</b> 用巡演器材箱/松饼玩起了左右摆动下落堆高游戏！看准时机点击落下！</div>',
         unsafe_allow_html=True,
     )
-    render_box_stack_game(member)
+    render_dynamic_stack_game(member)
 
     if st.button("➔ 游戏结束，点击进入下一阶段"):
-      st.session_state.bond += 22
+      st.session_state.bond += 25
       st.session_state.stage += 1
       st.rerun()
 
