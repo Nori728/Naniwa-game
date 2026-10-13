@@ -131,7 +131,7 @@ MEMBERS = {
     },
 }
 
-STORIES = {
+STORIES = 
     "丈君": {
         "经纪人": {
             1: {
