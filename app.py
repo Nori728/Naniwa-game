@@ -360,7 +360,7 @@ STORIES = {
                         "affection": 20,
                         "random_event": None,
                     },
-                    {
+{
                         "option": "认真注视他",
                         "dialogue_response": [
                             ("丈君", "『好啦，不闹了，我认真的……谢谢你一直陪着我。』"),
@@ -373,7 +373,8 @@ STORIES = {
                             "narrative": "烟花正好在窗外绽放，将他的侧脸照得温柔无比。",
                             "dialogue": ("丈君", "“不是经纪人和艺人，而是作为普通人的我……想一直守护你。”"),
                             "bonus_affection": 20,
-},
+                        },
+                    },
                 ],
             },
         },
