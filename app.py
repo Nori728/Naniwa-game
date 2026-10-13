@@ -157,7 +157,7 @@ st.markdown(
 )
 
 
-# 4. 初始化游戏数据
+# 4. 初始化游戏数据（增加防死机保护）
 def init_game():
   st.session_state.game_started = False
   st.session_state.stage = 1
@@ -174,7 +174,8 @@ def init_game():
   st.session_state.logs = []
 
 
-if "game_started" not in st.session_state:
+# 极其严密的状态安全检查
+if "avatar" not in st.session_state or "game_started" not in st.session_state:
   init_game()
 
 
@@ -203,9 +204,11 @@ st.title("💖 偶像培养计划：星途甄选 2.0")
 if st.session_state.game_started:
   st.sidebar.markdown("### 👑 当前训练生")
 
-  if st.session_state.avatar:
+  # 使用 safe get 语法，防止 KeyError
+  avatar_file = st.session_state.get("avatar", None)
+  if avatar_file is not None:
     st.sidebar.image(
-        st.session_state.avatar,
+        avatar_file,
         caption=f"{st.session_state.group} - {st.session_state.member}",
         use_container_width=True,
     )
