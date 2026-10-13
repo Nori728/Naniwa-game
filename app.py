@@ -423,7 +423,7 @@ def render_unit_selection_game():
 
 
 # -------------------------------------------------------------------
-# 💖 替换换装 1：【后台饭撒互动：粉丝心愿手势对暗号】（彩色炫光视觉卡片）
+# 💖 替换换装 1：【后台饭撒互动：粉丝心愿手势对暗号】
 # -------------------------------------------------------------------
 def render_fans_service_game():
   html_code = """
@@ -496,7 +496,7 @@ def render_fans_service_game():
 
 
 # -------------------------------------------------------------------
-# 📸 替换换装 2：【杂志封面拍摄：闪光灯快门抓拍 QTE】（精美动态摄影框）
+# 📸 替换换装 2：【杂志封面拍摄：闪光灯快门抓拍 QTE】
 # -------------------------------------------------------------------
 def render_magazine_photo_game():
   html_code = """
@@ -569,7 +569,7 @@ def render_magazine_photo_game():
 
 
 # -------------------------------------------------------------------
-# 🪵 替换换装 3：【后台休息室：平衡木平衡挑战】（彩色平衡仪视觉条）
+# 🪵 替换换装 3：【后台休息室：平衡木平衡挑战】（带可视化指针与进度条）
 # -------------------------------------------------------------------
 def render_balance_game():
   html_code = """
@@ -579,41 +579,59 @@ def render_balance_game():
         <style>
             body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
             .bal-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 14px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); padding: 10px; width: 300px; text-align: center; }
-            .bar-container { background: #2d1b4e; border: 2px solid #ff4081; border-radius: 10px; height: 36px; margin: 10px 0; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-            .bal-indicator { font-weight: bold; font-size: 14px; color: #ffeb3b; }
+            .bar-container { background: #211035; border: 2px solid #ff4081; border-radius: 10px; height: 38px; margin: 8px 0; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+            .balance-bar { position: absolute; width: 100%; height: 100%; display: flex; justify-content: space-around; align-items: center; padding: 0 10px; box-sizing: border-box; }
+            .zone { font-size: 11px; font-weight: bold; color: rgba(255,255,255,0.4); }
+            .zone.active { color: #ffeb3b; text-shadow: 0 0 8px #ff4081; }
+            .pointer { position: absolute; width: 6px; height: 32px; background: #00e676; border-radius: 3px; box-shadow: 0 0 10px #00e676; transition: left 0.15s ease; left: 144px; top: 3px; }
             .bal-btns { display: flex; gap: 8px; margin-top: 8px; }
-            .b-btn { background: linear-gradient(180deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 0; font-size: 14px; font-weight: bold; border-radius: 8px; cursor: pointer; flex: 1; }
+            .b-btn { background: linear-gradient(180deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 0; font-size: 13px; font-weight: bold; border-radius: 8px; cursor: pointer; flex: 1; }
             .b-btn:active { transform: scale(0.95); }
         </style>
     </head>
     <body>
         <div class="bal-box">
             <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">🪵 后台热身：顶杂志平衡木挑战！</div>
-            <div style="color: #fff; font-size: 11px; margin-top: 2px;">保持平衡仪指针在中间，防止摔倒！</div>
+            <div style="color: #fff; font-size: 11px; margin-top: 2px;">看指针偏向哪边，点击对应按钮拉回中心！</div>
+            
             <div class="bar-container">
-                <div class="bal-indicator" id="balText">⭐ 完美平衡 (Center) ⭐</div>
+                <div class="balance-bar">
+                    <span class="zone" id="zLeft">⬅️ 左倾</span>
+                    <span class="zone active" id="zCenter">⭐ 中心平衡</span>
+                    <span class="zone" id="zRight">右倾 ➡️</span>
+                </div>
+                <div class="pointer" id="balPointer"></div>
             </div>
+
             <div style="color: #00e676; font-size: 11px; font-weight: bold;">🔥 稳定得分: <span id="balScore">0</span> / 6 | ⏳ <span id="balTime">10</span>s</div>
             <div class="bal-btns">
-                <button class="b-btn" onclick="shiftBal(-1)">⬅️ 往左倾斜</button>
-                <button class="b-btn" onclick="shiftBal(1)">往右倾斜 ➡️</button>
+                <button class="b-btn" onclick="shiftBal(-1)">⬅️ 点左边拉回</button>
+                <button class="b-btn" onclick="shiftBal(1)">点右边拉回 ➡️</button>
             </div>
         </div>
         <script>
-            let pos = 0, score = 0, timeLeft = 10, isOver = false;
             let targetPos = 0; // -1左, 0中, 1右
+            let score = 0, timeLeft = 10, isOver = false;
 
             function nextTarget() {
                 if (isOver) return;
                 targetPos = Math.floor(Math.random() * 3) - 1; 
-                updateDisplay();
+                updateVisuals();
             }
 
-            function updateDisplay() {
-                let txt = "⭐ 完美平衡 (Center) ⭐";
-                if (targetPos === -1) txt = "⬅️ 身体向左歪斜！快点左边！";
-                if (targetPos === 1) txt = "➡️ 身体向右歪斜！快点右边！";
-                document.getElementById('balText').innerText = txt;
+            function updateVisuals() {
+                const pointer = document.getElementById('balPointer');
+                const zLeft = document.getElementById('zLeft');
+                const zCenter = document.getElementById('zCenter');
+                const zRight = document.getElementById('zRight');
+
+                zLeft.className = 'zone' + (targetPos === -1 ? ' active' : '');
+                zCenter.className = 'zone' + (targetPos === 0 ? ' active' : '');
+                zRight.className = 'zone' + (targetPos === 1 ? ' active' : '');
+
+                if (targetPos === -1) pointer.style.left = '45px';
+                if (targetPos === 0) pointer.style.left = '144px';
+                if (targetPos === 1) pointer.style.left = '243px';
             }
 
             let timer = setInterval(() => {
@@ -621,7 +639,7 @@ def render_balance_game():
                     timeLeft--; document.getElementById('balTime').innerText = timeLeft;
                 } else {
                     isOver = true; clearInterval(timer);
-                    document.getElementById('balText').innerText = score >= 6 ? "🎉 完美通过平衡挑战！" : "重心不稳摔倒啦...";
+                    document.getElementById('balPointer').style.background = '#ff5252';
                 }
             }, 1000);
 
@@ -632,7 +650,7 @@ def render_balance_game():
                     document.getElementById('balScore').innerText = score;
                     if (score >= 6) {
                         isOver = true;
-                        document.getElementById('balText').innerText = "🎉 完美通过平衡挑战！";
+                        document.getElementById('zCenter').innerText = "🎉 完美通关！";
                     } else {
                         nextTarget();
                     }
@@ -1131,7 +1149,7 @@ def render_dodge_canvas_game():
                 ctx.fillStyle = '#fff'; ctx.font = 'bold 12px Arial'; ctx.fillText("⏱️ 倒计时: " + timeLeft + "s", 12, 18);
                 ctx.fillStyle = '#ff4081'; ctx.fillText("❤️ 生命: " + "❤️".repeat(Math.max(0, hp)), 195, 18);
                 if (!isGameOver) requestAnimationFrame(loop);
-                else { ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(0,0,300,185); ctx.fillStyle = '#00e676'; ctx.font = 'bold 16px Arial'; ctx.fillText("🎉 生存挑战成功！", 75, 98); }
+                else { ctx.fillStyle = 'rgba(0,0,0,0.85);'; ctx.fillRect(0,0,300,185); ctx.fillStyle = '#00e676'; ctx.font = 'bold 16px Arial'; ctx.fillText("🎉 生存挑战成功！", 75, 98); }
             }
             loop();
         </script>
@@ -1466,7 +1484,7 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # 阶段 17：💖 【全新替换游戏 1】演唱会花车饭撒互动
+  # 阶段 17：💖 演唱会花车饭撒互动
   elif curr_stage == 17:
     st.subheader("📍 Stage 17：【巨蛋花车巡游】粉丝心愿手势饭撒互动")
     st.markdown(
@@ -1481,7 +1499,7 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # 阶段 18：📸 【全新替换游戏 2】杂志封面闪光灯快门抓拍
+  # 阶段 18：📸 杂志封面闪光灯快门抓拍
   elif curr_stage == 18:
     st.subheader("📍 Stage 18：【杂志封面拍摄】闪光灯快门抓拍 QTE")
     st.markdown(
@@ -1496,11 +1514,11 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # 阶段 19：🪵 【全新替换游戏 3】后台休息室平衡木挑战
+  # 阶段 19：🪵 【升级版带指针】后台休息室平衡木挑战
   elif curr_stage == 19:
     st.subheader("📍 Stage 19：【后台休息室】顶杂志平衡木热身")
     st.markdown(
-        '<div class="event-card"><b>🪵 【趣味平衡小游戏：顶杂志热身】</b><br>上台前为了防止身体紧绷，大家在后台玩顶杂志平衡木游戏！点击左右倾斜按钮稳住重心！</div>',
+        '<div class="event-card"><b>🪵 【趣味平衡小游戏：顶杂志热身】</b><br>上台前为了防止身体紧绷，大家在后台玩顶杂志平衡木游戏！看准上方带有指针的彩色进度条，及时点击对应方向拉回中心！</div>',
         unsafe_allow_html=True,
     )
     render_balance_game()
