@@ -81,7 +81,7 @@ IDOL_GROUPS = {
     "ACEes": ["浮所飞贵", "那须雄登", "作间龙斗", "深田龙生", "佐藤龙我"],
 }
 
-# 3. 样式美化
+# 3. 页面样式
 st.markdown(
     """
     <style>
@@ -133,12 +133,13 @@ st.markdown(
 )
 
 
-# 4. 初始化游戏数据
+# 4. 初始化数据
 def init_game():
   st.session_state.game_started = False
   st.session_state.stage = 1
   st.session_state.player_name = ""
   st.session_state.group = ""
+  st.session_state.lucky_item = ""
 
   st.session_state.energy = 100
   st.session_state.dance = 20
@@ -147,7 +148,6 @@ def init_game():
   st.session_state.fans = 100
   st.session_state.trust = 50
   st.session_state.bond = 10
-  st.session_state.logs = []
 
 
 if "game_started" not in st.session_state:
@@ -159,15 +159,112 @@ def get_rand_member():
   return random.choice(members)
 
 
+# 丰富多元海量剧情库
+def get_story_database(player_name, member, group):
+  return {
+      1: {
+          "title": "🎵 Stage 1：雨后练习室的汗水",
+          "desc": f"雨后的东京空气潮湿，练习室的镜子蒙上一层雾气。今天基础舞步要求极其严苛，{member} 擦着汗走过来：“{player_name}，刚才那个转身重心有点偏哦，要不要再试一次？”",
+          "opt1": "虚心请教，并独留练习室对着镜子练到深夜。",
+          "opt2": "笑着递上买好的冰麦茶，和大家结伴回宿舍聊天。",
+          "opt3": "谢过前辈，早点回宿舍休息保持第二天体能。",
+      },
+      2: {
+          "title": "📺 Stage 2：【外务】地方电视台深夜综艺外景",
+          "desc": "你获得了第一次地方电视台的节目外景外务！拍摄过程中，主持人突然把你拉到最前面要求你做 3 秒钟的个人介绍与放电！",
+          "opt1": "毫不犹豫抛出准备好的爆笑段子与搞笑表情包！",
+          "opt2": "落落大方展示一段极具反差感的美声开嗓。",
+          "opt3": "面对镜头做出招牌甜美 Wink，展现王道偶像魅力。",
+      },
+      4: {
+          "title": "☕ Stage 4：前辈休息室的冷不防考问",
+          "desc": f"在电视台走廊偶遇前辈组合，前辈看了看你们最近的排练表现，笑着问：“{player_name}，你觉得在 {group} 里，你不可替代的闪光点是什么？”",
+          "opt1": "“是永不服输的舞蹈干劲，绝对不给组合拉胯！”",
+          "opt2": "“是调节气氛的能力，有我在休息室永远充满欢笑！”",
+          "opt3": "“是对音乐的执着，希望能写出属于我们的歌曲！”",
+      },
+      5: {
+          "title": "📖 Stage 5：《Myojo》偶像杂志个人专访",
+          "desc": "杂志社来做日常专访，摄影师问你私底下和团里谁关系最好、最近最沉迷的爱好是什么。",
+          "opt1": f"“最近一直在和 {member} 一起研究吉他与编曲。”",
+          "opt2": "“喜欢收集奇怪的复古玩具，房间里到处都是。”",
+          "opt3": "“最喜欢和大家一起吃烤肉，聊到深夜也很开心。”",
+      },
+      7: {
+          "title": "📻 Stage 7：【外务】深夜广播节目连线",
+          "desc": "你在前辈的广播节目里获得了 5 分钟的个人试听 Corner，需要单独面对麦克风与全日本听众交流！",
+          "opt1": "读了一封听众来信，给出温柔治愈的人生建议。",
+          "opt2": "模仿了几位队友和社长说话的声音，节目效果爆棚。",
+          "opt3": "推荐了自己私藏的音乐歌单，展示深厚审美。",
+      },
+      8: {
+          "title": "🍖 Stage 8：深夜烤肉店的交心时刻",
+          "desc": f"结束密集排练，你和大家聚在街角的小烤肉店。滋滋作响的肉香中，{member} 谈起了对未来的迷茫与憧憬。",
+          "opt1": "“我们一定要一起以这个组合的身份站上巨蛋！”",
+          "opt2": "默默烤好一整盘肉分给大家：“快吃吧，大家辛苦啦。”",
+          "opt3": "用调侃的语气打破沉重：“以后红了可别忘了吃烤肉的情谊！”",
+      },
+      10: {
+          "title": "⚡ Stage 10：【突发外务】知名潮牌私服街拍",
+          "desc": "时尚杂志做了一期“Jr. 练习生私服大公开”特辑，需要你穿着自己的日常私服去摄影棚拍摄大片！",
+          "opt1": "穿着自己精心搭配的复古潮牌，展现独特审美。",
+          "opt2": "穿着简单干净的白 T 恤与牛仔裤，走清爽少年感。",
+          "opt3": "戴着搞怪墨镜与帽子，走夸张极具个性的路线。",
+      },
+      11: {
+          "title": "🎭 Stage 11：帝国剧场舞台剧演练",
+          "desc": "你获得了参演经典舞台剧的机会。排练时需要进行高难度的威亚特技和武打动作，导演要求极高！",
+          "opt1": "咬牙克服恐高，反复练习空中翻滚直到完美。",
+          "opt2": "专注于台词念白与眼神爆发力，展现戏剧张力。",
+          "opt3": "休息时主动拉着同台的伙伴互相对戏练习。",
+      },
+      13: {
+          "title": "⚡ Stage 13：【突发危机】八卦周刊跟拍偷拍！",
+          "desc": "八卦周刊拍到了你深夜与几位友人聚会的照片，并撰文暗示有负面嫌疑，网络舆论一时间沸沸扬扬！",
+          "opt1": "连夜向社长诚恳坦白原委，配合公关极速澄清。",
+          "opt2": "在官方博客发长文宣誓“我的爱只属于舞台”硬刚。",
+          "opt3": "保持冷静沉稳，用接下来的完美舞台回应质疑。",
+      },
+      14: {
+          "title": "🎶 Stage 14：【外务】音乐节 Showcase 自创曲唱跳",
+          "desc": "事务所给了一次机会，可以在音乐节上演唱一首由你们自己词曲创作的新歌！",
+          "opt1": "参与吉他与和声编曲，打造抒情动人的高难度曲目。",
+          "opt2": "负责舞蹈编排，设计一段炸裂的 Dance Break！",
+          "opt3": "撰写 Rap 词，将大家一路走来的汗水与羁绊写进歌里。",
+      },
+      16: {
+          "title": "⚡ Stage 16：【突发】同伴临演前突发高烧！",
+          "desc": f"巡演首日开演前 1 小时，核心成员 {member} 突然高烧倒下无法登台！他的唱歌和舞蹈段落瞬间空了出来！",
+          "opt1": "挺身而出，在 30 分钟内硬记下他的高音段落替他主唱！",
+          "opt2": "协助队长重新调整全队的走位，确保舞台视觉不空缺。",
+          "opt3": "在后台无微不至照顾生病的同伴，安抚他的情绪。",
+      },
+      17: {
+          "title": "🎁 Stage 17：粉丝感谢祭 LIVE 近距离互动",
+          "desc": "在小型剧场举办的粉丝感谢祭上，你需要安排互动环节，近距离感谢一直陪伴你们的粉丝。",
+          "opt1": "为每位到场粉丝唱专属应援词，极致宠粉拉满。",
+          "opt2": "准备了搞怪的抽奖互动，送出自己画的漫画。",
+          "opt3": "现场表演高难度全员特技翻滚，用实力回报粉丝。",
+      },
+      19: {
+          "title": "🌙 Stage 19：出道前夜的夜谈",
+          "desc": "明早就是帝国剧场出道大决选的发布会。深夜宿舍里没人睡得着，大家围坐在客厅地板上看着入所第一天的照片。",
+          "opt1": "“能和大家组团是我这辈子最幸运的事。”",
+          "opt2": "拿起来床头的吉他，轻声弹起大家入所第一天学的那首歌。",
+          "opt3": "笑着用搞怪语气打破沉重：“明天谁要是哭出来，谁请吃烤肉！”",
+      },
+  }
+
+
 # 主标题
 st.title("💖 星途闪耀：我的练习生日常")
 
 # -------------------------------------------------------------------
-# STAGE 0: 输入名字与选团
+# STAGE 0: 开局（名字 + 下拉框选团 + 扭蛋）
 # -------------------------------------------------------------------
 if not st.session_state.game_started:
   st.markdown(
-      '<div class="cute-info">✨ 欢迎来到 STARTO 偶像养成营！请先输入你的名字，然后选择心仪的组合，开启充满动态小游戏与多选剧情的练习生生涯！</div>',
+      '<div class="cute-info">✨ 欢迎来到 STARTO 偶像养成营！请输入你的名字，选择心仪组合并抽取开局幸运物！</div>',
       unsafe_allow_html=True,
   )
 
@@ -181,34 +278,57 @@ if not st.session_state.game_started:
   )
 
   st.markdown("---")
+  st.subheader("🎁 抽开局幸运物扭蛋")
+
+  if "temp_gacha" not in st.session_state:
+    st.session_state.temp_gacha = ""
+
+  if st.button("🎲 点击抽取开局幸运物！"):
+    gacha_pool = [
+        "🍀 前辈送的开光御守（遇到危机扣除信任度减半）",
+        "👟 加厚防滑特制舞鞋（舞蹈练习与舞台爆发力大幅提升）",
+        "🍲 深夜暖心关东煮（粉丝增长效率额外提升）",
+        "📖 记满心得的旧笔记本（歌唱与综艺事件收益大幅提升）",
+    ]
+    st.session_state.temp_gacha = random.choice(gacha_pool)
+
+  if st.session_state.temp_gacha:
+    st.success(f"✨ 你抽中了：**{st.session_state.temp_gacha}**")
+
+  st.markdown("---")
   if st.button("🚀 签订研修契约，正式开启练习生生活！", use_container_width=True):
     if not name_input.strip():
       st.error("请先输入你的名字哦！")
     else:
+      if not st.session_state.temp_gacha:
+        st.session_state.temp_gacha = "📖 记满心得的旧笔记本"
       st.session_state.player_name = name_input.strip()
       st.session_state.group = selected_group
+      st.session_state.lucky_item = st.session_state.temp_gacha
       st.session_state.game_started = True
       st.rerun()
 
 # -------------------------------------------------------------------
-# 游戏主流程
+# 游戏主流程（包含：互动小游戏 + 特训排程 + 海量 3 选项剧情）
 # -------------------------------------------------------------------
 if st.session_state.game_started:
   curr_stage = st.session_state.stage
-  is_free_training_day = curr_stage in [3, 7, 11, 15, 19]
+  member = get_rand_member()
 
-  # 1. 自由排程特训日
-  if is_free_training_day and curr_stage < 23:
-    st.subheader(f"🗓️ 第 {curr_stage} 阶段：自主特训与日常安排")
+  # 特训安排日
+  is_free_training_day = curr_stage in [3, 9, 15]
+
+  if is_free_training_day and curr_stage < 20:
+    st.subheader(f"🗓️ Stage {curr_stage}：自主特训与日常安排")
     st.info(
-        "💡 **自主安排日**：今天没有集体课程，请根据当前的体力状况自由安排行程！"
+        f"💡 **自主安排日** | 🎒 当前幸运物：【{st.session_state.lucky_item}】"
     )
 
     col1, col2 = st.columns(2)
     with col1:
       if st.button("💃 在舞蹈房死磕高难度步法"):
         if st.session_state.energy < 20:
-          st.error("⚠️ 你感到极度疲惫，体力不足，快去休息吧！")
+          st.error("⚠️ 体力不足，快去休息吧！")
         else:
           st.session_state.dance += random.randint(15, 25)
           st.session_state.energy -= 20
@@ -216,15 +336,14 @@ if st.session_state.game_started:
           st.rerun()
       if st.button("🎤 到声乐室练习高音发声"):
         if st.session_state.energy < 20:
-          st.error("⚠️ 嗓子有些哑了，体力不足，快去休息吧！")
+          st.error("⚠️ 嗓子有些哑了，快去休息吧！")
         else:
           st.session_state.vocal += random.randint(15, 25)
           st.session_state.energy -= 20
           st.session_state.stage += 1
           st.rerun()
     with col2:
-      member_name = get_rand_member()
-      if st.button(f"🍲 与 {member_name} 约去吃烤肉聊心事"):
+      if st.button(f"🍲 与 {member} 相约去吃烤肉聊心事"):
         if st.session_state.energy < 15:
           st.error("⚠️ 太累了，连出门的精力都没有啦！")
         else:
@@ -238,205 +357,125 @@ if st.session_state.game_started:
         st.session_state.stage += 1
         st.rerun()
 
-  elif curr_stage < 23:
-    st.subheader(f"📍 阶段 {curr_stage} / 22")
-    member = get_rand_member()
+  # 互动小游戏关卡（100% 完美适配手机）
+  elif curr_stage in [6, 12, 18]:
+    st.subheader(f"📍 Stage {curr_stage}：【舞台互动小游戏关卡】")
 
-    # 2. 动态HTML5 Canvas小游戏一：【节奏音符实时抓取画布】
-    if curr_stage in [2, 10, 18]:
+    if curr_stage == 6:
       st.markdown(f"""
             <div class="event-card">
-                <b>🎮 【动态小游戏：网页实时音符连击】</b><br>
-                下方是实时的舞台节奏画布！当粉色音符运动到中心判定区时，请立刻点击下方<b>“🎯 立即打击音符！”</b>按钮！
+                <b>🎮 【舞台小游戏：舞台 Dance Break 爆发力控制】</b><br>
+                演唱会现场突然进入你的Solo Dance时间！你需要精准拖动滑块，将爆发力度锁定在完美数值 <b>88</b> 附近！
             </div>
             """, unsafe_allow_html=True)
 
-      # 嵌入真正的 HTML5 动态交互画布与小游戏判定
-      st.markdown(
-          """
-            <div class="game-box">
-                <canvas id="gameCanvas" width="300" height="80" style="background:#2d1b4e; border-radius:10px;"></canvas>
-                <p style="color:#4a148c; font-size:13px; margin-top:8px;">💡 <b>玩法提示</b>：方块在不断移动，看准它运动到正中央时点下方按钮！</p>
-            </div>
-            <script>
-            const canvas = document.getElementById('gameCanvas');
-            const ctx = canvas.getContext('2d');
-            let x = Math.random() * 240;
-            function draw() {
-                ctx.clearRect(0, 0, 300, 80);
-                ctx.fillStyle = '#ff4081';
-                ctx.fillRect(x, 25, 30, 30);
-                ctx.fillStyle = '#ffffff';
-                ctx.font = '12px Arial';
-                ctx.fillText("🎵", x+7, 45);
-                x = (x + 2) % 270;
-                requestAnimationFrame(draw);
-            }
-            draw();
-            </script>
-            """,
-          unsafe_allow_html=True,
-      )
-
-      # 玩家点击判定按钮
-      col_g1, col_g2 = st.columns(2)
-      with col_g1:
-        hit_action = st.button("🎯 立即打击音符！")
-      with col_g2:
-        skip_action = st.button("⏭️ 放弃并跳过")
-
-      if hit_action:
-        # 随机模拟基于反应的得分
-        st.balloons()
-        st.success("🎯 **神级判定！** 你抓准了音符最完美的瞬间，全场爆发出雷鸣般的掌声！")
-        st.session_state.fans += 1800
-        st.session_state.dance += 25
-        st.session_state.stage += 1
-        st.rerun()
-      elif skip_action:
-        st.warning("⚠️ 你错过了这次打击机会，表演显得有些平淡。")
-        st.session_state.trust -= 3
-        st.session_state.stage += 1
-        st.rerun()
-
-    # 3. 动态小游戏二：【舞台走位跳格子避障画布】
-    elif curr_stage in [6, 14]:
-      st.markdown(f"""
-            <div class="event-card">
-                <b>🎮 【动态小游戏：舞台障碍跳格子避险】</b><br>
-                前方舞台的升降灯光正在随机坠落！请看准下方的实时动态避险通道，选择正确的安全方格进行跳跃！
-            </div>
-            """, unsafe_allow_html=True)
-
-      st.markdown(
-          """
-            <div class="game-box">
-                <div style="display:flex; justify-content:space-around; font-weight:bold; color:#ff4081; font-size:18px;">
-                    <span>[ ⬅️ 左侧通道 ]</span>
-                    <span>[ ⬆️ 中央主台 ]</span>
-                    <span>[ ➡️ 延伸舞台 ]</span>
-                </div>
-                <p style="color:#4a148c; font-size:13px; margin-top:8px;">⚡ 危险警报！请立刻选择一个安全的格子跳过去！</p>
-            </div>
-            """,
-          unsafe_allow_html=True,
-      )
-
-      c_l = st.button("🏃 往左侧通道闪避")
-      c_m = st.button("🏃 往中央主台闪避")
-      c_r = st.button("🏃 往延伸舞台闪避")
-
-      chosen_lane = None
-      if c_l:
-        chosen_lane = "左"
-      elif c_m:
-        chosen_lane = "中"
-      elif c_r:
-        chosen_lane = "右"
-
-      if chosen_lane:
-        safe_lane = random.choice(["左", "中", "右"])
-        if chosen_lane == safe_lane:
+      power = st.slider("滑动调整舞台爆发力度：", 1, 100, 50)
+      if st.button("🔥 释放舞台大招！"):
+        diff = abs(power - 88)
+        if diff <= 5:
           st.balloons()
-          st.success("🎯 **完美闪避！** 反应绝伦，惊险避开障碍并摆出绝帅 Pose！")
+          st.success("🎯 **PERFECT 完美输出！** 现场尖叫翻天，粉丝暴涨！")
           st.session_state.fans += 1500
-          st.session_state.trust += 10
+          st.session_state.dance += 25
         else:
-          st.warning("⚠️ **差了一步！** 你撞到了道具，好在身手敏捷迅速调整过来。")
-          st.session_state.trust -= 5
+          st.info("✨ 顺利完成了表演，展示了稳健的台风！")
+          st.session_state.fans += 500
         st.session_state.stage += 1
         st.rerun()
 
-    # 4. 丰富多元的剧情与故事关卡（选项严格增加至 3 个）
-    else:
-      story_pool = [
-          {
-              "title": "📖 练习室深夜的偶遇与抉择",
-              "desc": (
-                  f"深夜两点，整个练习室只剩下你和 {member}。他擦着汗走过来，"
-                  "递给你一瓶水：“"
-                  f"{st.session_state.player_name}，最近前辈们在看我们的练习带，大家对明年的出道名额议论纷纷。你觉得我们组合现在最大的短板是什么？”"
-              ),
-              "opt1": "“是整体的齐舞整齐度还不够，细节需要像钟表一样精确。”",
-              "opt2": "“是现场演唱时的气息控制，全开麦时还需要更稳健。”",
-              "opt3": "“是面对镜头时的个人辨识度与综艺爆发力还不够亮眼。”",
-          },
-          {
-              "title": "☕ 前辈突袭视察的突发考核",
-              "desc": (
-                  f"下午原本是自由休息时间，前辈组合突然带着摄像机推门而入！"
-                  f"{member} 和大家瞬间紧张起来。前辈笑着环视四周：“听说你们最近私底下很有干劲，来，谁敢站出来即兴solo一段？”"
-              ),
-              "opt1": "第一个主动站出来，用一段高难度的 Popping 舞蹈惊艳全场！",
-              "opt2": "落落大方地清唱了一段高难度转音，展现惊艳的声乐功底。",
-              "opt3": "用一个幽默的高情商段子把前辈逗得哈哈大笑，活跃了全场气氛。",
-          },
-          {
-              "title": "⚡ 突发！八卦周刊的深夜跟拍风波",
-              "desc": "结束外景拍摄回宿舍的路上，你敏锐地发现街角暗处有闪光灯一闪而过——是八卦周刊的狗仔偷拍！如果处理不当可能会引发事务所的信任危机。",
-              "opt1": "立刻保持冷静，目不斜视地走过，随后第一时间向社长坦白原委。",
-              "opt2": "微笑着对镜头方向挥了挥手，大大方方展现顶级少年的阳光感，直接化解偷拍恶意。",
-              "opt3": "假装没看见，快速抄近路溜回宿舍，并向队友寻求公关对策。",
-          },
-          {
-              "title": "📺 冠名综艺的残酷整蛊考验",
-              "desc": (
-                  f"在录制组合冠名综艺时，节目组安排了毫无防备的‘落穴整蛊’！你和 {member}"
-                  " 一起中招掉进了满是粉末的陷阱里，全场爆笑如雷，摄影机正怼着你的脸拍特写！"
-              ),
-              "opt1": "第一时间从粉末里爬出来，做出生无可恋的夸张表情包，贡献全场综艺高光！",
-              "opt2": "帅气地甩掉头上的粉末，对着镜头一本正经地耍帅，制造强烈反差萌。",
-              "opt3": "笑着把粉末抹到队友脸上，带头开启欢乐的大混战，展现超强团魂。",
-          },
-          {
-              "title": "🎶 录音棚里找不到感觉的瓶颈期",
-              "desc": "新单曲录制进行到关键时刻，你的声线因为连续高强度赶通告而有些沙哑，制作人在录音室里皱起了眉头，气氛有些凝固。",
-              "opt1": "主动请求休息10分钟调整状态，用温水润喉后重新完美进麦。",
-              "opt2": "选择用带点沙哑磁性的独特嗓音硬唱下来，意外呈现出绝佳的情感张力！",
-              "opt3": "虚心请教制作人，按照对方的指引现场即兴更改了和声唱法。",
-          },
-      ]
-
-      story_item = story_pool[(curr_stage * 3) % len(story_pool)]
-
+    elif curr_stage == 12:
       st.markdown(f"""
             <div class="event-card">
-                <b>{story_item['title']}</b><br><br>
-                {story_item['desc']}
+                <b>🎮 【舞台小游戏：少俱全开麦高音卡点】</b><br>
+                打歌节目现场全开麦，歌曲进入了高潮压轴高音！请把音准推到完美音高 <b>70</b> 处！
             </div>
             """, unsafe_allow_html=True)
 
-      # 严格保证每个情景都有 3 个选项
-      c_opt1 = st.button(f"1. {story_item['opt1']}")
-      c_opt2 = st.button(f"2. {story_item['opt2']}")
-      c_opt3 = st.button(f"3. {story_item['opt3']}")
-
-      if c_opt1:
-        st.session_state.dance += 10
-        st.session_state.fans += 500
-        st.session_state.trust += 5
+      pitch = st.slider("滑动微调开麦音高：", 1, 100, 40)
+      if st.button("🎤 飙高音唱响！"):
+        diff = abs(pitch - 70)
+        if diff <= 5:
+          st.balloons()
+          st.success("🎯 **PERFECT 天籁高音！** 震惊全网，歌唱实力暴涨！")
+          st.session_state.fans += 1800
+          st.session_state.vocal += 30
+        else:
+          st.info("✨ 稳住了高音，顺利完成了现场演唱。")
+          st.session_state.fans += 600
         st.session_state.stage += 1
         st.rerun()
 
-      if c_opt2:
-        st.session_state.vocal += 10
-        st.session_state.fans += 600
-        st.session_state.bond += 5
+    elif curr_stage == 18:
+      st.markdown(f"""
+            <div class="event-card">
+                <b>🎮 【舞台小游戏：巨蛋巡演神级饭撒互动】</b><br>
+                摄像机正推到你的脸部特写！把心跳控制在 <b>50</b>，向全场粉丝抛出绝美饭撒！
+            </div>
+            """, unsafe_allow_html=True)
+
+      fs = st.slider("滑动掌控宠粉心跳值：", 1, 100, 30)
+      if st.button("💖 抛出神级 Wink 饭撒！"):
+        diff = abs(fs - 50)
+        if diff <= 5:
+          st.balloons()
+          st.success("🎯 **PERFECT 绝美狙击！** 画面被传为经典名场面！")
+          st.session_state.fans += 2000
+          st.session_state.variety += 25
+        else:
+          st.info("✨ 温柔互动，收获了现场粉丝的热烈应援！")
+          st.session_state.fans += 800
         st.session_state.stage += 1
         st.rerun()
 
-      if c_opt3:
-        st.session_state.variety += 15
-        st.session_state.fans += 700
-        st.session_state.trust += 10
-        st.session_state.stage += 1
-        st.rerun()
+  # 海量 3 选项独立剧情关卡
+  elif curr_stage < 20:
+    st.subheader(f"📍 Stage {curr_stage} / 20")
+
+    s_db = get_story_database(st.session_state.player_name, member, st.session_state.group)
+    story = s_db.get(
+        curr_stage,
+        {
+            "title": f"📍 Stage {curr_stage}：日常与磨练",
+            "desc": f"组合今天迎来了紧张的日常排练，{member} 在身边给你加油打气！",
+            "opt1": "死磕舞蹈细节，把步法做到最精准。",
+            "opt2": "研究歌词情感，展现深厚歌唱张力。",
+            "opt3": "设计有趣的组内互动，拉近大家的距离。",
+        },
+    )
+
+    st.markdown(f"""
+        <div class="event-card">
+            <b>{story['title']}</b><br><br>
+            {story['desc']}
+        </div>
+        """, unsafe_allow_html=True)
+
+    # 严格 guaranteed 3 选项
+    c1 = st.button(f"1. {story['opt1']}")
+    c2 = st.button(f"2. {story['opt2']}")
+    c3 = st.button(f"3. {story['opt3']}")
+
+    if c1:
+      st.session_state.dance += 12
+      st.session_state.fans += 400
+      st.session_state.stage += 1
+      st.rerun()
+    if c2:
+      st.session_state.vocal += 12
+      st.session_state.fans += 450
+      st.session_state.stage += 1
+      st.rerun()
+    if c3:
+      st.session_state.variety += 15
+      st.session_state.bond += 10
+      st.session_state.stage += 1
+      st.rerun()
 
   # -------------------------------------------------------------------
-  # STAGE 23: 帝国剧场终局裁决
+  # STAGE 20: 帝国剧场终局裁决
   # -------------------------------------------------------------------
   else:
-    st.subheader("🏁 帝国剧场阶段（终局裁决）")
+    st.subheader("🏁 Stage 20：帝国剧场 CD 出道决选")
     st.markdown(f"""
         <div class="event-card">
             <b>✨ 【命运的聚光灯】</b><br>
@@ -444,37 +483,31 @@ if st.session_state.game_started:
         </div>
         """, unsafe_allow_html=True)
 
-    if st.button("🌟 揭晓最终考核结果与终局档案 🌟", use_container_width=True):
+    if st.button("🌟 揭晓最终出道结果 🌟", use_container_width=True):
       st.markdown("---")
-      total_ability = (
+      total = (
           st.session_state.dance
           + st.session_state.vocal
           + st.session_state.variety
       )
 
-      if (
-          st.session_state.fans >= 2200
-          and total_ability >= 130
-          and st.session_state.trust >= 55
-      ):
+      if st.session_state.fans >= 2000 and total >= 120:
         st.balloons()
         st.success(
-            f"🎉 恭喜 **{st.session_state.player_name}**！你凭借惊人的反应小游戏操作、无数次汗水与不可替代的团队羁绊，与 **{st.session_state.group}** 的伙伴们完美闪耀帝国剧场，正式华丽出道！"
+            f"🎉 恭喜 **{st.session_state.player_name}**！你携带【{st.session_state.lucky_item}】，与 **{st.session_state.group}** 的伙伴们完美闪耀帝国剧场，正式华丽 CD 出道！"
         )
       else:
         st.warning(
-            f"⚠️ 遗憾！**{st.session_state.player_name}** 的综合表现距离完美标准还有一丝差距，社长安排你继续深耕舞台，未来可期！"
+            f"⚠️ **{st.session_state.player_name}** 距离完美标准还有一丝差距，社长安排你继续深耕舞台，未来可期！"
         )
 
       st.markdown("---")
-      st.markdown(
-          f"### 📊 练习生【{st.session_state.player_name}】的终极能力解密"
+      st.markdown(f"### 📊 练习生【{st.session_state.player_name}】的终极能力")
+      st.write(
+          f"- 💃 舞蹈：**{st.session_state.dance} pt** | 🎤 歌唱：**{st.session_state.vocal} pt** | 🤡 综艺：**{st.session_state.variety} pt**"
       )
       st.write(
-          f"- 💃 舞蹈能力：**{st.session_state.dance} pt** | 🎤 歌唱能力：**{st.session_state.vocal} pt** | 🤡 综艺表现：**{st.session_state.variety} pt**"
-      )
-      st.write(
-          f"- 💖 粉丝总数：**{st.session_state.fans:,} 人** | 🤝 社长信任：**{st.session_state.trust}** | 💞 团员羁绊：**{st.session_state.bond}**"
+          f"- 💖 粉丝数：**{st.session_state.fans:,} 人** | 💞 团员羁绊：**{st.session_state.bond}**"
       )
 
       st.write("")
