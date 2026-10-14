@@ -166,7 +166,7 @@ def get_rand_member():
 
 
 # -------------------------------------------------------------------
-# 小游戏组件库
+# 小游戏组件库（所有左右移动游戏统一为完美的三条轨道模式）
 # -------------------------------------------------------------------
 
 
@@ -291,6 +291,7 @@ def render_shout_game():
 
 
 def render_dodge_game():
+  # Stage 10：三条轨道灯泡躲避战
   html_code = """
     <!DOCTYPE html><html><head><style>
     body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
@@ -593,6 +594,7 @@ def render_snapshot_game():
 
 
 def render_wink_game():
+  # Stage 20：三条轨道 Wink 电波狙击
   html_code = """
     <!DOCTYPE html><html><head><style>
     body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
@@ -688,6 +690,7 @@ def render_wink_game():
 
 
 def render_outfit_game():
+  # Stage 22：三条轨道篮子接物（战袍加分，袜子扣分）
   html_code = """
     <!DOCTYPE html><html><head><style>
     body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
@@ -874,24 +877,23 @@ def render_memory_game():
 
 
 def render_puzzle_game():
-  # Stage 27：升级为 9 宫格 (3x3) 拼图，将 1~9 按正确顺序排列！
   html_code = """
     <!DOCTYPE html><html><head><style>
     body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
     .puzzle-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 10px; width: 300px; text-align: center; }
-    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 10px auto; width: 240px; }
-    .p-tile { background: linear-gradient(135deg, #ab47bc, #7b1fa2); border: 2px solid #ff80ab; color: #fff; height: 55px; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 10px auto; width: 160px; }
+    .p-tile { background: linear-gradient(135deg, #ab47bc, #7b1fa2); border: 2px solid #ff80ab; color: #fff; height: 65px; font-size: 24px; font-weight: bold; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
     .p-tile:active { transform: scale(0.92); }
     </style></head><body>
     <div class="puzzle-box">
-        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">🚚 巨蛋盛典：9宫格花车轨道抢修拼图</div>
-        <div style="color: #fff; font-size: 11px; margin-top: 2px;">点击任意两个方块互换位置，将轨道按 1 至 9 正确排序！</div>
+        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">🚚 巨蛋盛典：简单花车轨道连通</div>
+        <div style="color: #fff; font-size: 11px; margin-top: 2px;">点击任意两个方块进行交换，让轨道按 1, 2, 3, 4 连通！</div>
         <div class="grid" id="pGrid"></div>
-        <div id="p-tip" style="color:#00e676; font-size:11px; font-weight:bold; margin-top:5px;">✨ 点击两两交换方块以复原轨道！</div>
+        <div id="p-tip" style="color:#00e676; font-size:11px; font-weight:bold; margin-top:5px;">✨ 移动方块复原轨道！</div>
     </div>
     <script>
-        let board = [3, 1, 5, 2, 8, 4, 9, 6, 7];
-        let target = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+        let board = [2, 4, 1, 3];
+        let target = [1, 2, 3, 4];
         let firstSelected = null;
         const gridEl = document.getElementById('pGrid'), tipEl = document.getElementById('p-tip');
 
@@ -900,7 +902,7 @@ def render_puzzle_game():
             board.forEach((val, idx) => {
                 let tile = document.createElement('div');
                 tile.className = 'p-tile';
-                tile.innerText = '🛤️' + val;
+                tile.innerText = '🛤️ ' + val;
                 if(firstSelected === idx) tile.style.border = '2px solid #00e676';
                 tile.onclick = () => selectTile(idx);
                 gridEl.appendChild(tile);
@@ -923,13 +925,13 @@ def render_puzzle_game():
 
         function checkWin() {
             if(board.every((v, i) => v === target[i])) {
-                tipEl.innerHTML = "<span style='color:#00e676;'>🎉 9宫格轨道完美连通！花车顺利启动！</span>";
+                tipEl.innerHTML = "<span style='color:#00e676;'>🎉 轨道连接成功！花车顺利启动！</span>";
             }
         }
         renderBoard();
     </script></body></html>
     """
-  components.html(html_code, height=295)
+  components.html(html_code, height=270)
 
 
 # 主标题
@@ -1154,11 +1156,11 @@ if st.session_state.game_started:
       st.session_state.stage = 25
       st.rerun()
 
-  # Stage 27：🚚 升级版 9 宫格 (3x3) 花车轨道拼图小游戏
+  # Stage 27：🚚 简单花车轨道拼图小游戏
   elif curr_stage == 27:
-    st.subheader(f"📍 Stage 27：【巨蛋盛典】9宫格抢修 {member} 的花车轨道")
+    st.subheader(f"📍 Stage 27：【巨蛋盛典】简单抢修 {member} 的花车轨道")
     st.markdown(
-        '<div class="event-card"><b>🚚 【互动小游戏：9宫格轨道拼图】</b><br>点击任意两个方块互换位置，将轨道按 1 至 9 正确排序！</div>',
+        '<div class="event-card"><b>🚚 【互动小游戏：轨道连通】</b><br>点击任意两个方块互换位置，将轨道按 1-4 顺畅连通！</div>',
         unsafe_allow_html=True,
     )
     render_puzzle_game()
