@@ -166,7 +166,7 @@ def get_rand_member():
 
 
 # -------------------------------------------------------------------
-# 稳定小游戏组件库（全部采用 .replace 安全拼接，杜绝括号报错）
+# 优化后的小游戏组件库（全部自带【点击开始】按钮与平衡手感）
 # -------------------------------------------------------------------
 
 
@@ -179,8 +179,16 @@ def render_piano_tiles_game():
     .btn-row { display: flex; gap: 6px; margin-top: 8px; width: 300px; }
     .piano-btn { background: linear-gradient(180deg, #ab47bc, #7b1fa2); color: white; border: 2px solid #ff80ab; padding: 10px 0; font-size: 16px; font-weight: bold; border-radius: 10px; cursor: pointer; flex: 1; text-align: center; }
     .piano-btn:active { background: #ff4081; transform: scale(0.92); }
+    .start-overlay { position: absolute; top:0; left:0; width:300px; height:220px; background: rgba(26,15,48,0.92); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; }
+    .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 20px; font-size: 15px; font-weight: bold; border-radius: 12px; cursor: pointer; }
     </style></head><body>
-    <div class="piano-box"><canvas id="pianoCanvas" width="300" height="220"></canvas></div>
+    <div class="piano-box">
+        <div id="startOverlay" class="start-overlay">
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:10px; font-size:13px;">🎹 准备好开始打歌了吗？</div>
+            <button class="start-btn" onclick="startGame()">▶️ 点击开始挑战</button>
+        </div>
+        <canvas id="pianoCanvas" width="300" height="220"></canvas>
+    </div>
     <div class="btn-row">
         <button class="piano-btn" onclick="tapTrack(0)">1</button>
         <button class="piano-btn" onclick="tapTrack(1)">2</button>
@@ -189,11 +197,16 @@ def render_piano_tiles_game():
     </div>
     <script>
         const canvas = document.getElementById('pianoCanvas'); const ctx = canvas.getContext('2d'); const trackWidth = 75;
-        let tiles = [], score = 0, combo = 0, timeLeft = 12, isGameOver = false;
-        let timer = setInterval(() => { if(timeLeft > 0 && !isGameOver) timeLeft--; else { isGameOver = true; clearInterval(timer); clearInterval(spawner); } }, 1000);
-        let spawner = setInterval(() => { if(!isGameOver) tiles.push({ track: Math.floor(Math.random()*4), y: -35, h: 35, hit: false }); }, 500);
+        let tiles = [], score = 0, combo = 0, timeLeft = 12, isStarted = false, isGameOver = false, timer, spawner;
+        function startGame() {
+            document.getElementById('startOverlay').style.display = 'none';
+            isStarted = true;
+            timer = setInterval(() => { if(timeLeft > 0 && !isGameOver) timeLeft--; else { isGameOver = true; clearInterval(timer); clearInterval(spawner); } }, 1000);
+            spawner = setInterval(() => { if(!isGameOver && isStarted) tiles.push({ track: Math.floor(Math.random()*4), y: -35, h: 35, hit: false }); }, 500);
+            loop();
+        }
         function tapTrack(idx) {
-            if(isGameOver) return; let ok = false;
+            if(!isStarted || isGameOver) return; let ok = false;
             for(let t of tiles) { if(t.track === idx && !t.hit && t.y >= 110 && t.y <= 210) { t.hit = true; ok = true; score += 100; combo++; break; } }
             if(!ok) combo = 0;
         }
@@ -218,40 +231,46 @@ def render_piano_tiles_game():
                 else { ctx.fillStyle = '#ff5252'; ctx.font = 'bold 16px Arial'; ctx.fillText("💧 挑战失败！分数未达标: " + score, 15, 115); }
             }
         }
-        loop();
     </script></body></html>
     """
   components.html(html_code, height=295)
 
 
-# Stage 6 新游戏：粉丝应援声量大作战（全动态连击，无括号冲突）
 def render_cheer_battle_game(member_name):
   html_code = """
-    <div style="background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 15px; width: 300px; text-align: center; color: #fff; font-family: system-ui, sans-serif; box-shadow: 0 6px 15px rgba(0,0,0,0.3);">
-        <div style="font-size: 12px; font-weight: bold; color: #ffeb3b;">📣 与 {member_name} 的粉丝应援声量对决！</div>
+    <div style="background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 15px; width: 300px; text-align: center; color: #fff; font-family: system-ui, sans-serif; box-shadow: 0 6px 15px rgba(0,0,0,0.3); position: relative;">
+        <div id="cheerOverlay" style="position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.92); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px;">
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:10px; font-size:13px;">📣 粉丝应援声量大作战</div>
+            <button onclick="startCheer()" style="background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 20px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer;">▶️ 点击开始挑战</button>
+        </div>
+        <div style="font-size: 12px; font-weight: bold; color: #ffeb3b;">📣 与 {member_name} 的应援对决！</div>
         <div style="font-size: 14px; margin: 10px 0; font-weight: bold;">🔥 呐喊数: <span id="cheerCount">0</span> / 30</div>
         <div style="font-size: 11px; color: #00e676; margin-bottom: 10px;">⏳ 倒计时: <span id="cheerTime">8</span>s (需满30次)</div>
         <button onclick="cheerClick()" style="background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; border: none; padding: 12px 0; width: 100%; font-size: 15px; font-weight: bold; border-radius: 12px; cursor: pointer;">🎤 疯狂呐喊应援！</button>
     </div>
     <script>
-        let count = 0, time = 8, ended = false;
-        let tInterval = setInterval(() => {
-            if (time > 0 && !ended) {
-                time--;
-                document.getElementById('cheerTime').innerText = time;
-            } else if (!ended) {
-                ended = true;
-                clearInterval(tInterval);
-                let box = document.currentScript.parentElement;
-                if (count >= 30) {
-                    box.innerHTML = "<b style='color:#00e676; font-size:14px;'>🎉 应援大获全胜！声量爆表！</b>";
-                } else {
-                    box.innerHTML = "<b style='color:#ff5252; font-size:14px;'>💧 应援声量不足，挑战未达标！</b>";
+        let count = 0, time = 8, ended = false, started = false, tInterval;
+        function startCheer() {
+            document.getElementById('cheerOverlay').style.display = 'none';
+            started = true;
+            tInterval = setInterval(() => {
+                if (time > 0 && !ended) {
+                    time--;
+                    document.getElementById('cheerTime').innerText = time;
+                } else if (!ended) {
+                    ended = true;
+                    clearInterval(tInterval);
+                    let box = document.currentScript.parentElement;
+                    if (count >= 30) {
+                        box.innerHTML = "<b style='color:#00e676; font-size:14px;'>🎉 应援大获全胜！声量爆表！</b>";
+                    } else {
+                        box.innerHTML = "<b style='color:#ff5252; font-size:14px;'>💧 应援声量不足，挑战未达标！</b>";
+                    }
                 }
-            }
-        }, 1000);
+            }, 1000);
+        }
         function cheerClick() {
-            if (ended) return;
+            if (!started || ended) return;
             count++;
             document.getElementById('cheerCount').innerText = count;
         }
@@ -259,7 +278,7 @@ def render_cheer_battle_game(member_name):
     """.replace(
       "{member_name}", member_name
   )
-  components.html(html_code, height=195)
+  components.html(html_code, height=215)
 
 
 def render_dodge_canvas_game():
@@ -271,18 +290,31 @@ def render_dodge_canvas_game():
     .ctrl-panel { display: flex; gap: 10px; margin-top: 8px; width: 300px; justify-content: center; }
     .move-btn { background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; border: none; padding: 10px 0; font-size: 14px; font-weight: bold; border-radius: 16px; cursor: pointer; flex: 1; touch-action: manipulation; }
     .move-btn:active { transform: scale(0.92); background: #00e676; }
+    .start-overlay { position: absolute; top:0; left:0; width:300px; height:185px; background: rgba(26,15,48,0.92); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; }
+    .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
     </style></head><body>
-    <div class="canvas-box"><canvas id="dodgeCanvas" width="300" height="185"></canvas></div>
+    <div class="canvas-box">
+        <div id="startOverlay" class="start-overlay">
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:10px; font-size:13px;">🎮 舞台危机极限闪避</div>
+            <button class="start-btn" onclick="startGame()">▶️ 点击开始挑战</button>
+        </div>
+        <canvas id="dodgeCanvas" width="300" height="185"></canvas>
+    </div>
     <div class="ctrl-panel">
         <button class="move-btn" onclick="movePlayer(-1)">⬅️ 往左闪避</button>
         <button class="move-btn" onclick="movePlayer(1)">往右闪避 ➡️</button>
     </div>
     <script>
         const canvas = document.getElementById('dodgeCanvas'); const ctx = canvas.getContext('2d');
-        let lane = 1, lanesX = [55, 150, 245], playerY = 150, obstacles = [], hp = 3, timeLeft = 15, isGameOver = false;
-        let timer = setInterval(() => { if(timeLeft > 0 && !isGameOver) timeLeft--; else { isGameOver = true; clearInterval(timer); clearInterval(spawner); } }, 1000);
-        let spawner = setInterval(() => { if(!isGameOver) obstacles.push({ lane: Math.floor(Math.random()*3), y: -20, speed: 4.2 }); }, 500);
-        function movePlayer(dir) { if(!isGameOver) { lane += dir; if(lane < 0) lane = 0; if(lane > 2) lane = 2; } }
+        let lane = 1, lanesX = [55, 150, 245], playerY = 150, obstacles = [], hp = 3, timeLeft = 15, isStarted = false, isGameOver = false, timer, spawner;
+        function startGame() {
+            document.getElementById('startOverlay').style.display = 'none';
+            isStarted = true;
+            timer = setInterval(() => { if(timeLeft > 0 && !isGameOver) timeLeft--; else { isGameOver = true; clearInterval(timer); clearInterval(spawner); } }, 1000);
+            spawner = setInterval(() => { if(!isGameOver && isStarted) obstacles.push({ lane: Math.floor(Math.random()*3), y: -20, speed: 4.2 }); }, 500);
+            loop();
+        }
+        function movePlayer(dir) { if(isStarted && !isGameOver) { lane += dir; if(lane < 0) lane = 0; if(lane > 2) lane = 2; } }
         function loop() {
             ctx.clearRect(0, 0, 300, 185);
             ctx.strokeStyle = '#2d1b4e'; ctx.lineWidth = 2; [100, 200].forEach(x => { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 185); ctx.stroke(); });
@@ -306,7 +338,6 @@ def render_dodge_canvas_game():
                 else { ctx.fillStyle = '#ff5252'; ctx.font = 'bold 16px Arial'; ctx.fillText("💥 闪避失败！生命耗尽...", 65, 98); }
             }
         }
-        loop();
     </script></body></html>
     """
   components.html(html_code, height=250)
@@ -469,6 +500,7 @@ def render_whack_mole_game():
   components.html(html_code, height=270)
 
 
+# 优化后的 Wink 电眼游戏：速度调慢、激光变快、自带【开始按钮】与清晰特效
 def render_eyecatch_game():
   html_code = """
     <!DOCTYPE html><html><head><style>
@@ -478,8 +510,16 @@ def render_eyecatch_game():
     .ctrl-panel { display: flex; gap: 6px; margin-top: 8px; width: 300px; justify-content: center; }
     .m-btn { background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; border: none; padding: 10px 0; font-size: 13px; font-weight: bold; border-radius: 10px; cursor: pointer; flex: 1; }
     .m-btn:active { transform: scale(0.92); background: #00e676; color: #000; }
+    .start-overlay { position: absolute; top:0; left:0; width:300px; height:230px; background: rgba(26,15,48,0.92); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; }
+    .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 20px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
     </style></head><body>
-    <div class="game-box"><canvas id="eyeCanvas" width="300" height="230"></canvas></div>
+    <div class="game-box">
+        <div id="startOverlay" class="start-overlay">
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:10px; font-size:13px;">⚡ Wink电眼狙击战</div>
+            <button class="start-btn" onclick="startGame()">▶️ 点击开始挑战</button>
+        </div>
+        <canvas id="eyeCanvas" width="300" height="230"></canvas>
+    </div>
     <div class="ctrl-panel">
         <button class="m-btn" onclick="movePlayer(-1)">⬅️ 左移</button>
         <button class="m-btn" onclick="fireWink()">⚡ 发射Wink</button>
@@ -487,16 +527,22 @@ def render_eyecatch_game():
     </div>
     <script>
         const canvas = document.getElementById('eyeCanvas'); const ctx = canvas.getContext('2d');
-        let lane = 1, lanesX = [55, 150, 245], playerY = 190, items = [], score = 0, hp = 3, timeLeft = 12, isGameOver = false, laserEffect = null;
-        let timer = setInterval(() => { if(timeLeft > 0 && !isGameOver) timeLeft--; else { isGameOver = true; clearInterval(timer); clearInterval(spawner); } }, 1000);
-        let spawner = setInterval(() => { if(!isGameOver) items.push({ lane: Math.floor(Math.random()*3), y: -20, speed: 3.5, type: Math.random() > 0.35 ? 'heart' : 'bomb' }); }, 500);
-        function movePlayer(dir) { if(!isGameOver) { lane += dir; if(lane < 0) lane = 0; if(lane > 2) lane = 2; } }
+        let lane = 1, lanesX = [55, 150, 245], playerY = 190, items = [], score = 0, hp = 3, timeLeft = 12, isStarted = false, isGameOver = false, laserEffect = null, timer, spawner;
+        function startGame() {
+            document.getElementById('startOverlay').style.display = 'none';
+            isStarted = true;
+            timer = setInterval(() => { if(timeLeft > 0 && !isGameOver) timeLeft--; else { isGameOver = true; clearInterval(timer); clearInterval(spawner); } }, 1000);
+            spawner = setInterval(() => { if(!isGameOver && isStarted) items.push({ lane: Math.floor(Math.random()*3), y: -20, speed: 2.5, type: Math.random() > 0.35 ? 'heart' : 'bomb' }); }, 700);
+            loop();
+        }
+        function movePlayer(dir) { if(isStarted && !isGameOver) { lane += dir; if(lane < 0) lane = 0; if(lane > 2) lane = 2; } }
         function fireWink() {
-            if(isGameOver) return; laserEffect = { lane: lane, timer: 10 };
+            if(!isStarted || isGameOver) return; laserEffect = { lane: lane, timer: 12 };
             for(let i = items.length - 1; i >= 0; i--) {
                 let it = items[i];
-                if(it.lane === lane && it.y >= 60 && it.y <= 210) {
-                    if(it.type === 'heart') score += 200; else { hp--; if(hp <= 0) isGameOver = true; }
+                if(it.lane === lane && it.y >= 30 && it.y <= 210) {
+                    if(it.type === 'heart') { score += 200; } 
+                    else { hp--; if(hp <= 0) isGameOver = true; }
                     items.splice(i, 1); break;
                 }
             }
@@ -504,9 +550,9 @@ def render_eyecatch_game():
         function loop() {
             ctx.clearRect(0, 0, 300, 230); ctx.strokeStyle = 'rgba(255, 128, 171, 0.15)'; ctx.lineWidth = 1.5;
             [100, 200].forEach(x => { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 230); ctx.stroke(); });
-            for (let i = items.length - 1; i >= 0; i--) { let it = items[i]; it.y += it.speed; ctx.font = '20px Arial'; ctx.fillText(it.type === 'heart' ? '💖' : '💣', lanesX[it.lane]-10, it.y+10); if (it.y > 230) items.splice(i, 1); }
-            if(laserEffect && laserEffect.timer > 0) { ctx.strokeStyle = '#00ffff'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(lanesX[laserEffect.lane], playerY); ctx.lineTo(lanesX[laserEffect.lane], 0); ctx.stroke(); laserEffect.timer--; }
-            ctx.font = '24px Arial'; ctx.fillText('🌟', lanesX[lane]-12, playerY+10);
+            for (let i = items.length - 1; i >= 0; i--) { let it = items[i]; it.y += it.speed; ctx.font = '22px Arial'; ctx.fillText(it.type === 'heart' ? '💖' : '💣', lanesX[it.lane]-11, it.y+10); if (it.y > 230) items.splice(i, 1); }
+            if(laserEffect && laserEffect.timer > 0) { ctx.strokeStyle = '#00ffff'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(lanesX[laserEffect.lane], playerY); ctx.lineTo(lanesX[laserEffect.lane], 0); ctx.stroke(); laserEffect.timer--; }
+            ctx.font = '26px Arial'; ctx.fillText('🌟', lanesX[lane]-13, playerY+10);
             ctx.fillStyle = '#fff'; ctx.font = 'bold 11px Arial'; ctx.fillText("⏱️ 剩余: " + timeLeft + "s", 10, 18); ctx.fillText("💖 得分: " + score, 110, 18); ctx.fillStyle = '#ff5252'; ctx.fillText("❤️ " + "❤️".repeat(Math.max(0, hp)), 210, 18);
             if (!isGameOver) requestAnimationFrame(loop);
             else { 
@@ -515,7 +561,6 @@ def render_eyecatch_game():
                 else { ctx.fillStyle = '#ff5252'; ctx.font = 'bold 16px Arial'; ctx.fillText("💧 挑战失败！得分未达 800", 40, 115); }
             }
         }
-        loop();
     </script></body></html>
     """
   components.html(html_code, height=295)
@@ -530,18 +575,31 @@ def render_wardrobe_catch_game(member_name):
     .ctrl-panel { display: flex; gap: 10px; margin-top: 8px; width: 300px; justify-content: center; }
     .move-btn { background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; border: none; padding: 10px 0; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; flex: 1; box-shadow: 0 3px 8px rgba(0,0,0,0.3); touch-action: manipulation; }
     .move-btn:active { transform: scale(0.92); background: #00e676; }
+    .start-overlay { position: absolute; top:0; left:0; width:300px; height:210px; background: rgba(26,15,48,0.92); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; }
+    .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
     </style></head><body>
-    <div class="catch-box"><canvas id="clothCanvas" width="300" height="210"></canvas></div>
+    <div class="catch-box">
+        <div id="startOverlay" class="start-overlay">
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:10px; font-size:13px;">🧺 后台抢救战袍大战</div>
+            <button class="start-btn" onclick="startGame()">▶️ 点击开始挑战</button>
+        </div>
+        <canvas id="clothCanvas" width="300" height="210"></canvas>
+    </div>
     <div class="ctrl-panel">
         <button class="move-btn" onclick="moveBasket(-1)">⬅️ 篮子左移</button>
         <button class="move-btn" onclick="moveBasket(1)">篮子右移 ➡️</button>
     </div>
     <script>
         const canvas = document.getElementById('clothCanvas'); const ctx = canvas.getContext('2d');
-        let lane = 1, lanesX = [55, 150, 245], basketY = 175, items = [], score = 0, timeLeft = 12, isGameOver = false;
-        let timer = setInterval(() => { if(timeLeft > 0 && !isGameOver) timeLeft--; else { isGameOver = true; clearInterval(timer); clearInterval(spawner); } }, 1000);
-        let spawner = setInterval(() => { if(!isGameOver) items.push({ lane: Math.floor(Math.random()*3), y: -20, speed: 4.2, type: Math.random() > 0.3 ? 'cloth' : 'sock' }); }, 450);
-        function moveBasket(dir) { if(!isGameOver) { lane += dir; if(lane < 0) lane = 0; if(lane > 2) lane = 2; } }
+        let lane = 1, lanesX = [55, 150, 245], basketY = 175, items = [], score = 0, timeLeft = 12, isStarted = false, isGameOver = false, timer, spawner;
+        function startGame() {
+            document.getElementById('startOverlay').style.display = 'none';
+            isStarted = true;
+            timer = setInterval(() => { if(timeLeft > 0 && !isGameOver) timeLeft--; else { isGameOver = true; clearInterval(timer); clearInterval(spawner); } }, 1000);
+            spawner = setInterval(() => { if(!isGameOver && isStarted) items.push({ lane: Math.floor(Math.random()*3), y: -20, speed: 3.5, type: Math.random() > 0.3 ? 'cloth' : 'sock' }); }, 500);
+            loop();
+        }
+        function moveBasket(dir) { if(isStarted && !isGameOver) { lane += dir; if(lane < 0) lane = 0; if(lane > 2) lane = 2; } }
         function loop() {
             ctx.clearRect(0, 0, 300, 210); ctx.strokeStyle = 'rgba(255,128,171,0.15)'; ctx.lineWidth = 1.5;
             [100, 200].forEach(x => { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 210); ctx.stroke(); });
@@ -561,7 +619,6 @@ def render_wardrobe_catch_game(member_name):
                 else { ctx.fillStyle = '#ff5252'; ctx.font = 'bold 16px Arial'; ctx.fillText("💧 换装失败！得分未达 800", 40, 105); }
             }
         }
-        loop();
     </script></body></html>
     """
   components.html(html_code, height=275)
@@ -639,6 +696,7 @@ def render_memory_game():
   components.html(html_code, height=270)
 
 
+# 优化后的 Stage 27 数字拼图：开局强制多步随机打乱，真正需要解谜！
 def render_puzzle_game():
   html_code = """
     <!DOCTYPE html><html><head><style>
@@ -653,11 +711,33 @@ def render_puzzle_game():
         <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">🚚 巨蛋盛典：抢修花车移动轨道！</div>
         <div style="color: #fff; font-size: 11px; margin-top: 2px;">点击空格邻近方块，按顺序复原轨道（1-8）！</div>
         <div style="display: flex; justify-content: center;"><div class="grid" id="pGrid"></div></div>
-        <div id="p-tip" style="color:#00e676; font-size:11px; font-weight:bold;">⏳ 剩余时间: <span id="pTime">30</span>s</div>
+        <div id="p-tip" style="color:#00e676; font-size:11px; font-weight:bold;">⏳ 剩余时间: <span id="pTime">35</span>s</div>
     </div>
     <script>
-        let board = [1, 2, 3, 4, 5, 6, 7, 0, 8];
-        let emptyIdx = 7, timeLeft = 30, isOver = false;
+        let board = [1, 2, 3, 4, 5, 6, 7, 8, 0];
+        let emptyIdx = 8, timeLeft = 35, isOver = false;
+        
+        // 随机打乱拼图（通过模拟合法移动确保有解）
+        function shuffleBoard() {
+            let moves = [ -1, 1, -3, 3 ];
+            for(let step = 0; step < 80; step++) {
+                let validMoves = [];
+                let r = Math.floor(emptyIdx / 3), c = emptyIdx % 3;
+                if(r > 0) validMoves.push(emptyIdx - 3);
+                if(r < 2) validMoves.push(emptyIdx + 3);
+                if(c > 0) validMoves.push(emptyIdx - 1);
+                if(c < 2) validMoves.push(emptyIdx + 1);
+                let target = validMoves[Math.floor(Math.random() * validMoves.length)];
+                board[emptyIdx] = board[target];
+                board[target] = 0;
+                emptyIdx = target;
+            }
+            if(board.every((v, i) => v === [1,2,3,4,5,6,7,8,0][i])) {
+                shuffleBoard(); // 避免打完还是原样
+            }
+        }
+        shuffleBoard();
+
         const gridEl = document.getElementById('pGrid'), tipEl = document.getElementById('p-tip');
 
         let timer = setInterval(() => {
@@ -711,7 +791,7 @@ if not st.session_state.game_started:
       unsafe_allow_html=True,
   )
   name_input = st.text_input(
-      "✏️ 请输入你的名字（或昵称）：", placeholder="例如：小夏"
+      "✏️ 请输入你的名字（或昵称）：", placeholder="例如：酱酱 / 小夏"
   )
   st.markdown("---")
   selected_group = st.selectbox(
@@ -810,11 +890,11 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # Stage 6：游戏 - 📣 粉丝应援声量大作战（已完全替换大胃王）
+  # Stage 6：游戏 - 📣 粉丝应援声量大作战
   elif curr_stage == 6:
     st.subheader(f"📍 Stage 6：【粉丝应援大作战】与 {member} 的声量对决")
     st.markdown(
-        f'<div class="event-card"><b>📣 【连击小游戏：应援声量爆表】</b><br>街头突击宣传！在 8 秒内疯狂点击下方按钮，为 <b>{member}</b> 和你呐喊应援达 30 次以上！</div>',
+        f'<div class="event-card"><b>📣 【连击小游戏：应援声量爆表】</b><br>街头突击宣传！点击开始后在 8 秒内疯狂点击下方按钮，为 <b>{member}</b> 和你呐喊应援达 30 次以上！</div>',
         unsafe_allow_html=True,
     )
     render_cheer_battle_game(member)
@@ -863,7 +943,7 @@ if st.session_state.game_started:
   elif curr_stage == 10:
     st.subheader("📍 Stage 10：【夏日风暴音乐节·舞台危机闪避】")
     st.markdown(
-        '<div class="event-card"><b>🎮 【生存闪避小游戏：15秒极限避险】</b><br>户外音乐节突降狂风暴雨，舞台灯光摇晃坠落！点击左右移动按钮避开坠落物，坚持 15 秒！</div>',
+        '<div class="event-card"><b>🎮 【生存闪避小游戏：15秒极限避险】</b><br>户外音乐节突降狂风暴雨，舞台灯光摇晃坠落！点击开始后通过左右移动按钮避开坠落物！</div>',
         unsafe_allow_html=True,
     )
     render_dodge_canvas_game()
@@ -969,11 +1049,11 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # Stage 20：游戏 - ⚡ 【Wink大神】巨蛋花车电眼狙击战
+  # Stage 20：游戏 - ⚡ 【Wink大神】巨蛋花车电眼狙击战（手感优化版）
   elif curr_stage == 20:
     st.subheader("📍 Stage 20：【巨蛋花车巡游】Wink大神·全场电眼狙击战")
     st.markdown(
-        '<div class="event-card"><b>⚡ 【Wink电眼狙击战】</b><br>看准下落的粉红爱心 (💖) 点击发射 Wink 激光，达到 800 分才算通过！</div>',
+        '<div class="event-card"><b>⚡ 【Wink电眼狙击战】</b><br>点击开始后看准下落的粉红爱心 (💖)发射激光，避开炸弹 (💣)，达到 800 分才算通过！</div>',
         unsafe_allow_html=True,
     )
     render_eyecatch_game()
@@ -982,11 +1062,11 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # Stage 22：游戏 - 🧺 换装接衣物小游戏（左右移动篮子接战袍）
+  # Stage 22：游戏 - 🧺 换装接衣物小游戏
   elif curr_stage == 22:
     st.subheader(f"📍 Stage 22：【演唱会暗场】与 {member} 的衣架接战袍大作战")
     st.markdown(
-        f'<div class="event-card"><b>🧺 【接物小游戏：后台战袍抢救】</b><br>暗场 12 秒！左右移动<b>小篮子 (🧺)</b>接住<b>战袍 (🧥)</b>，避开<b>臭袜子 (🧦)</b>，达到 800 分才算成功！</div>',
+        f'<div class="event-card"><b>🧺 【接物小游戏：后台战袍抢救】</b><br>点击开始后左右移动篮子接住战袍，达到 800 分才算成功！</div>',
         unsafe_allow_html=True,
     )
     render_wardrobe_catch_game(member)
@@ -1009,11 +1089,11 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # Stage 27：游戏 - 🚚 巨蛋盛典：抢修花车移动轨道（数字移动方块拼图）
+  # Stage 27：游戏 - 🚚 巨蛋盛典：抢修花车移动轨道（完美打乱解谜版）
   elif curr_stage == 27:
     st.subheader(f"📍 Stage 27：【巨蛋盛典】抢修 {member} 的花车移动轨道")
     st.markdown(
-        '<div class="event-card"><b>🚚 【移动方块小游戏：轨道抢修】</b><br>30 秒内点击空格旁边的数字方块滑动，按 1-8 顺序复原花车轨道！</div>',
+        '<div class="event-card"><b>🚚 【移动方块小游戏：轨道抢修】</b><br>方块已被随机打乱！35秒内点击空格邻近方块滑动，按 1-8 顺序复原轨道！</div>',
         unsafe_allow_html=True,
     )
     render_puzzle_game()
