@@ -1176,7 +1176,7 @@ if st.session_state.game_started:
   # -------------------------------------------------------------------
   else:
     st.subheader("🏁 Stage 30：帝国剧场 CD 出道终局裁决")
-    st.markdownf"""
+    st.markdownf
         <div class="event-card">
             <b>✨ 【命运的聚光灯】</b><br>
             帝国剧场金碧辉煌，全日本数百家媒体的闪光灯不断闪烁。历经 30 章的汗水与成长，社长坐在话筒前，即将宣读最终的 CD 出道考核结果！
