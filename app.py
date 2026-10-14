@@ -166,7 +166,7 @@ def get_rand_member():
 
 
 # -------------------------------------------------------------------
-# 高灵敏度小游戏组件库
+# 稳定小游戏组件库（全部采用 .replace 安全拼接，杜绝括号报错）
 # -------------------------------------------------------------------
 
 
@@ -215,7 +215,7 @@ def render_piano_tiles_game():
             else { 
                 ctx.fillStyle = 'rgba(0,0,0,0.88)'; ctx.fillRect(0,0,300,220); 
                 if(score >= 800) { ctx.fillStyle = '#00e676'; ctx.font = 'bold 16px Arial'; ctx.fillText("🎉 打歌挑战成功！总分: " + score, 35, 115); }
-                else { ctx.fillStyle = '#ff5252'; ctx.font = 'bold 16px Arial'; ctx.fillText("💧 挑战失败！分数未达标: " + score + " (目标:800)", 15, 115); }
+                else { ctx.fillStyle = '#ff5252'; ctx.font = 'bold 16px Arial'; ctx.fillText("💧 挑战失败！分数未达标: " + score, 15, 115); }
             }
         }
         loop();
@@ -224,40 +224,42 @@ def render_piano_tiles_game():
   components.html(html_code, height=295)
 
 
-def render_ramen_battle_game(member_name):
-  html_code = f"""
-    <!DOCTYPE html><html><head><style>
-    body {{ background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }}
-    .battle-box {{ background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); padding: 10px; width: 300px; text-align: center; }}
-    .progress-container {{ background: #211035; border: 1.5px solid #ff4081; border-radius: 8px; height: 16px; margin: 5px 0; overflow: hidden; position: relative; }}
-    .progress-bar {{ height: 100%; width: 0%; transition: width 0.1s ease; }}
-    .eat-btn {{ background: linear-gradient(45deg, #ff5252, #ffeb3b); color: #333; border: none; padding: 10px 0; font-size: 14px; font-weight: bold; border-radius: 14px; cursor: pointer; width: 100%; box-shadow: 0 3px 10px rgba(255,82,82,0.5); margin-top: 6px; }}
-    .eat-btn:active {{ transform: scale(0.95); }}
-    </style></head><body>
-    <div class="battle-box">
-        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">🍜 深夜食堂：与 {member_name} 的拉面大胃王激战！</div>
-        <div style="text-align: left; font-size: 11px; color: #00e676; margin-top: 4px;">🧑‍🎤 你 (进度: <span id="pCount">0</span> 碗)</div>
-        <div class="progress-container"><div class="progress-bar" id="pBar" style="background: #00e676; width: 0%;"></div></div>
-        <div style="text-align: left; font-size: 11px; color: #ff4081; margin-top: 4px;">🌟 {member_name} (进度: <span id="mCount">0</span> 碗)</div>
-        <div class="progress-container"><div class="progress-bar" id="mBar" style="background: #ff4081; width: 0%;"></div></div>
-        <div id="ramen-tip" style="color: #fff; font-size: 11px; font-weight: bold; margin-top: 6px;">⏳ 倒计时: <span id="rTime">10</span>s | 目标: 20碗且超队友</div>
-        <button class="eat-btn" onclick="eatRamen()">🥢 疯狂手速：炫面！</button>
+# Stage 6 新游戏：粉丝应援声量大作战（全动态连击，无括号冲突）
+def render_cheer_battle_game(member_name):
+  html_code = """
+    <div style="background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 15px; width: 300px; text-align: center; color: #fff; font-family: system-ui, sans-serif; box-shadow: 0 6px 15px rgba(0,0,0,0.3);">
+        <div style="font-size: 12px; font-weight: bold; color: #ffeb3b;">📣 与 {member_name} 的粉丝应援声量对决！</div>
+        <div style="font-size: 14px; margin: 10px 0; font-weight: bold;">🔥 呐喊数: <span id="cheerCount">0</span> / 30</div>
+        <div style="font-size: 11px; color: #00e676; margin-bottom: 10px;">⏳ 倒计时: <span id="cheerTime">8</span>s (需满30次)</div>
+        <button onclick="cheerClick()" style="background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; border: none; padding: 12px 0; width: 100%; font-size: 15px; font-weight: bold; border-radius: 12px; cursor: pointer;">🎤 疯狂呐喊应援！</button>
     </div>
-<script>
-        let pBowls = 0, mBowls = 0, timeLeft = 10, isOver = false; const targetBowls = 20;
-        const pSpan = document.getElementById('pCount'), mSpan = document.getElementById('mCount');
-        const pBar = document.getElementById('pBar'), mBar = document.getElementById('mBar'), tSpan = document.getElementById('rTime'), tipEl = document.getElementById('ramen-tip');
-        let aiTimer = setInterval(() => {{ if (!isOver) {{ mBowls += 0.75; mSpan.innerText = Math.floor(mBowls); mBar.style.width = Math.min(100, (mBowls / targetBowls) * 100) + '%'; }} }}, 300);
-        let clock = setInterval(() => {{ if (timeLeft > 0 && !isOver) {{ timeLeft--; tSpan.innerText = timeLeft; }} else {{ finishGame(); }} }}, 1000);
-        function eatRamen() {{ if (isOver) return; pBowls++; pSpan.innerText = pBowls; pBar.style.width = Math.min(100, (pBowls / targetBowls) * 100) + '%'; }}
-        function finishGame() 
-            isOver = true; clearInterval(clock); clearInterval(aiTimer); 
-            if (pBowls >= targetBowls && pBowls > mBowls) {{ tipEl.innerHTML = "🎉 炫面大胜！击败了 " + "{member_name}"; tipEl.style.color = "#00e676";  
-            else  tipEl.innerHTML = "💧 挑战失败！吃得太慢或未达标！"; tipEl.style.color = "#ff5252"; 
-        
-    </script></body></html>
-    """
-    components.html(html_code, height=295)
+    <script>
+        let count = 0, time = 8, ended = false;
+        let tInterval = setInterval(() => {
+            if (time > 0 && !ended) {
+                time--;
+                document.getElementById('cheerTime').innerText = time;
+            } else if (!ended) {
+                ended = true;
+                clearInterval(tInterval);
+                let box = document.currentScript.parentElement;
+                if (count >= 30) {
+                    box.innerHTML = "<b style='color:#00e676; font-size:14px;'>🎉 应援大获全胜！声量爆表！</b>";
+                } else {
+                    box.innerHTML = "<b style='color:#ff5252; font-size:14px;'>💧 应援声量不足，挑战未达标！</b>";
+                }
+            }
+        }, 1000);
+        function cheerClick() {
+            if (ended) return;
+            count++;
+            document.getElementById('cheerCount').innerText = count;
+        }
+    </script>
+    """.replace(
+      "{member_name}", member_name
+  )
+  components.html(html_code, height=195)
 
 
 def render_dodge_canvas_game():
@@ -520,14 +522,14 @@ def render_eyecatch_game():
 
 
 def render_wardrobe_catch_game(member_name):
-  html_code = f"""
+  html_code = """
     <!DOCTYPE html><html><head><style>
-    body {{ background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }}
-    .catch-box {{ background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); position: relative; overflow: hidden; width: 300px; height: 210px; }}
-    canvas {{ display: block; }}
-    .ctrl-panel {{ display: flex; gap: 10px; margin-top: 8px; width: 300px; justify-content: center; }}
-    .move-btn {{ background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; border: none; padding: 10px 0; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; flex: 1; box-shadow: 0 3px 8px rgba(0,0,0,0.3); touch-action: manipulation; }}
-    .move-btn:active {{ transform: scale(0.92); background: #00e676; }}
+    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+    .catch-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); position: relative; overflow: hidden; width: 300px; height: 210px; }
+    canvas { display: block; }
+    .ctrl-panel { display: flex; gap: 10px; margin-top: 8px; width: 300px; justify-content: center; }
+    .move-btn { background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; border: none; padding: 10px 0; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; flex: 1; box-shadow: 0 3px 8px rgba(0,0,0,0.3); touch-action: manipulation; }
+    .move-btn:active { transform: scale(0.92); background: #00e676; }
     </style></head><body>
     <div class="catch-box"><canvas id="clothCanvas" width="300" height="210"></canvas></div>
     <div class="ctrl-panel">
@@ -537,28 +539,28 @@ def render_wardrobe_catch_game(member_name):
     <script>
         const canvas = document.getElementById('clothCanvas'); const ctx = canvas.getContext('2d');
         let lane = 1, lanesX = [55, 150, 245], basketY = 175, items = [], score = 0, timeLeft = 12, isGameOver = false;
-        let timer = setInterval(() => {{ if(timeLeft > 0 && !isGameOver) timeLeft--; else {{ isGameOver = true; clearInterval(timer); clearInterval(spawner); }} }}, 1000);
-        let spawner = setInterval(() => {{ if(!isGameOver) items.push({{ lane: Math.floor(Math.random()*3), y: -20, speed: 4.2, type: Math.random() > 0.3 ? 'cloth' : 'sock' }}); }}, 450);
-        function moveBasket(dir) {{ if(!isGameOver) {{ lane += dir; if(lane < 0) lane = 0; if(lane > 2) lane = 2; }} }}
-        function loop() {{
+        let timer = setInterval(() => { if(timeLeft > 0 && !isGameOver) timeLeft--; else { isGameOver = true; clearInterval(timer); clearInterval(spawner); } }, 1000);
+        let spawner = setInterval(() => { if(!isGameOver) items.push({ lane: Math.floor(Math.random()*3), y: -20, speed: 4.2, type: Math.random() > 0.3 ? 'cloth' : 'sock' }); }, 450);
+        function moveBasket(dir) { if(!isGameOver) { lane += dir; if(lane < 0) lane = 0; if(lane > 2) lane = 2; } }
+        function loop() {
             ctx.clearRect(0, 0, 300, 210); ctx.strokeStyle = 'rgba(255,128,171,0.15)'; ctx.lineWidth = 1.5;
-            [100, 200].forEach(x => {{ ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 210); ctx.stroke(); }});
-            for (let i = items.length - 1; i >= 0; i--) {{
+            [100, 200].forEach(x => { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 210); ctx.stroke(); });
+            for (let i = items.length - 1; i >= 0; i--) {
                 let it = items[i]; it.y += it.speed; ctx.font = '20px Arial'; ctx.fillText(it.type === 'cloth' ? '🧥' : '🧦', lanesX[it.lane]-10, it.y+10);
-                if (it.y >= basketY-18 && it.y <= basketY+18 && it.lane === lane) {{
+                if (it.y >= basketY-18 && it.y <= basketY+18 && it.lane === lane) {
                     if (it.type === 'cloth') score += 200; else score = Math.max(0, score - 100);
                     items.splice(i, 1);
-                }} else if (it.y > 220) items.splice(i, 1);
-            }}
+                } else if (it.y > 220) items.splice(i, 1);
+            }
             ctx.font = '28px Arial'; ctx.fillText('🧺', lanesX[lane]-14, basketY+10);
             ctx.fillStyle = '#fff'; ctx.font = 'bold 11px Arial'; ctx.fillText("⏱️ 剩余: " + timeLeft + "s", 10, 18); ctx.fillStyle = '#00e676'; ctx.fillText("✨ 得分: " + score, 190, 18);
             if (!isGameOver) requestAnimationFrame(loop);
-            else {{ 
+            else { 
                 ctx.fillStyle = 'rgba(0,0,0,0.88)'; ctx.fillRect(0,0,300,210); 
-                if (score >= 800) {{ ctx.fillStyle = '#00e676'; ctx.font = 'bold 16px Arial'; ctx.fillText("🎉 抢救战袍成功！得分: " + score, 35, 105); }}
-                else {{ ctx.fillStyle = '#ff5252'; ctx.font = 'bold 16px Arial'; ctx.fillText("💧 换装失败！得分未达 800", 40, 105); }}
-            }}
-        }}
+                if (score >= 800) { ctx.fillStyle = '#00e676'; ctx.font = 'bold 16px Arial'; ctx.fillText("🎉 抢救战袍成功！得分: " + score, 35, 105); }
+                else { ctx.fillStyle = '#ff5252'; ctx.font = 'bold 16px Arial'; ctx.fillText("💧 换装失败！得分未达 800", 40, 105); }
+            }
+        }
         loop();
     </script></body></html>
     """
@@ -603,8 +605,8 @@ def render_memory_game():
         }
 
         let timer = setInterval(() => {
-            if(timeLeft > 0 && !isGameOver) { timeLeft--; document.getElementById('mTime').innerText = timeLeft; }
-            else if(!isGameOver) {
+            if(timeLeft > 0 && !isOver) { timeLeft--; document.getElementById('mTime').innerText = timeLeft; }
+            else if(!isOver) {
                 isOver = true; clearInterval(timer);
                 tipEl.innerHTML = "<span style='color:#ff5252;'>💧 时间耗尽，翻牌考验失败！</span>";
             }
@@ -709,7 +711,7 @@ if not st.session_state.game_started:
       unsafe_allow_html=True,
   )
   name_input = st.text_input(
-      "✏️ 请输入你的名字（或昵称）：", placeholder="例如：酱酱 / 小夏"
+      "✏️ 请输入你的名字（或昵称）：", placeholder="例如：小夏"
   )
   st.markdown("---")
   selected_group = st.selectbox(
@@ -808,15 +810,15 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # Stage 6：游戏 - 🍜 深夜拉面大胃王
+  # Stage 6：游戏 - 📣 粉丝应援声量大作战（已完全替换大胃王）
   elif curr_stage == 6:
-    st.subheader(f"📍 Stage 6：【深夜食堂·与 {member} 的拉面大胃王激战】")
+    st.subheader(f"📍 Stage 6：【粉丝应援大作战】与 {member} 的声量对决")
     st.markdown(
-        f'<div class="event-card"><b>🍜 【双人对抗小游戏：拉面大胃王】</b><br>练舞结束后饿坏了！你和 <b>{member}</b> 展开了 10 秒狂炫拉面对抗，吃满 20 碗且多于对手才算赢！</div>',
+        f'<div class="event-card"><b>📣 【连击小游戏：应援声量爆表】</b><br>街头突击宣传！在 8 秒内疯狂点击下方按钮，为 <b>{member}</b> 和你呐喊应援达 30 次以上！</div>',
         unsafe_allow_html=True,
     )
-    render_ramen_battle_game(member)
-    if st.button("➔ 饱餐结束，点击进入下一阶段"):
+    render_cheer_battle_game(member)
+    if st.button("➔ 应援结束，点击进入下一阶段"):
       st.session_state.bond += 18
       st.session_state.variety += 15
       st.session_state.stage += 1
