@@ -166,7 +166,7 @@ def get_rand_member():
 
 
 # -------------------------------------------------------------------
-# 原汁原味的小游戏组件库
+# 小游戏组件库
 # -------------------------------------------------------------------
 
 
@@ -297,37 +297,39 @@ def render_dodge_game():
     .game-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 10px; width: 300px; text-align: center; position: relative; }
     .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
     .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
-    canvas { background: #211035; border: 2px solid #ab47bc; border-radius: 8px; display: block; margin: 8px auto; }
+    .lane-box { display: flex; justify-content: space-around; background: #211035; border: 2px solid #ab47bc; border-radius: 8px; height: 75px; margin: 8px 0; align-items: center; font-size: 24px; }
     .ctrl-row { display: flex; justify-content: space-around; width: 100%; margin-top: 4px; }
-    .dodge-btn { background: linear-gradient(135deg, #ff4081, #7b1fa2); color: white; border: none; padding: 8px 20px; font-size: 14px; font-weight: bold; border-radius: 10px; cursor: pointer; }
+    .dodge-btn { background: linear-gradient(135deg, #ff4081, #7b1fa2); color: white; border: none; padding: 8px 22px; font-size: 14px; font-weight: bold; border-radius: 10px; cursor: pointer; }
     .dodge-btn:active { transform: scale(0.92); }
     </style></head><body>
     <div class="game-box">
         <div id="startOverlay" class="start-overlay">
-            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">⚡ 随机下落灯泡躲避战</div>
-            <div style="color:#fff; font-size:11px; margin-bottom:10px;">12秒内左右移动躲避随机掉落的 💡 故障灯泡！</div>
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">⚡ 三轨道灯泡躲避战</div>
+            <div style="color:#fff; font-size:11px; margin-bottom:10px;">12秒内左右移动，避开掉落的 💡 故障灯泡！</div>
             <button class="start-btn" onclick="startGame()">▶️ 开始躲避</button>
         </div>
-        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">⚡ 舞台危机：随机下落灯泡躲避</div>
+        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">⚡ 舞台危机：三轨道躲避灯泡</div>
         <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 2px;">🛡️ 闪避得分: <span id="dScore">0</span> | ⏳ <span id="dTime">12</span>s</div>
-        <canvas id="dodgeCanvas" width="280" height="150"></canvas>
-        <div class="ctrl-row">
-            <button class="dodge-btn" onclick="moveLeft()">⬅️ 往左</button>
-            <button class="dodge-btn" onclick="moveRight()">往右 ➡️</button>
+        <div class="lane-box">
+            <div id="lane0">⭐</div>
+            <div id="lane1">⭐</div>
+            <div id="lane2">⭐</div>
         </div>
-        <div id="d-tip" style="color: #fff; font-size: 11px; margin-top: 5px;">左右移动避开故障灯泡！</div>
+        <div class="ctrl-row">
+            <button class="dodge-btn" onclick="movePlayer(-1)">⬅️ 往左</button>
+            <button class="dodge-btn" onclick="movePlayer(1)">往右 ➡️</button>
+        </div>
+        <div id="d-tip" style="color: #fff; font-size: 11px; margin-top: 5px;">左右移动切换轨道避开故障灯泡！</div>
     </div>
     <script>
-        const canvas = document.getElementById('dodgeCanvas');
-        const ctx = canvas.getContext('2d');
         let score = 0, timeLeft = 12, isStarted = false, isOver = false;
-        let playerX = 120, playerW = 40, playerH = 20;
-        let bulbs = [];
-        let timer, spawner, animator;
+        let playerLane = 1, bulbLane = 0;
+        let timer, spawner;
 
         function startGame() {
             document.getElementById('startOverlay').style.display = 'none';
             isStarted = true;
+            renderLanes();
             timer = setInterval(() => {
                 if(timeLeft > 0 && !isOver) {
                     timeLeft--;
@@ -339,56 +341,50 @@ def render_dodge_game():
 
             spawner = setInterval(() => {
                 if(isOver || !isStarted) return;
-                bulbs.push({
-                    x: Math.random() * (280 - 24),
-                    y: -24,
-                    speed: 2.5 + Math.random() * 2
-                });
-            }, 700);
-
-            animator = setInterval(loop, 20);
-        }
-
-        function moveLeft() { if(!isStarted || isOver) return; playerX = Math.max(0, playerX - 25); }
-        function moveRight() { if(!isStarted || isOver) return; playerX = Math.min(280 - playerW, playerX + 25); }
-
-        function loop() {
-            ctx.clearRect(0, 0, 280, 150);
-            ctx.fillStyle = '#ff4081'; ctx.fillRect(playerX, 130, playerW, playerH);
-            ctx.fillStyle = '#fff'; ctx.font = '14px Arial'; ctx.fillText('🧍‍♂️', playerX + 8, 146);
-
-            for(let i = bulbs.length - 1; i >= 0; i--) {
-                let b = bulbs[i];
-                b.y += b.speed;
-                ctx.fillText('💡', b.x, b.y);
-
-                if(b.y >= 110 && b.y <= 145 && b.x + 20 >= playerX && b.x <= playerX + playerW) {
+                bulbLane = Math.floor(Math.random() * 3);
+                renderLanes();
+                if(playerLane === bulbLane) {
                     score = Math.max(0, score - 1);
                     document.getElementById('dScore').innerText = score;
                     document.getElementById('d-tip').innerHTML = "<span style='color:#ff5252;'>💥 被故障灯泡砸中了！</span>";
-                    bulbs.splice(i, 1);
-                } else if(b.y > 150) {
+                } else {
                     score += 1;
                     document.getElementById('dScore').innerText = score;
                     document.getElementById('d-tip').innerHTML = "<span style='color:#00e676;'>✨ 漂亮！成功躲开！</span>";
-                    bulbs.splice(i, 1);
                 }
-            }
+            }, 1200);
+        }
 
-            if(isOver) {
-                ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(0,0,280,150);
-                ctx.fillStyle = score >= 8 ? '#00e676' : '#ff5252';
-                ctx.font = 'bold 14px Arial';
-                ctx.fillText(score >= 8 ? "🎉 闪避危机大成功！得分: " + score : "💧 闪避不及，得分: " + score, 30, 80);
+        function movePlayer(dir) {
+            if(!isStarted || isOver) return;
+            playerLane = Math.max(0, Math.min(2, playerLane + dir));
+            renderLanes();
+            if(playerLane === bulbLane) {
+                document.getElementById('d-tip').innerHTML = "<span style='color:#ff5252;'>⚠️ 撞到灯泡轨道了！</span>";
+            } else {
+                document.getElementById('d-tip').innerHTML = "<span style='color:#00e676;'>👍 安全轨道！</span>";
+            }
+        }
+
+        function renderLanes() {
+            for(let i=0; i<3; i++) {
+                let content = '⭐';
+                if(i === playerLane && i === bulbLane) content = '💥';
+                else if(i === playerLane) content = '🧍‍♂️';
+                else if(i === bulbLane) content = '💡';
+                document.getElementById('lane' + i).innerText = content;
             }
         }
 
         function endDodge() {
-            isOver = true; clearInterval(timer); clearInterval(spawner); clearInterval(animator);
+            isOver = true;
+            clearInterval(timer);
+            clearInterval(spawner);
+            document.getElementById('d-tip').innerHTML = score >= 5 ? "<span style='color:#00e676;'>🎉 闪避大成功！得分: " + score + "</span>" : "<span style='color:#ff5252;'>💧 闪避不及！得分: " + score + "</span>";
         }
     </script></body></html>
     """
-  components.html(html_code, height=310)
+  components.html(html_code, height=275)
 
 
 def render_dig_game():
@@ -603,39 +599,40 @@ def render_wink_game():
     .game-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 10px; width: 300px; text-align: center; position: relative; }
     .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
     .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
-    canvas { background: #211035; border: 2px solid #ab47bc; border-radius: 8px; display: block; margin: 8px auto; }
+    .lane-box { display: flex; justify-content: space-around; background: #211035; border: 2px solid #ab47bc; border-radius: 8px; height: 75px; margin: 8px 0; align-items: center; font-size: 26px; }
     .ctrl-row { display: flex; justify-content: space-around; width: 100%; margin-top: 4px; }
-    .wink-btn { background: linear-gradient(135deg, #ff4081, #7b1fa2); color: white; border: none; padding: 8px 14px; font-size: 13px; font-weight: bold; border-radius: 10px; cursor: pointer; }
+    .wink-btn { background: linear-gradient(135deg, #ff4081, #ab47bc); color: white; border: none; padding: 8px 14px; font-size: 13px; font-weight: bold; border-radius: 10px; cursor: pointer; }
     .wink-btn:active { transform: scale(0.92); }
     </style></head><body>
     <div class="game-box">
         <div id="startOverlay" class="start-overlay">
-            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">🌟 下落心动狙击·Wink电波战</div>
-            <div style="color:#fff; font-size:11px; margin-bottom:10px;">12秒内左右移动角色，看准下落的 💖 粉丝区发射 Wink 电波！</div>
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">🌟 三轨道 Wink 电波狙击</div>
+            <div style="color:#fff; font-size:11px; margin-bottom:10px;">10秒内左右移动到粉丝区（💖）按下按钮发射 Wink！</div>
             <button class="start-btn" onclick="startGame()">▶️ 开始电眼巡游</button>
         </div>
-        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">🌟 巨蛋花车：下落电眼 Wink 狙击</div>
-        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 2px;">💖 Wink命中: <span id="wScore">0</span> | ⏳ <span id="wTime">12</span>s</div>
-        <canvas id="winkCanvas" width="280" height="150"></canvas>
-        <div class="ctrl-row">
-            <button class="wink-btn" onclick="moveLeft()">⬅️ 往左</button>
-            <button class="wink-btn" style="background: linear-gradient(45deg, #00e676, #00b0ff); color:#000;" onclick="shootWink()">😉 发射Wink</button>
-            <button class="wink-btn" onclick="moveRight()">往右 ➡️</button>
+        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">🌟 巨蛋花车：三轨道电眼狙击</div>
+        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 2px;">💖 Wink得分: <span id="wScore">0</span> | ⏳ <span id="wTime">10</span>s</div>
+        <div class="lane-box">
+            <div id="wLane0">✨</div>
+            <div id="wLane1">✨</div>
+            <div id="wLane2">✨</div>
         </div>
-        <div id="w-tip" style="color: #fff; font-size: 11px; margin-top: 5px;">对准下落的心形粉丝区发射 Wink 电波！</div>
+        <div class="ctrl-row">
+            <button class="wink-btn" onclick="moveWink(-1)">⬅️ 往左</button>
+            <button class="wink-btn" style="background: linear-gradient(45deg, #00e676, #00b0ff); color:#000;" onclick="winkAction()">😉 发射Wink</button>
+            <button class="wink-btn" onclick="moveWink(1)">往右 ➡️</button>
+        </div>
+        <div id="w-tip" style="color: #fff; font-size: 11px; margin-top: 5px;">移动到粉丝区（💖）按下发射！</div>
     </div>
     <script>
-        const canvas = document.getElementById('winkCanvas');
-        const ctx = canvas.getContext('2d');
-        let score = 0, timeLeft = 12, isStarted = false, isOver = false;
-        let playerX = 120, playerW = 40;
-        let targets = [];
-        let bullets = [];
-        let timer, spawner, animator;
+        let score = 0, timeLeft = 10, isStarted = false, isOver = false;
+        let playerLane = 1, fanLane = 0;
+        let timer, spawner;
 
         function startGame() {
             document.getElementById('startOverlay').style.display = 'none';
             isStarted = true;
+            renderWink();
             timer = setInterval(() => {
                 if(timeLeft > 0 && !isOver) {
                     timeLeft--;
@@ -647,72 +644,35 @@ def render_wink_game():
 
             spawner = setInterval(() => {
                 if(isOver || !isStarted) return;
-                targets.push({
-                    x: Math.random() * (280 - 24),
-                    y: -24,
-                    speed: 2 + Math.random() * 1.5
-                });
-            }, 800);
-
-            animator = setInterval(loop, 20);
+                fanLane = Math.floor(Math.random() * 3);
+                renderWink();
+            }, 1100);
         }
 
-        function moveLeft() { if(!isStarted || isOver) return; playerX = Math.max(0, playerX - 25); }
-        function moveRight() { if(!isStarted || isOver) return; playerX = Math.min(280 - playerW, playerX + 25); }
-
-        function shootWink() {
+        function moveWink(dir) {
             if(!isStarted || isOver) return;
-            bullets.push({
-                x: playerX + playerW / 2 - 4,
-                y: 125,
-                speed: 6
-            });
+            playerLane = Math.max(0, Math.min(2, playerLane + dir));
+            renderWink();
         }
 
-        function loop() {
-            ctx.clearRect(0, 0, 280, 150);
-
-            ctx.fillStyle = '#ff4081';
-            ctx.fillRect(playerX, 130, playerW, 18);
-            ctx.fillStyle = '#fff'; ctx.font = '14px Arial';
-            ctx.fillText('🧍‍♂️', playerX + 8, 145);
-
-            for(let j = bullets.length - 1; j >= 0; j--) {
-                let b = bullets[j];
-                b.y -= b.speed;
-                ctx.fillStyle = '#00e676';
-                ctx.fillText('⚡', b.x, b.y);
-
-                for(let i = targets.length - 1; i >= 0; i--) {
-                    let t = targets[i];
-                    if(Math.abs(b.x - t.x) < 22 && Math.abs(b.y - t.y) < 22) {
-                        score += 1;
-                        document.getElementById('wScore').innerText = score;
-                        document.getElementById('w-tip').innerHTML = "<span style='color:#00e676;'>✨ 电波击中！ Wink 精准狙击！</span>";
-                        targets.splice(i, 1);
-                        bullets.splice(j, 1);
-                        break;
-                    }
-                }
-                if(b && b.y < 0) bullets.splice(j, 1);
+        function winkAction() {
+            if(!isStarted || isOver) return;
+            if(playerLane === fanLane) {
+                score++;
+                document.getElementById('wScore').innerText = score;
+                document.getElementById('w-tip').innerHTML = "<span style='color:#00e676;'>✨ Wink精准狙击！粉丝疯狂尖叫！</span>";
+            } else {
+                document.getElementById('w-tip').innerHTML = "<span style='color:#ff5252;'>💧 方向没对准，打到空气了！</span>";
             }
+        }
 
-            for(let i = targets.length - 1; i >= 0; i--) {
-                let t = targets[i];
-                t.y += t.speed;
-                ctx.fillText('💖', t.x, t.y);
-
-                if(t.y > 150) {
-                    targets.splice(i, 1);
-                }
-            }
-
-            if(isOver) {
-                ctx.fillStyle = 'rgba(0,0,0,0.85)';
-                ctx.fillRect(0,0,280,150);
-                ctx.fillStyle = score >= 5 ? '#00e676' : '#ff5252';
-                ctx.font = 'bold 14px Arial';
-                ctx.fillText(score >= 5 ? "🎉 Wink狙击成功！得分: " + score : "💧 命中不足，得分: " + score, 30, 80);
+        function renderWink() {
+            for(let i=0; i<3; i++) {
+                let content = '✨';
+                if(i === playerLane && i === fanLane) content = '💖😉';
+                else if(i === playerLane) content = '🧍‍♂️';
+                else if(i === fanLane) content = '💖';
+                document.getElementById('wLane' + i).innerText = content;
             }
         }
 
@@ -720,52 +680,53 @@ def render_wink_game():
             isOver = true;
             clearInterval(timer);
             clearInterval(spawner);
-            clearInterval(animator);
+            document.getElementById('w-tip').innerHTML = score >= 4 ? "<span style='color:#00e676;'>🎉 电眼狙击大成功！得分: " + score + "</span>" : "<span style='color:#ff5252;'>💧 表现平平！得分: " + score + "</span>";
         }
     </script></body></html>
     """
-  components.html(html_code, height=310)
+  components.html(html_code, height=275)
 
 
 def render_outfit_game():
-  # 完全百分之百严格还原：物理随机掉落 🧥 战袍(加分) 和 🧦 脏袜子(扣分)！篮子左右移动接物！
   html_code = """
     <!DOCTYPE html><html><head><style>
     body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
     .game-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 10px; width: 300px; text-align: center; position: relative; }
     .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
     .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
-    canvas { background: #211035; border: 2px solid #ab47bc; border-radius: 8px; display: block; margin: 8px auto; }
+    .lane-box { display: flex; justify-content: space-around; background: #211035; border: 2px solid #ab47bc; border-radius: 8px; height: 75px; margin: 8px 0; align-items: center; font-size: 26px; }
     .ctrl-row { display: flex; justify-content: space-around; width: 100%; margin-top: 4px; }
-    .outfit-btn { background: linear-gradient(135deg, #ff4081, #7b1fa2); color: white; border: none; padding: 8px 20px; font-size: 14px; font-weight: bold; border-radius: 10px; cursor: pointer; }
+    .outfit-btn { background: linear-gradient(135deg, #ff4081, #7b1fa2); color: white; border: none; padding: 8px 18px; font-size: 14px; font-weight: bold; border-radius: 10px; cursor: pointer; }
     .outfit-btn:active { transform: scale(0.92); }
     </style></head><body>
     <div class="game-box">
         <div id="startOverlay" class="start-overlay">
-            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">🧺 暗场篮子接物·战袍抢救战</div>
-            <div style="color:#fff; font-size:11px; margin-bottom:10px;">12秒内左右移动篮子！接住 🧥 战袍加分，避开 🧦 脏袜子(扣分)！</div>
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">🧺 三轨道篮子接物战</div>
+            <div style="color:#fff; font-size:11px; margin-bottom:10px;">12秒内左右移动篮子！接住 🧥 战袍(+1分)，避开 🧦 脏袜子(-1分)！</div>
             <button class="start-btn" onclick="startGame()">▶️ 开始接战袍</button>
         </div>
-        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">🧺 演唱会暗场：篮子左右移动接战袍</div>
+        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">🧺 演唱会暗场：三轨道篮子接物</div>
         <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 2px;">🧺 接物得分: <span id="oScore">0</span> | ⏳ <span id="oTime">12</span>s</div>
-        <canvas id="outfitCanvas" width="280" height="150"></canvas>
-        <div class="ctrl-row">
-            <button class="outfit-btn" onclick="moveLeft()">⬅️ 篮子往左</button>
-            <button class="outfit-btn" onclick="moveRight()">篮子往右 ➡️</button>
+        <div class="lane-box">
+            <div id="oLane0">⭐</div>
+            <div id="oLane1">⭐</div>
+            <div id="oLane2">⭐</div>
         </div>
-        <div id="o-tip" style="color: #fff; font-size: 11px; margin-top: 5px;">接住 🧥 战袍(+1分)，避开 🧦 袜子(-1分)！</div>
+        <div class="ctrl-row">
+            <button class="outfit-btn" onclick="moveBasket(-1)">⬅️ 篮子往左</button>
+            <button class="outfit-btn" onclick="moveBasket(1)">篮子往右 ➡️</button>
+        </div>
+        <div id="o-tip" style="color: #fff; font-size: 11px; margin-top: 5px;">左右移动篮子接住 🧥 战袍，避开 🧦 脏袜子！</div>
     </div>
     <script>
-        const canvas = document.getElementById('outfitCanvas');
-        const ctx = canvas.getContext('2d');
         let score = 0, timeLeft = 12, isStarted = false, isOver = false;
-        let basketX = 110, basketW = 50, basketH = 20;
-        let items = [];
-        let timer, spawner, animator;
+        let basketLane = 1, itemLane = 0, itemType = '🧥';
+        let timer, spawner;
 
         function startGame() {
             document.getElementById('startOverlay').style.display = 'none';
             isStarted = true;
+            renderBasket();
             timer = setInterval(() => {
                 if(timeLeft > 0 && !isOver) {
                     timeLeft--;
@@ -777,68 +738,61 @@ def render_outfit_game():
 
             spawner = setInterval(() => {
                 if(isOver || !isStarted) return;
-                let isCloth = Math.random() > 0.35; // 65%概率出现衣服，35%出现袜子
-                items.push({
-                    x: Math.random() * (280 - 24),
-                    y: -24,
-                    type: isCloth ? '🧥' : '🧦',
-                    speed: 2.2 + Math.random() * 1.5
-                });
-            }, 650);
-
-            animator = setInterval(loop, 20);
-        }
-
-        function moveLeft() { if(!isStarted || isOver) return; basketX = Math.max(0, basketX - 25); }
-        function moveRight() { if(!isStarted || isOver) return; basketX = Math.min(280 - basketW, basketX + 25); }
-
-        function loop() {
-            ctx.clearRect(0, 0, 280, 150);
-
-            // 绘制篮子
-            ctx.fillStyle = '#ab47bc';
-            ctx.fillRect(basketX, 130, basketW, basketH);
-            ctx.fillStyle = '#fff'; ctx.font = '14px Arial';
-            ctx.fillText('🧺', basketX + 14, 146);
-
-            // 绘制与更新掉落物品
-            for(let i = items.length - 1; i >= 0; i--) {
-                let item = items[i];
-                item.y += item.speed;
-                ctx.fillText(item.type, item.x, item.y);
-
-                // 碰撞检测（接住物品）
-                if(item.y >= 110 && item.y <= 145 && item.x + 20 >= basketX && item.x <= basketX + basketW) {
-                    if(item.type === '🧥') {
+                itemLane = Math.floor(Math.random() * 3);
+                itemType = Math.random() > 0.35 ? '🧥' : '🧦';
+                renderBasket();
+                if(basketLane === itemLane) {
+                    if(itemType === '🧥') {
                         score += 1;
                         document.getElementById('oScore').innerText = score;
                         document.getElementById('o-tip').innerHTML = "<span style='color:#00e676;'>✨ 接住战袍 🧥！(+1分)</span>";
                     } else {
                         score = Math.max(0, score - 1);
                         document.getElementById('oScore').innerText = score;
-                        document.getElementById('o-tip').innerHTML = "<span style='color:#ff5252;'>💥 接到了脏袜子 🧦！(-1分)</span>";
+                        document.getElementById('o-tip').innerHTML = "<span style='color:#ff5252;'>💥 接到脏袜子 🧦！(-1分)</span>";
                     }
-                    items.splice(i, 1);
-                } else if(item.y > 150) {
-                    items.splice(i, 1);
+                } else {
+                    document.getElementById('o-tip').innerHTML = "<span style='color:#fff;'>物品掉落在其他轨道...</span>";
+                }
+            }, 1200);
+        }
+
+        function moveBasket(dir) {
+            if(!isStarted || isOver) return;
+            basketLane = Math.max(0, Math.min(2, basketLane + dir));
+            renderBasket();
+            if(basketLane === itemLane) {
+                if(itemType === '🧥') {
+                    score += 1;
+                    document.getElementById('oScore').innerText = score;
+                    document.getElementById('o-tip').innerHTML = "<span style='color:#00e676;'>🧺 及时接住战袍 🧥！(+1分)</span>";
+                } else {
+                    score = Math.max(0, score - 1);
+                    document.getElementById('oScore').innerText = score;
+                    document.getElementById('o-tip').innerHTML = "<span style='color:#ff5252;'>🧺 撞到脏袜子 🧦！(-1分)</span>";
                 }
             }
+        }
 
-            if(isOver) {
-                ctx.fillStyle = 'rgba(0,0,0,0.85)';
-                ctx.fillRect(0,0,280,150);
-                ctx.fillStyle = score >= 5 ? '#00e676' : '#ff5252';
-                ctx.font = 'bold 14px Arial';
-                ctx.fillText(score >= 5 ? "🎉 战袍完美抢救！得分: " + score : "💧 抢救失败，得分: " + score, 30, 80);
+        function renderBasket() {
+            for(let i=0; i<3; i++) {
+                let content = '⭐';
+                if(i === basketLane && i === itemLane) content = '🧺' + itemType;
+                else if(i === basketLane) content = '🧺';
+                else if(i === itemLane) content = itemType;
+                document.getElementById('oLane' + i).innerText = content;
             }
         }
 
         function endOutfit() {
-            isOver = true; clearInterval(timer); clearInterval(spawner); clearInterval(animator);
+            isOver = true;
+            clearInterval(timer);
+            clearInterval(spawner);
+            document.getElementById('o-tip').innerHTML = score >= 4 ? "<span style='color:#00e676;'>🎉 战袍完美抢救！得分: " + score + "</span>" : "<span style='color:#ff5252;'>💧 手忙脚乱！得分: " + score + "</span>";
         }
     </script></body></html>
     """
-  components.html(html_code, height=310)
+  components.html(html_code, height=275)
 
 
 def render_memory_game():
@@ -920,23 +874,24 @@ def render_memory_game():
 
 
 def render_puzzle_game():
+  # Stage 27：升级为 9 宫格 (3x3) 拼图，将 1~9 按正确顺序排列！
   html_code = """
     <!DOCTYPE html><html><head><style>
     body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
     .puzzle-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 10px; width: 300px; text-align: center; }
-    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 10px auto; width: 160px; }
-    .p-tile { background: linear-gradient(135deg, #ab47bc, #7b1fa2); border: 2px solid #ff80ab; color: #fff; height: 65px; font-size: 24px; font-weight: bold; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 10px auto; width: 240px; }
+    .p-tile { background: linear-gradient(135deg, #ab47bc, #7b1fa2); border: 2px solid #ff80ab; color: #fff; height: 55px; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
     .p-tile:active { transform: scale(0.92); }
     </style></head><body>
     <div class="puzzle-box">
-        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">🚚 巨蛋盛典：简单花车轨道连通</div>
-        <div style="color: #fff; font-size: 11px; margin-top: 2px;">点击任意两个方块进行交换，让轨道按 1, 2, 3, 4 连通！</div>
+        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">🚚 巨蛋盛典：9宫格花车轨道抢修拼图</div>
+        <div style="color: #fff; font-size: 11px; margin-top: 2px;">点击任意两个方块互换位置，将轨道按 1 至 9 正确排序！</div>
         <div class="grid" id="pGrid"></div>
-        <div id="p-tip" style="color:#00e676; font-size:11px; font-weight:bold; margin-top:5px;">✨ 移动方块复原轨道！</div>
+        <div id="p-tip" style="color:#00e676; font-size:11px; font-weight:bold; margin-top:5px;">✨ 点击两两交换方块以复原轨道！</div>
     </div>
     <script>
-        let board = [2, 4, 1, 3];
-        let target = [1, 2, 3, 4];
+        let board = [3, 1, 5, 2, 8, 4, 9, 6, 7];
+        let target = [1, 2, 3, 4, 5, 6, 7, 8, 9];
         let firstSelected = null;
         const gridEl = document.getElementById('pGrid'), tipEl = document.getElementById('p-tip');
 
@@ -945,7 +900,7 @@ def render_puzzle_game():
             board.forEach((val, idx) => {
                 let tile = document.createElement('div');
                 tile.className = 'p-tile';
-                tile.innerText = '🛤️ ' + val;
+                tile.innerText = '🛤️' + val;
                 if(firstSelected === idx) tile.style.border = '2px solid #00e676';
                 tile.onclick = () => selectTile(idx);
                 gridEl.appendChild(tile);
@@ -968,13 +923,13 @@ def render_puzzle_game():
 
         function checkWin() {
             if(board.every((v, i) => v === target[i])) {
-                tipEl.innerHTML = "<span style='color:#00e676;'>🎉 轨道连接成功！花车顺利启动！</span>";
+                tipEl.innerHTML = "<span style='color:#00e676;'>🎉 9宫格轨道完美连通！花车顺利启动！</span>";
             }
         }
         renderBoard();
     </script></body></html>
     """
-  components.html(html_code, height=270)
+  components.html(html_code, height=295)
 
 
 # 主标题
@@ -1102,11 +1057,11 @@ if st.session_state.game_started:
       st.session_state.stage = 7
       st.rerun()
 
-  # Stage 10：⚡ 舞台危机：物理下落随机灯泡躲避
+  # Stage 10：⚡ 舞台危机：三轨道躲避灯泡
   elif curr_stage == 10:
     st.subheader("📍 Stage 10：【夏日风暴音乐节·舞台危机闪避】")
     st.markdown(
-        '<div class="event-card"><b>🎮 【互动小游戏：左右移动躲避掉落灯泡】</b><br>户外音乐节突降暴雨，使用左右按钮操纵角色避开随机掉落的故障灯泡！</div>',
+        '<div class="event-card"><b>🎮 【互动小游戏：三轨道左右移动躲避灯泡】</b><br>户外音乐节突降暴雨，使用左右按钮在三条轨道间切换，避开故障灯泡！</div>',
         unsafe_allow_html=True,
     )
     render_dodge_game()
@@ -1159,11 +1114,11 @@ if st.session_state.game_started:
       st.session_state.stage = 16
       st.rerun()
 
-  # Stage 20：🌟 Wink大神·左右移动发射 Wink 电波
+  # Stage 20：🌟 三轨道 Wink 电波狙击
   elif curr_stage == 20:
-    st.subheader("📍 Stage 20：【巨蛋花车巡游】Wink大神·左右移动发射 Wink 电波")
+    st.subheader("📍 Stage 20：【巨蛋花车巡游】Wink大神·三轨道电眼狙击")
     st.markdown(
-        '<div class="event-card"><b>⚡ 【互动小游戏：下落移动 Wink 发射】</b><br>巨蛋花车巡游，左右移动角色，对准下落的心形粉丝区（💖）按下按钮发射 Wink 电波狙击！</div>',
+        '<div class="event-card"><b>⚡ 【互动小游戏：三轨道左右移动 Wink】</b><br>巨蛋花车巡游，左右移动切换轨道，对准粉丝区（💖）按下按钮发射 Wink 电波！</div>',
         unsafe_allow_html=True,
     )
     render_wink_game()
@@ -1172,11 +1127,11 @@ if st.session_state.game_started:
       st.session_state.stage = 21
       st.rerun()
 
-  # Stage 22：🧺 暗场篮子接物·战袍抢救战
+  # Stage 22：🧺 三轨道篮子接物战袍抢救
   elif curr_stage == 22:
-    st.subheader(f"📍 Stage 22：【演唱会暗场】与 {member} 的篮子接物战袍抢救")
+    st.subheader(f"📍 Stage 22：【演唱会暗场】与 {member} 的三轨道篮子接物战袍抢救")
     st.markdown(
-        f'<div class="event-card"><b>🧺 【互动小游戏：篮子接战袍】</b><br>暗场12秒内左右移动篮子！接住掉落的 🧥 战袍(+1分)，避开 🧦 脏袜子(-1分)！</div>',
+        f'<div class="event-card"><b>🧺 【互动小游戏：三轨道篮子接物】</b><br>暗场12秒内左右移动篮子！接住 🧥 战袍(+1分)，避开 🧦 脏袜子(-1分)！</div>',
         unsafe_allow_html=True,
     )
     render_outfit_game()
@@ -1199,11 +1154,11 @@ if st.session_state.game_started:
       st.session_state.stage = 25
       st.rerun()
 
-  # Stage 27：🚚 简单花车轨道拼图小游戏
+  # Stage 27：🚚 升级版 9 宫格 (3x3) 花车轨道拼图小游戏
   elif curr_stage == 27:
-    st.subheader(f"📍 Stage 27：【巨蛋盛典】简单抢修 {member} 的花车轨道")
+    st.subheader(f"📍 Stage 27：【巨蛋盛典】9宫格抢修 {member} 的花车轨道")
     st.markdown(
-        '<div class="event-card"><b>🚚 【互动小游戏：轨道连通】</b><br>点击任意两个方块互换位置，将轨道按 1-4 顺畅连通！</div>',
+        '<div class="event-card"><b>🚚 【互动小游戏：9宫格轨道拼图】</b><br>点击任意两个方块互换位置，将轨道按 1 至 9 正确排序！</div>',
         unsafe_allow_html=True,
     )
     render_puzzle_game()
