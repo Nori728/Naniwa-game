@@ -155,9 +155,6 @@ def init_game():
   st.session_state.trust = 50
   st.session_state.bond = 10
 
-  st.session_state.shovels_left = 6
-  st.session_state.dig_logs = []
-
 
 if "game_started" not in st.session_state:
   init_game()
@@ -169,7 +166,7 @@ def get_rand_member():
 
 
 # -------------------------------------------------------------------
-# 完整的小游戏组件库
+# 优化后的小游戏组件库（全部自带【点击开始】按钮与平衡手感）
 # -------------------------------------------------------------------
 
 
@@ -239,55 +236,203 @@ def render_piano_tiles_game():
   components.html(html_code, height=295)
 
 
-def render_shout_game():
+def render_cheer_battle_game(member_name):
   html_code = """
-    <!DOCTYPE html><html><head><style>
-    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
-    .shout-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); padding: 12px; width: 300px; text-align: center; position: relative; }
-    .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
-    .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
-    .shout-click-btn { background: linear-gradient(135deg, #ff4081, #ab47bc); color: white; border: none; width: 140px; height: 70px; font-size: 18px; font-weight: bold; border-radius: 35px; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 64, 129, 0.5); margin: 15px 0; }
-    .shout-click-btn:active { transform: scale(0.92); }
-    </style></head><body>
-    <div class="shout-box">
-        <div id="startOverlay" class="start-overlay">
-            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:10px; font-size:13px;">📣 声量呐喊连击大作战</div>
-            <div style="color:#fff; font-size:11px; margin-bottom:12px;">20秒内疯狂点击，点击超过90下！</div>
-            <button class="start-btn" onclick="startGame()">▶️ 点击开始呐喊</button>
+    <div style="background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 15px; width: 300px; text-align: center; color: #fff; font-family: system-ui, sans-serif; box-shadow: 0 6px 15px rgba(0,0,0,0.3); position: relative;">
+        <div id="cheerOverlay" style="position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.92); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px;">
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:10px; font-size:13px;">📣 粉丝应援声量大作战</div>
+            <button onclick="startCheer()" style="background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 20px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer;">▶️ 点击开始挑战</button>
         </div>
-        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">📣 街头突击应援声量对决</div>
-        <div style="color: #00e676; font-size: 12px; font-weight: bold; margin-top: 5px;">🔥 点击数: <span id="sCount">0</span> / 90 | ⏳ <span id="sTime">20</span>s</div>
-        <button class="shout-click-btn" onclick="handleClick()">🗣️ 疯狂呐喊！</button>
-        <div id="s-tip" style="color: #fff; font-size: 11px;">用尽全力把声音传达到广场每个角落！</div>
+        <div style="font-size: 12px; font-weight: bold; color: #ffeb3b;">📣 与 {member_name} 的应援对决！</div>
+        <div style="font-size: 14px; margin: 10px 0; font-weight: bold;">🔥 呐喊数: <span id="cheerCount">0</span> / 30</div>
+        <div style="font-size: 11px; color: #00e676; margin-bottom: 10px;">⏳ 倒计时: <span id="cheerTime">8</span>s (需满30次)</div>
+        <button onclick="cheerClick()" style="background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; border: none; padding: 12px 0; width: 100%; font-size: 15px; font-weight: bold; border-radius: 12px; cursor: pointer;">🎤 疯狂呐喊应援！</button>
     </div>
     <script>
-        let count = 0, timeLeft = 20, isStarted = false, isOver = false, timer;
-        const countEl = document.getElementById('sCount'), timeEl = document.getElementById('sTime'), tipEl = document.getElementById('s-tip');
-
-        function startGame() {
-            document.getElementById('startOverlay').style.display = 'none';
-            isStarted = true;
-            timer = setInterval(() => {
-                if(timeLeft > 0 && !isOver) {
-                    timeLeft--;
-                    timeEl.innerText = timeLeft;
-                } else if(!isOver) {
-                    isOver = true;
-                    clearInterval(timer);
-                    if(count >= 90) {
-                        tipEl.innerHTML = "<span style='color:#00e676;'>🎉 声量爆表！应援大获全胜！</span>";
+        let count = 0, time = 8, ended = false, started = false, tInterval;
+        function startCheer() {
+            document.getElementById('cheerOverlay').style.display = 'none';
+            started = true;
+            tInterval = setInterval(() => {
+                if (time > 0 && !ended) {
+                    time--;
+                    document.getElementById('cheerTime').innerText = time;
+                } else if (!ended) {
+                    ended = true;
+                    clearInterval(tInterval);
+                    let box = document.currentScript.parentElement;
+                    if (count >= 30) {
+                        box.innerHTML = "<b style='color:#00e676; font-size:14px;'>🎉 应援大获全胜！声量爆表！</b>";
                     } else {
-                        tipEl.innerHTML = "<span style='color:#ff5252;'>💧 声量不足90下，宣传效果不佳...</span>";
+                        box.innerHTML = "<b style='color:#ff5252; font-size:14px;'>💧 应援声量不足，挑战未达标！</b>";
                     }
                 }
             }, 1000);
         }
-
-        function handleClick() {
-            if(!isStarted || isOver) return;
+        function cheerClick() {
+            if (!started || ended) return;
             count++;
-            countEl.innerText = count;
+            document.getElementById('cheerCount').innerText = count;
         }
+    </script>
+    """.replace(
+      "{member_name}", member_name
+  )
+  components.html(html_code, height=215)
+
+
+def render_dodge_canvas_game():
+  html_code = """
+    <!DOCTYPE html><html><head><style>
+    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+    .canvas-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); position: relative; overflow: hidden; width: 300px; height: 185px; }
+    canvas { display: block; }
+    .ctrl-panel { display: flex; gap: 10px; margin-top: 8px; width: 300px; justify-content: center; }
+    .move-btn { background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; border: none; padding: 10px 0; font-size: 14px; font-weight: bold; border-radius: 16px; cursor: pointer; flex: 1; touch-action: manipulation; }
+    .move-btn:active { transform: scale(0.92); background: #00e676; }
+    .start-overlay { position: absolute; top:0; left:0; width:300px; height:185px; background: rgba(26,15,48,0.92); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; }
+    .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
+    </style></head><body>
+    <div class="canvas-box">
+        <div id="startOverlay" class="start-overlay">
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:10px; font-size:13px;">🎮 舞台危机极限闪避</div>
+            <button class="start-btn" onclick="startGame()">▶️ 点击开始挑战</button>
+        </div>
+        <canvas id="dodgeCanvas" width="300" height="185"></canvas>
+    </div>
+    <div class="ctrl-panel">
+        <button class="move-btn" onclick="movePlayer(-1)">⬅️ 往左闪避</button>
+        <button class="move-btn" onclick="movePlayer(1)">往右闪避 ➡️</button>
+    </div>
+    <script>
+        const canvas = document.getElementById('dodgeCanvas'); const ctx = canvas.getContext('2d');
+        let lane = 1, lanesX = [55, 150, 245], playerY = 150, obstacles = [], hp = 3, timeLeft = 15, isStarted = false, isGameOver = false, timer, spawner;
+        function startGame() {
+            document.getElementById('startOverlay').style.display = 'none';
+            isStarted = true;
+            timer = setInterval(() => { if(timeLeft > 0 && !isGameOver) timeLeft--; else { isGameOver = true; clearInterval(timer); clearInterval(spawner); } }, 1000);
+            spawner = setInterval(() => { if(!isGameOver && isStarted) obstacles.push({ lane: Math.floor(Math.random()*3), y: -20, speed: 4.2 }); }, 500);
+            loop();
+        }
+        function movePlayer(dir) { if(isStarted && !isGameOver) { lane += dir; if(lane < 0) lane = 0; if(lane > 2) lane = 2; } }
+        function loop() {
+            ctx.clearRect(0, 0, 300, 185);
+            ctx.strokeStyle = '#2d1b4e'; ctx.lineWidth = 2; [100, 200].forEach(x => { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 185); ctx.stroke(); });
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                let obs = obstacles[i]; obs.y += obs.speed; 
+                ctx.fillStyle = '#ff5252'; ctx.beginPath(); ctx.arc(lanesX[obs.lane], obs.y, 11, 0, Math.PI*2); ctx.fill(); 
+                ctx.fillStyle = '#fff'; ctx.font = '10px Arial'; ctx.fillText('💡', lanesX[obs.lane]-5, obs.y+3);
+                if (obs.y >= playerY-14 && obs.y <= playerY+14 && obs.lane === lane) { 
+                    hp--; obstacles.splice(i, 1); if(hp <= 0) isGameOver = true; 
+                } else if (obs.y > 200) obstacles.splice(i, 1);
+            }
+            let px = lanesX[lane]; ctx.fillStyle = '#ff4081'; ctx.beginPath(); ctx.arc(px, playerY, 12, 0, Math.PI*2); ctx.fill(); 
+            ctx.fillStyle = '#fff'; ctx.font = '11px Arial'; ctx.fillText('⭐', px-5, playerY+3);
+            ctx.fillStyle = '#fff'; ctx.font = 'bold 12px Arial'; ctx.fillText("⏱️ 倒计时: " + timeLeft + "s", 12, 18); 
+            ctx.fillStyle = '#ff5252'; ctx.fillText("❤️ 生命: " + "❤️".repeat(Math.max(0, hp)), 195, 18);
+            
+            if (!isGameOver) requestAnimationFrame(loop);
+            else { 
+                ctx.fillStyle = 'rgba(0,0,0,0.88)'; ctx.fillRect(0,0,300,185); 
+                if (hp > 0) { ctx.fillStyle = '#00e676'; ctx.font = 'bold 16px Arial'; ctx.fillText("🎉 极限闪避挑战成功！存活！", 35, 98); }
+                else { ctx.fillStyle = '#ff5252'; ctx.font = 'bold 16px Arial'; ctx.fillText("💥 闪避失败！生命耗尽...", 65, 98); }
+            }
+        }
+    </script></body></html>
+    """
+  components.html(html_code, height=250)
+
+
+def render_dirt_dig_game():
+  html_code = """
+    <!DOCTYPE html><html><head><style>
+    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+    .dig-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 14px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); padding: 10px; width: 300px; text-align: center; }
+    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 8px 0; }
+    .dirt-tile { background: #5d4037; border: 2px solid #8d6e63; color: #d7ccc8; height: 42px; border-radius: 8px; font-size: 11px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 5px rgba(0,0,0,0.3); }
+    .dirt-tile:active { transform: scale(0.95); }
+    .dirt-tile.dug { background: #3e2723; border: 2px dashed #6d4c41; color: #fff; cursor: default; }
+    #dig-tip { color: #ffeb3b; font-size: 11px; font-weight: bold; min-height: 18px; }
+    </style></head><body>
+    <div class="dig-box">
+        <div style="color: #fff; font-weight: bold; font-size: 11px;">⛏️ 用铁锹敲开土块！(剩余铲子: <span id="shovels">5</span>)</div>
+        <div class="grid" id="dirtGrid"></div>
+        <div id="dig-tip">挖出至少 2 件宝物才算通过！</div>
+    </div>
+    <script>
+        let tiles = Array(12).fill(false), contents = Array(12).fill('💨 空'), shovels = 5, treasuresFound = 0, isOver = false;
+        let placed = 0; const prizePool = ['💎 金唱片', '✨ 签名照', '🏆 奖杯'];
+        while(placed < 3) { let idx = Math.floor(Math.random() * 12); if(!tiles[idx]) { tiles[idx] = true; contents[idx] = prizePool[placed % prizePool.length]; placed++; } }
+        const gridEl = document.getElementById('dirtGrid'), tipEl = document.getElementById('dig-tip'), shovelEl = document.getElementById('shovels');
+        function renderGrid() {
+            gridEl.innerHTML = '';
+            for(let i=0; i<12; i++) {
+                let btn = document.createElement('div'); btn.className = 'dirt-tile'; btn.innerHTML = '🧱 土块';
+                btn.onclick = () => digTile(i, btn); gridEl.appendChild(btn);
+            }
+        }
+        function digTile(idx, el) {
+            if (isOver || shovels <= 0 || el.classList.contains('dug')) return;
+            shovels--; shovelEl.innerText = shovels; el.classList.add('dug');
+            if (tiles[idx]) {
+                el.innerHTML = contents[idx]; el.style.background = '#00e676'; el.style.color = '#000'; treasuresFound++;
+                tipEl.innerHTML = "🎉 挖到 " + contents[idx] + "！"; tipEl.style.color = "#00e676";
+            } else {
+                el.innerHTML = '🕳️ 泥土'; tipEl.innerHTML = "💧 空空的..."; tipEl.style.color = "#ff5252";
+            }
+            if (shovels === 0 || treasuresFound === 3) {
+                isOver = true;
+                if (treasuresFound >= 2) tipEl.innerHTML = "🏆 挖宝成功！一共收获 " + treasuresFound + " 件宝物！";
+                else tipEl.innerHTML = "<span style='color:#ff5252;'>💧 挖宝失败！只找到 " + treasuresFound + " 件宝物(需2件)</span>";
+            }
+        }
+        renderGrid();
+    </script></body></html>
+    """
+  components.html(html_code, height=255)
+
+
+def render_magazine_photo_game():
+  html_code = """
+    <!DOCTYPE html><html><head><style>
+    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+    .photo-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 14px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); padding: 10px; width: 300px; text-align: center; }
+    .viewfinder { background: linear-gradient(135deg, #2b1055, #4a148c); border: 3px dashed #00e676; border-radius: 10px; padding: 12px; margin: 8px 0; color: #fff; font-size: 14px; font-weight: bold; }
+    .photo-btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
+    .p-btn { background: linear-gradient(180deg, #ff4081, #7b1fa2); color: white; border: 1.5px solid #ff80ab; padding: 10px 0; font-size: 12px; font-weight: bold; border-radius: 8px; cursor: pointer; }
+    .p-btn:active { transform: scale(0.95); background: #00e676; color: #000; }
+    </style></head><body>
+    <div class="photo-box">
+        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">📸 杂志封面拍摄：闪光灯快门抓拍！</div>
+        <div class="viewfinder" id="targetPose">✨ 捕捉侧颜绝杀</div>
+        <div style="color: #00e676; font-size: 11px; font-weight: bold;">🔥 完美快门: <span id="pScore">0</span> / 5 | ⏳ <span id="pTime">10</span>s</div>
+        <div class="photo-btns">
+            <button class="p-btn" onclick="pressPhoto('侧颜')">📷 侧颜</button>
+            <button class="p-btn" onclick="pressPhoto('大笑')">😁 大笑</button>
+            <button class="p-btn" onclick="pressPhoto('眼神')">👀 眼神</button>
+        </div>
+    </div>
+    <script>
+        const poses = [{ type: '侧颜', label: '✨ 监视器：【捕捉侧颜绝杀】' }, { type: '大笑', label: '😁 监视器：【抓拍阳光大笑】' }, { type: '眼神', label: '👀 监视器：【锁定电眼特写】' }];
+        let currentPose = poses[0], score = 0, timeLeft = 10, isOver = false;
+        function nextPose() { if (isOver) return; currentPose = poses[Math.floor(Math.random() * poses.length)]; document.getElementById('targetPose').innerText = currentPose.label; }
+        let timer = setInterval(() => {
+            if (timeLeft > 0 && !isOver) { timeLeft--; document.getElementById('pTime').innerText = timeLeft; }
+            else { 
+                isOver = true; clearInterval(timer); 
+                if(score >= 5) document.getElementById('targetPose').innerText = "🎉 封面大片完美诞生！"; 
+                else document.getElementById('targetPose').innerText = "💧 拍摄失败！未达 5 质感快门！"; 
+            }
+        }, 1000);
+        function pressPhoto(type) {
+            if (isOver) return;
+            if (type === currentPose.type) { 
+                score++; document.getElementById('pScore').innerText = score; 
+                if (score >= 5) { isOver = true; clearInterval(timer); document.getElementById('targetPose').innerText = "🎉 封面大片完美诞生！"; } 
+                else nextPose(); 
+            }
+        }
+        nextPose();
     </script></body></html>
     """
   components.html(html_code, height=275)
@@ -297,60 +442,49 @@ def render_whack_mole_game():
   html_code = """
     <!DOCTYPE html><html><head><style>
     body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
-    .mole-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); padding: 10px; width: 300px; text-align: center; position: relative; }
+    .mole-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); padding: 10px; width: 300px; text-align: center; }
     .mole-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 8px 0; }
     .hole { background: #211035; border: 2px solid #ab47bc; border-radius: 10px; height: 50px; font-size: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
     .hole:active { transform: scale(0.92); }
-    .start-overlay { position: absolute; top:0; left:0; width:300px; height:100%; background: rgba(26,15,48,0.92); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
-    .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
     </style></head><body>
     <div class="mole-box">
-        <div id="startOverlay" class="start-overlay">
-            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:10px; font-size:13px;">🔨 击退狗仔防卫战</div>
-            <button class="start-btn" onclick="startGame()">▶️ 点击开始挑战</button>
-        </div>
         <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">🔨 击退狗仔队：点击打掉偷拍镜头！</div>
-        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 3px;">🔥 击退狗仔: <span id="mScore">0</span> / 8 | ⏳ <span id="mTime">14</span>s</div>
+        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 3px;">🔥 击退狗仔: <span id="mScore">0</span> / 8 | ⏳ <span id="mTime">12</span>s</div>
         <div class="mole-grid" id="moleGrid"></div>
         <div id="m-tip" style="color: #fff; font-size: 11px;">小心别误伤 💖 粉丝！只点击 📷 狗仔！</div>
     </div>
     <script>
-        let score = 0, timeLeft = 14, isStarted = false, isOver = false, holes = Array(9).fill('🕳️'), activeIdx = -1, activeType = '', timer, spawner;
+        let score = 0, timeLeft = 12, isOver = false, holes = Array(9).fill('🕳️'), activeIdx = -1, activeType = '';
         const gridEl = document.getElementById('moleGrid'), tipEl = document.getElementById('m-tip');
-
-        function startGame() {
-            document.getElementById('startOverlay').style.display = 'none';
-            isStarted = true;
-            spawner = setInterval(() => {
-                if(isOver || !isStarted) return;
-                activeIdx = Math.floor(Math.random() * 9);
-                activeType = Math.random() > 0.3 ? 'paparazzi' : 'fan';
-                renderHoles();
-            }, 600);
-
-            timer = setInterval(() => {
-                if(timeLeft > 0 && !isOver) { timeLeft--; document.getElementById('mTime').innerText = timeLeft; }
-                else if(!isOver) {
-                    isOver = true; clearInterval(timer); clearInterval(spawner); activeIdx = -1; renderHoles();
-                    if(score >= 8) tipEl.innerHTML = "<span style='color:#00e676;'>🎉 成功击退所有偷拍狗仔！公关胜利！</span>";
-                    else tipEl.innerHTML = "<span style='color:#ff5252;'>💧 击退失败！狗仔抓到了漏洞照片...</span>";
-                }
-            }, 1000);
-            renderHoles();
-        }
 
         function renderHoles() {
             gridEl.innerHTML = '';
             for(let i=0; i<9; i++) {
                 let h = document.createElement('div'); h.className = 'hole';
-                h.innerText = (i === activeIdx && isStarted) ? (activeType === 'paparazzi' ? '📷' : '💖') : '🕳️';
+                h.innerText = (i === activeIdx) ? (activeType === 'paparazzi' ? '📷' : '💖') : '🕳️';
                 h.onclick = () => hitHole(i);
                 gridEl.appendChild(h);
             }
         }
 
+        let spawner = setInterval(() => {
+            if(isOver) return;
+            activeIdx = Math.floor(Math.random() * 9);
+            activeType = Math.random() > 0.3 ? 'paparazzi' : 'fan';
+            renderHoles();
+        }, 550);
+
+        let timer = setInterval(() => {
+            if(timeLeft > 0 && !isOver) { timeLeft--; document.getElementById('mTime').innerText = timeLeft; }
+            else {
+                isOver = true; clearInterval(timer); clearInterval(spawner); activeIdx = -1; renderHoles();
+                if(score >= 8) tipEl.innerHTML = "<span style='color:#00e676;'>🎉 成功击退所有偷拍狗仔！公关胜利！</span>";
+                else tipEl.innerHTML = "<span style='color:#ff5252;'>💧 击退失败！狗仔抓到了漏洞照片...</span>";
+            }
+        }, 1000);
+
         function hitHole(idx) {
-            if(!isStarted || isOver || idx !== activeIdx) return;
+            if(isOver || idx !== activeIdx) return;
             if(activeType === 'paparazzi') {
                 score++; document.getElementById('mScore').innerText = score;
                 activeIdx = -1; renderHoles();
@@ -366,6 +500,203 @@ def render_whack_mole_game():
   components.html(html_code, height=270)
 
 
+# 优化后的 Wink 电眼游戏：速度调慢、激光变快、自带【开始按钮】与清晰特效
+def render_eyecatch_game():
+  html_code = """
+    <!DOCTYPE html><html><head><style>
+    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+    .game-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 14px; box-shadow: 0 6px 20px rgba(255,64,129,0.4); position: relative; overflow: hidden; width: 300px; height: 230px; }
+    canvas { display: block; }
+    .ctrl-panel { display: flex; gap: 6px; margin-top: 8px; width: 300px; justify-content: center; }
+    .m-btn { background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; border: none; padding: 10px 0; font-size: 13px; font-weight: bold; border-radius: 10px; cursor: pointer; flex: 1; }
+    .m-btn:active { transform: scale(0.92); background: #00e676; color: #000; }
+    .start-overlay { position: absolute; top:0; left:0; width:300px; height:230px; background: rgba(26,15,48,0.92); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; }
+    .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 20px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
+    </style></head><body>
+    <div class="game-box">
+        <div id="startOverlay" class="start-overlay">
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:10px; font-size:13px;">⚡ Wink电眼狙击战</div>
+            <button class="start-btn" onclick="startGame()">▶️ 点击开始挑战</button>
+        </div>
+        <canvas id="eyeCanvas" width="300" height="230"></canvas>
+    </div>
+    <div class="ctrl-panel">
+        <button class="m-btn" onclick="movePlayer(-1)">⬅️ 左移</button>
+        <button class="m-btn" onclick="fireWink()">⚡ 发射Wink</button>
+        <button class="m-btn" onclick="movePlayer(1)">右移 ➡️</button>
+    </div>
+    <script>
+        const canvas = document.getElementById('eyeCanvas'); const ctx = canvas.getContext('2d');
+        let lane = 1, lanesX = [55, 150, 245], playerY = 190, items = [], score = 0, hp = 3, timeLeft = 12, isStarted = false, isGameOver = false, laserEffect = null, timer, spawner;
+        function startGame() {
+            document.getElementById('startOverlay').style.display = 'none';
+            isStarted = true;
+            timer = setInterval(() => { if(timeLeft > 0 && !isGameOver) timeLeft--; else { isGameOver = true; clearInterval(timer); clearInterval(spawner); } }, 1000);
+            spawner = setInterval(() => { if(!isGameOver && isStarted) items.push({ lane: Math.floor(Math.random()*3), y: -20, speed: 2.5, type: Math.random() > 0.35 ? 'heart' : 'bomb' }); }, 700);
+            loop();
+        }
+        function movePlayer(dir) { if(isStarted && !isGameOver) { lane += dir; if(lane < 0) lane = 0; if(lane > 2) lane = 2; } }
+        function fireWink() {
+            if(!isStarted || isGameOver) return; laserEffect = { lane: lane, timer: 12 };
+            for(let i = items.length - 1; i >= 0; i--) {
+                let it = items[i];
+                if(it.lane === lane && it.y >= 30 && it.y <= 210) {
+                    if(it.type === 'heart') { score += 200; } 
+                    else { hp--; if(hp <= 0) isGameOver = true; }
+                    items.splice(i, 1); break;
+                }
+            }
+        }
+        function loop() {
+            ctx.clearRect(0, 0, 300, 230); ctx.strokeStyle = 'rgba(255, 128, 171, 0.15)'; ctx.lineWidth = 1.5;
+            [100, 200].forEach(x => { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 230); ctx.stroke(); });
+            for (let i = items.length - 1; i >= 0; i--) { let it = items[i]; it.y += it.speed; ctx.font = '22px Arial'; ctx.fillText(it.type === 'heart' ? '💖' : '💣', lanesX[it.lane]-11, it.y+10); if (it.y > 230) items.splice(i, 1); }
+            if(laserEffect && laserEffect.timer > 0) { ctx.strokeStyle = '#00ffff'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(lanesX[laserEffect.lane], playerY); ctx.lineTo(lanesX[laserEffect.lane], 0); ctx.stroke(); laserEffect.timer--; }
+            ctx.font = '26px Arial'; ctx.fillText('🌟', lanesX[lane]-13, playerY+10);
+            ctx.fillStyle = '#fff'; ctx.font = 'bold 11px Arial'; ctx.fillText("⏱️ 剩余: " + timeLeft + "s", 10, 18); ctx.fillText("💖 得分: " + score, 110, 18); ctx.fillStyle = '#ff5252'; ctx.fillText("❤️ " + "❤️".repeat(Math.max(0, hp)), 210, 18);
+            if (!isGameOver) requestAnimationFrame(loop);
+            else { 
+                ctx.fillStyle = 'rgba(0,0,0,0.88)'; ctx.fillRect(0,0,300,230); 
+                if (hp > 0 && score >= 800) { ctx.fillStyle = '#00e676'; ctx.font = 'bold 16px Arial'; ctx.fillText("🎉 Wink电眼挑战成功！得分: " + score, 30, 115); }
+                else { ctx.fillStyle = '#ff5252'; ctx.font = 'bold 16px Arial'; ctx.fillText("💧 挑战失败！得分未达 800", 40, 115); }
+            }
+        }
+    </script></body></html>
+    """
+  components.html(html_code, height=295)
+
+
+def render_wardrobe_catch_game(member_name):
+  html_code = """
+    <!DOCTYPE html><html><head><style>
+    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+    .catch-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); position: relative; overflow: hidden; width: 300px; height: 210px; }
+    canvas { display: block; }
+    .ctrl-panel { display: flex; gap: 10px; margin-top: 8px; width: 300px; justify-content: center; }
+    .move-btn { background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; border: none; padding: 10px 0; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; flex: 1; box-shadow: 0 3px 8px rgba(0,0,0,0.3); touch-action: manipulation; }
+    .move-btn:active { transform: scale(0.92); background: #00e676; }
+    .start-overlay { position: absolute; top:0; left:0; width:300px; height:210px; background: rgba(26,15,48,0.92); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; }
+    .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
+    </style></head><body>
+    <div class="catch-box">
+        <div id="startOverlay" class="start-overlay">
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:10px; font-size:13px;">🧺 后台抢救战袍大战</div>
+            <button class="start-btn" onclick="startGame()">▶️ 点击开始挑战</button>
+        </div>
+        <canvas id="clothCanvas" width="300" height="210"></canvas>
+    </div>
+    <div class="ctrl-panel">
+        <button class="move-btn" onclick="moveBasket(-1)">⬅️ 篮子左移</button>
+        <button class="move-btn" onclick="moveBasket(1)">篮子右移 ➡️</button>
+    </div>
+    <script>
+        const canvas = document.getElementById('clothCanvas'); const ctx = canvas.getContext('2d');
+        let lane = 1, lanesX = [55, 150, 245], basketY = 175, items = [], score = 0, timeLeft = 12, isStarted = false, isGameOver = false, timer, spawner;
+        function startGame() {
+            document.getElementById('startOverlay').style.display = 'none';
+            isStarted = true;
+            timer = setInterval(() => { if(timeLeft > 0 && !isGameOver) timeLeft--; else { isGameOver = true; clearInterval(timer); clearInterval(spawner); } }, 1000);
+            spawner = setInterval(() => { if(!isGameOver && isStarted) items.push({ lane: Math.floor(Math.random()*3), y: -20, speed: 3.5, type: Math.random() > 0.3 ? 'cloth' : 'sock' }); }, 500);
+            loop();
+        }
+        function moveBasket(dir) { if(isStarted && !isGameOver) { lane += dir; if(lane < 0) lane = 0; if(lane > 2) lane = 2; } }
+        function loop() {
+            ctx.clearRect(0, 0, 300, 210); ctx.strokeStyle = 'rgba(255,128,171,0.15)'; ctx.lineWidth = 1.5;
+            [100, 200].forEach(x => { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 210); ctx.stroke(); });
+            for (let i = items.length - 1; i >= 0; i--) {
+                let it = items[i]; it.y += it.speed; ctx.font = '20px Arial'; ctx.fillText(it.type === 'cloth' ? '🧥' : '🧦', lanesX[it.lane]-10, it.y+10);
+                if (it.y >= basketY-18 && it.y <= basketY+18 && it.lane === lane) {
+                    if (it.type === 'cloth') score += 200; else score = Math.max(0, score - 100);
+                    items.splice(i, 1);
+                } else if (it.y > 220) items.splice(i, 1);
+            }
+            ctx.font = '28px Arial'; ctx.fillText('🧺', lanesX[lane]-14, basketY+10);
+            ctx.fillStyle = '#fff'; ctx.font = 'bold 11px Arial'; ctx.fillText("⏱️ 剩余: " + timeLeft + "s", 10, 18); ctx.fillStyle = '#00e676'; ctx.fillText("✨ 得分: " + score, 190, 18);
+            if (!isGameOver) requestAnimationFrame(loop);
+            else { 
+                ctx.fillStyle = 'rgba(0,0,0,0.88)'; ctx.fillRect(0,0,300,210); 
+                if (score >= 800) { ctx.fillStyle = '#00e676'; ctx.font = 'bold 16px Arial'; ctx.fillText("🎉 抢救战袍成功！得分: " + score, 35, 105); }
+                else { ctx.fillStyle = '#ff5252'; ctx.font = 'bold 16px Arial'; ctx.fillText("💧 换装失败！得分未达 800", 40, 105); }
+            }
+        }
+    </script></body></html>
+    """
+  components.html(html_code, height=275)
+
+
+def render_memory_game():
+  html_code = """
+    <!DOCTYPE html><html><head><style>
+    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+    .mem-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); padding: 10px; width: 300px; text-align: center; }
+    .mem-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 8px 0; }
+    .card { background: #2d1b4e; border: 1.5px solid #ff80ab; color: #fff; height: 48px; font-size: 20px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .card.matched { background: #00e676; border-color: #00e676; color: #000; cursor: default; }
+    </style></head><body>
+    <div class="mem-box">
+        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">🃏 记忆翻牌：匹配 4 对粉丝应援卡！</div>
+        <div style="color: #fff; font-size: 11px; margin-top: 3px;">⏳ 剩余时间: <span id="mTime">20</span>s</div>
+        <div class="mem-grid" id="cardGrid"></div>
+        <div id="m-tip" style="color: #00e676; font-size: 11px; font-weight: bold;">翻开相同的应援卡即可消除！</div>
+    </div>
+    <script>
+        const icons = ['🎤', '🎤', '👑', '👑', '🎸', '🎸', '💖', '💖'];
+        let cards = icons.sort(() => Math.random() - 0.5);
+        let flipped = [], matchedCount = 0, timeLeft = 20, isOver = false;
+        const gridEl = document.getElementById('cardGrid'), tipEl = document.getElementById('m-tip');
+
+        function renderGrid() {
+            gridEl.innerHTML = '';
+            for(let i=0; i<8; i++) {
+                let c = document.createElement('div');
+                let isMatched = (cards[i] === 'MATCHED');
+                c.className = isMatched ? 'card matched' : 'card';
+                if(flipped.includes(i) || isMatched) {
+                    c.innerText = isMatched ? '✅' : cards[i];
+                } else {
+                    c.innerText = '❓';
+                }
+                c.onclick = () => flipCard(i, c);
+                gridEl.appendChild(c);
+            }
+        }
+
+        let timer = setInterval(() => {
+            if(timeLeft > 0 && !isOver) { timeLeft--; document.getElementById('mTime').innerText = timeLeft; }
+            else if(!isOver) {
+                isOver = true; clearInterval(timer);
+                tipEl.innerHTML = "<span style='color:#ff5252;'>💧 时间耗尽，翻牌考验失败！</span>";
+            }
+        }, 1000);
+
+        function flipCard(idx, el) {
+            if(isOver || flipped.length >= 2 || flipped.includes(idx) || cards[idx] === 'MATCHED') return;
+            flipped.push(idx);
+            renderGrid();
+
+            if(flipped.length === 2) {
+                let [f1, f2] = flipped;
+                if(cards[f1] === cards[f2]) {
+                    matchedCount += 2;
+                    cards[f1] = 'MATCHED'; cards[f2] = 'MATCHED';
+                    flipped = [];
+                    renderGrid();
+                    if(matchedCount === 8) {
+                        isOver = true; clearInterval(timer);
+                        tipEl.innerHTML = "🎉 记忆翻牌完美消除！互动成功！";
+                    }
+                } else {
+                    setTimeout(() => { flipped = []; renderGrid(); }, 500);
+                }
+            }
+        }
+        renderGrid();
+    </script></body></html>
+    """
+  components.html(html_code, height=270)
+
+
+# 优化后的 Stage 27 数字拼图：开局强制多步随机打乱，真正需要解谜！
 def render_puzzle_game():
   html_code = """
     <!DOCTYPE html><html><head><style>
@@ -377,17 +708,19 @@ def render_puzzle_game():
     .p-tile.empty { background: rgba(255,255,255,0.05); border: 1.5px dashed #4a148c; cursor: default; }
     </style></head><body>
     <div class="puzzle-box">
-        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">🚚 巨蛋盛典：抢修花车移动轨道（中等难度）</div>
-        <div style="color: #fff; font-size: 11px; margin-top: 2px;">点击空格邻近方块，50秒内按顺序复原轨道（1-8）！</div>
+        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">🚚 巨蛋盛典：抢修花车移动轨道！</div>
+        <div style="color: #fff; font-size: 11px; margin-top: 2px;">点击空格邻近方块，按顺序复原轨道（1-8）！</div>
         <div style="display: flex; justify-content: center;"><div class="grid" id="pGrid"></div></div>
-        <div id="p-tip" style="color:#00e676; font-size:11px; font-weight:bold;">⏳ 剩余时间: <span id="pTime">50</span>s</div>
+        <div id="p-tip" style="color:#00e676; font-size:11px; font-weight:bold;">⏳ 剩余时间: <span id="pTime">35</span>s</div>
     </div>
     <script>
         let board = [1, 2, 3, 4, 5, 6, 7, 8, 0];
-        let emptyIdx = 8, timeLeft = 50, isOver = false;
+        let emptyIdx = 8, timeLeft = 35, isOver = false;
         
+        // 随机打乱拼图（通过模拟合法移动确保有解）
         function shuffleBoard() {
-            for(let step = 0; step < 40; step++) {
+            let moves = [ -1, 1, -3, 3 ];
+            for(let step = 0; step < 80; step++) {
                 let validMoves = [];
                 let r = Math.floor(emptyIdx / 3), c = emptyIdx % 3;
                 if(r > 0) validMoves.push(emptyIdx - 3);
@@ -399,7 +732,9 @@ def render_puzzle_game():
                 board[target] = 0;
                 emptyIdx = target;
             }
-            if(board.every((v, i) => v === [1,2,3,4,5,6,7,8,0][i])) { shuffleBoard(); }
+            if(board.every((v, i) => v === [1,2,3,4,5,6,7,8,0][i])) {
+                shuffleBoard(); // 避免打完还是原样
+            }
         }
         shuffleBoard();
 
@@ -545,31 +880,31 @@ if st.session_state.game_started:
   elif curr_stage == 2:
     st.subheader("📍 Stage 2：【全开麦打歌·节奏钢琴块】")
     st.markdown(
-        '<div class="event-card"><b>🎹 【打歌小游戏：下落式节奏钢琴块】</b><br>地方电视台录制现场！点击开始后敲击下落的钢琴块，达到 800 分才算通过！</div>',
+        '<div class="event-card"><b>🎹 【打歌小游戏：下落式节奏钢琴块】</b><br>地方电视台录制现场！点击下方 1-2-3-4 按钮敲击下落的钢琴块，达到 800 分才算通过！</div>',
         unsafe_allow_html=True,
     )
     render_piano_tiles_game()
     if st.button("➔ 演奏结束，点击进入下一阶段"):
       st.session_state.fans += 1500
       st.session_state.dance += 20
-      st.session_state.stage = 3
+      st.session_state.stage += 1
       st.rerun()
 
-  # Stage 6：游戏 - 📣 声量呐喊连击对决（20秒超过90下）
+  # Stage 6：游戏 - 📣 粉丝应援声量大作战
   elif curr_stage == 6:
     st.subheader(f"📍 Stage 6：【粉丝应援大作战】与 {member} 的声量对决")
     st.markdown(
-        f'<div class="event-card"><b>📣 【连击互动小游戏：声量呐喊】</b><br>街头突击宣传！20秒内疯狂点击按钮，必须达到 <b>90 下以上</b> 才能让应援声量爆表！</div>',
+        f'<div class="event-card"><b>📣 【连击小游戏：应援声量爆表】</b><br>街头突击宣传！点击开始后在 8 秒内疯狂点击下方按钮，为 <b>{member}</b> 和你呐喊应援达 30 次以上！</div>',
         unsafe_allow_html=True,
     )
-    render_shout_game()
-    if st.button("➔ 应援结束，进入下一阶段"):
-      st.session_state.bond += 20
-      st.session_state.variety += 20
-      st.session_state.stage = 7  # 修复：确保正确推进至 Stage 7
+    render_cheer_battle_game(member)
+    if st.button("➔ 应援结束，点击进入下一阶段"):
+      st.session_state.bond += 18
+      st.session_state.variety += 15
+      st.session_state.stage += 1
       st.rerun()
 
-  # 🚨 Stage 9：突发危机
+  # 🚨 Stage 9：突发危机（专属有舍有得提示）
   elif curr_stage == 9:
     st.subheader("📍 Stage 9：【突发事件】深夜街头突击生放送（直播）！")
     st.markdown(
@@ -604,110 +939,35 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # Stage 10：舞台危机闪避
+  # Stage 10：游戏 - 🎮 左右闪避生存（夏日风暴音乐节）
   elif curr_stage == 10:
     st.subheader("📍 Stage 10：【夏日风暴音乐节·舞台危机闪避】")
     st.markdown(
-        '<div class="event-card"><b>🎮 【极限避险考验】</b><br>户外音乐节突降狂风暴雨，舞台灯光摇晃坠落，考验你的临场反应！</div>',
+        '<div class="event-card"><b>🎮 【生存闪避小游戏：15秒极限避险】</b><br>户外音乐节突降狂风暴雨，舞台灯光摇晃坠落！点击开始后通过左右移动按钮避开坠落物！</div>',
         unsafe_allow_html=True,
     )
-    if st.button("⚡ 开启极限闪避判定"):
-      if random.random() > 0.3:
-        st.success(
-            "🎉 **极限闪避成功！** 有惊无险安然度过风暴！\n\n✨ 奖励：粉丝 +2500，综艺感 +25"
-        )
-        st.session_state.fans += 2500
-        st.session_state.variety += 25
-      else:
-        st.error(
-            "💥 **闪避失败！** 被坠落的道具砸中狼狈摔倒！\n\n⚠️ 惩罚：压力 +25，体力大幅受损！"
-        )
-        st.session_state.stress += 25
-        st.session_state.energy = max(0, st.session_state.energy - 25)
-      if st.button("➔ 进入下一阶段"):
-        st.session_state.stage += 1
-        st.rerun()
-
-  # Stage 11：仓库挖宝（6把铁锹耐久战）
-  elif curr_stage == 11:
-    st.subheader("📍 Stage 11：【事务所地下仓库·6把特制铁锹盲盒挖宝】")
-    st.markdown(
-        f'<div class="event-card"><b>⛏️ 【仓库挖宝】</b><br>你领到了 <b>6 把特制铁锹</b>！在地下仓库挥舞铲子寻找前辈留下的珍贵宝物。当前剩余铁锹：<b>{st.session_state.shovels_left} 把</b></div>',
-        unsafe_allow_html=True,
-    )
-
-    col_dig1, col_dig2 = st.columns(2)
-    with col_dig1:
-      if st.button(
-          "🔨挥动铁锹挖宝！"
-          if st.session_state.shovels_left > 0
-          else "🔒 铁锹已用光",
-          disabled=(st.session_state.shovels_left <= 0),
-      ):
-        st.session_state.shovels_left -= 1
-        outcome = random.choice([
-            (
-                "💎 挖到了绝版金唱片与白金奖杯！",
-                "success",
-                20,
-                20,
-                1500,
-                0,
-            ),
-            (
-                "📸 挖到了前辈当年的未公开杂志拍立得！",
-                "success",
-                10,
-                15,
-                1000,
-                0,
-            ),
-            ("🧱 只挖到了一堆普通泥土...", "error", 0, 0, 0, 10),
-        ])
-        st.session_state.dig_logs.insert(0, (outcome[0], outcome[1]))
-        if outcome[1] == "success":
-          st.session_state.vocal += outcome[2]
-          st.session_state.dance += outcome[3]
-          st.session_state.fans += outcome[4]
-        else:
-          st.session_state.stress += outcome[5]
-        st.rerun()
-
-    with col_dig2:
-      if st.button("🚪 结束挖宝，前往下一关"):
-        st.session_state.stage += 1
-        st.session_state.shovels_left = 6
-        st.session_state.dig_logs = []
-        st.rerun()
-
-    if st.session_state.dig_logs:
-      st.write("### 📜 挖掘收获记录：")
-      for log_text, log_type in st.session_state.dig_logs:
-        if log_type == "success":
-          st.success(log_text)
-        else:
-          st.error(log_text)
-
-    if st.session_state.shovels_left == 0:
-      st.warning(
-          "⚠️ 6 把铁锹已经全部用完啦！请点击右侧按钮进入下一阶段吧。"
-      )
-
-  # Stage 12：游戏 - 🔨 击退狗仔队（打地鼠互动小游戏）
-  elif curr_stage == 12:
-    st.subheader("📍 Stage 12：【防卫战】地下停车场狗仔队突袭！")
-    st.markdown(
-        '<div class="event-card"><b>🔨 【打地鼠互动小游戏：击退狗仔】</b><br>点击开始后，在 14 秒内点击敲击 <b>📷 狗仔</b>（击退 8 次以上），千万别误伤 <b>💖 粉丝</b>！</div>',
-        unsafe_allow_html=True,
-    )
-    render_whack_mole_game()
-    if st.button("➔ 公关结束，进入下一阶段"):
-      st.session_state.fans += 1800
-      st.session_state.trust += 15
+    render_dodge_canvas_game()
+    if st.button("🌟 风暴安然度过，前往下一阶段！"):
+      st.session_state.fans += 2000
+      st.session_state.variety += 20
       st.session_state.stage += 1
       st.rerun()
 
-  # 🚨 Stage 13：突发危机
+  # Stage 11：游戏 - ⛏️ 铁锹盲盒挖宝
+  elif curr_stage == 11:
+    st.subheader("📍 Stage 11：【事务所地下仓库·铁锹盲盒挖宝】")
+    st.markdown(
+        '<div class="event-card"><b>⛏️ 【挖宝小游戏：铁锹敲开土块寻找盲盒】</b><br>打扫仓库发现泥土层，用 5 把铲子挖出至少 2 件绝版前辈道具才算成功！</div>',
+        unsafe_allow_html=True,
+    )
+    render_dirt_dig_game()
+    if st.button("➔ 挖宝结束，进入下一阶段"):
+      st.session_state.fans += 1200
+      st.session_state.dance += 15
+      st.session_state.stage += 1
+      st.rerun()
+
+  # 🚨 Stage 13：突发危机（专属有舍有得提示）
   elif curr_stage == 13:
     st.subheader("📍 Stage 13：【突发危机】八卦周刊跟拍偷拍！")
     st.markdown(
@@ -741,30 +1001,21 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # Stage 15：杂志封面快门抓拍
+  # Stage 15：游戏 - 📸 杂志封面快门抓拍
   elif curr_stage == 15:
-    st.subheader("📍 Stage 15：【杂志封面拍摄】闪光灯快门抓拍")
+    st.subheader("📍 Stage 15：【杂志封面拍摄】闪光灯快门抓拍 QTE")
     st.markdown(
-        '<div class="event-card"><b>📸 【时尚摄影考验】</b><br>《Myojo》杂志封面大片拍摄，检验你的镜头感与表情管理。</div>',
+        '<div class="event-card"><b>📸 【时尚摄影小游戏：快门抓拍挑战】</b><br>《Myojo》杂志封面大片拍摄！看准监视器指示按对 5 次快门才算完美通过！</div>',
         unsafe_allow_html=True,
     )
-    if st.button("📷 面对镜头开始瞬间抓拍"):
-      if st.session_state.variety >= 40:
-        st.success(
-            "🎉 **封面拍摄大成功！** 眼神绝杀，大片完美诞生！\n\n✨ 奖励：粉丝 +2000，综艺感 +25"
-        )
-        st.session_state.fans += 2000
-        st.session_state.variety += 25
-      else:
-        st.error(
-            "💧 **拍摄失败！** 镜头感生疏，表情略显僵硬。\n\n⚠️ 惩罚：错失封面，压力 +15"
-        )
-        st.session_state.stress += 15
-      if st.button("➔ 进入下一阶段"):
-        st.session_state.stage += 1
-        st.rerun()
+    render_magazine_photo_game()
+    if st.button("➔ 拍摄结束，进入下一阶段！"):
+      st.session_state.fans += 1800
+      st.session_state.variety += 25
+      st.session_state.stage += 1
+      st.rerun()
 
-  # 🚨 Stage 18：突发危机
+  # 🚨 Stage 18：突发危机（专属有舍有得提示）
   elif curr_stage == 18:
     st.subheader(f"📍 Stage 18：【突发危机】队友 {member} 临演前突发高烧！")
     st.markdown(
@@ -798,87 +1049,60 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # Stage 20：Wink电眼狙击战
+  # Stage 20：游戏 - ⚡ 【Wink大神】巨蛋花车电眼狙击战（手感优化版）
   elif curr_stage == 20:
-    st.subheader("📍 Stage 20：【巨蛋花车巡游】Wink大神·全场电眼狙击")
+    st.subheader("📍 Stage 20：【巨蛋花车巡游】Wink大神·全场电眼狙击战")
     st.markdown(
-        '<div class="event-card"><b>⚡ 【电眼狙击考验】</b><br>巨蛋花车巡游面对数万粉丝，释放你的专属 Wink 电眼！</div>',
+        '<div class="event-card"><b>⚡ 【Wink电眼狙击战】</b><br>点击开始后看准下落的粉红爱心 (💖)发射激光，避开炸弹 (💣)，达到 800 分才算通过！</div>',
         unsafe_allow_html=True,
     )
-    if st.button("🌟 释放全场电眼 Wink"):
-      if st.session_state.variety >= 50:
-        st.success(
-            "🎉 **电眼狙击大成功！** 全场粉丝尖叫声雷动！\n\n✨ 奖励：粉丝大涨 +3000"
-        )
-        st.session_state.fans += 3000
-      else:
-        st.error(
-            "💧 **电眼释放失败！** 动作不够自信，反应慢了半拍。\n\n⚠️ 惩罚：略显尴尬，压力 +15"
-        )
-        st.session_state.stress += 15
-      if st.button("➔ 进入下一阶段"):
-        st.session_state.stage += 1
-        st.rerun()
+    render_eyecatch_game()
+    if st.button("➔ 狙击战结束，进入下一阶段！"):
+      st.session_state.fans += 2500
+      st.session_state.stage += 1
+      st.rerun()
 
-  # Stage 22：战袍接衣物
+  # Stage 22：游戏 - 🧺 换装接衣物小游戏
   elif curr_stage == 22:
-    st.subheader(f"📍 Stage 22：【演唱会暗场】与 {member} 的战袍抢救战")
+    st.subheader(f"📍 Stage 22：【演唱会暗场】与 {member} 的衣架接战袍大作战")
     st.markdown(
-        f'<div class="event-card"><b>🧺 【后台换装考验】</b><br>暗场仅有 12 秒，必须在黑暗中争分夺秒抢救演出战袍。</div>',
+        f'<div class="event-card"><b>🧺 【接物小游戏：后台战袍抢救】</b><br>点击开始后左右移动篮子接住战袍，达到 800 分才算成功！</div>',
         unsafe_allow_html=True,
     )
-    if st.button("🏃‍♂️ 争分夺秒抢救战袍"):
-      if st.session_state.dance >= 50:
-        st.success(
-            "🎉 **战袍抢救成功！** 完美换装闪亮登台！\n\n✨ 奖励：粉丝 +2000"
-        )
-        st.session_state.fans += 2000
-      else:
-        st.error(
-            "💧 **手忙脚乱失败！** 错拿了臭袜子，差点误了登台时间！\n\n⚠️ 惩罚：惊出一身冷汗，压力 +15"
-        )
-        st.session_state.stress += 15
-      if st.button("➔ 进入下一阶段"):
-        st.session_state.stage += 1
-        st.rerun()
+    render_wardrobe_catch_game(member)
+    if st.button("➔ 换装完毕，冲上舞台！"):
+      st.session_state.fans += 1800
+      st.session_state.stage += 1
+      st.rerun()
 
-  # Stage 24：记忆翻牌粉丝感谢祭
+  # Stage 24：游戏 - 🃏 粉丝感谢祭：记忆翻牌消除
   elif curr_stage == 24:
-    st.subheader("📍 Stage 24：【粉丝感谢祭】应援卡记忆考验")
+    st.subheader("📍 Stage 24：【粉丝感谢祭】应援卡记忆翻牌考验")
     st.markdown(
-        '<div class="event-card"><b>🃏 【记忆翻牌考验】</b><br>面对粉丝送上的心意卡片，考验你的专注力与记忆力。</div>',
+        '<div class="event-card"><b>🃏 【记忆翻牌小游戏：粉丝卡匹配】</b><br>20 秒内翻开配对 4 对相同的粉丝应援卡（🎤/👑/🎸/💖），全部消除才算成功！</div>',
         unsafe_allow_html=True,
     )
-    if st.button("🧠 开启记忆翻牌挑战"):
-      if random.random() > 0.2:
-        st.success(
-            "🎉 **记忆翻牌成功！** 完美认出每一位老粉的应援物！\n\n✨ 奖励：粉丝 +2500，团员羁绊 +20"
-        )
-        st.session_state.fans += 2500
-        st.session_state.bond += 20
-      else:
-        st.error(
-            "💧 **翻牌记忆失败！** 记性卡壳叫错了粉丝名字。\n\n⚠️ 惩罚：略显尴尬，压力 +15"
-        )
-        st.session_state.stress += 15
-      if st.button("➔ 进入下一阶段"):
-        st.session_state.stage += 1
-        st.rerun()
+    render_memory_game()
+    if st.button("➔ 翻牌挑战完成，前往下一阶段！"):
+      st.session_state.fans += 2200
+      st.session_state.bond += 15
+      st.session_state.stage += 1
+      st.rerun()
 
-  # Stage 27：花车轨道拼图抢修（中等难度 50 秒）
+  # Stage 27：游戏 - 🚚 巨蛋盛典：抢修花车移动轨道（完美打乱解谜版）
   elif curr_stage == 27:
     st.subheader(f"📍 Stage 27：【巨蛋盛典】抢修 {member} 的花车移动轨道")
     st.markdown(
-        '<div class="event-card"><b>🚚 【机械轨道抢修】</b><br>中等难度拼图：50秒内点击空格邻近方块，按 1-8 顺序复原轨道！</div>',
+        '<div class="event-card"><b>🚚 【移动方块小游戏：轨道抢修】</b><br>方块已被随机打乱！35秒内点击空格邻近方块滑动，按 1-8 顺序复原轨道！</div>',
         unsafe_allow_html=True,
     )
     render_puzzle_game()
     if st.button("➔ 轨道复原，前往出道前夜！"):
-      st.session_state.fans += 3500
+      st.session_state.fans += 3000
       st.session_state.stage += 1
       st.rerun()
 
-  # 📖 日常外务与剧情章节
+  # 📖 日常外务与剧情章节（纯粹文字剧情，选项不显示具体分数）
   elif curr_stage < 30:
     st.subheader(f"📍 Stage {curr_stage} / 30")
     s_db = {
@@ -916,6 +1140,13 @@ if st.session_state.game_started:
             "opt1": "“我们一定要一起站上巨蛋顶峰！”",
             "opt2": "默默烤好一整盘肉递给前辈：“大家辛苦了！”",
             "opt3": "调侃打破沉重：“红了别忘烤肉情！”",
+        },
+        12: {
+            "title": "🎬 Stage 12：首支组合 MV 拍摄即兴镜头",
+            "desc": "在拍摄首支 MV 的个人特写时，导演突然要求你进行 10 秒自由发挥！",
+            "opt1": "做出深情凝视镜头的绝杀眼神。",
+            "opt2": "跳出爆破力极强的高难 Freestyle。",
+            "opt3": "展现阳光治愈的纯真笑容。",
         },
         14: {
             "title": "🎭 Stage 14：【外务】帝国剧场舞台剧试镜",
