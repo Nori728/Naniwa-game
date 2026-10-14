@@ -166,7 +166,7 @@ def get_rand_member():
 
 
 # -------------------------------------------------------------------
-# 小游戏组件库（下落式三轨道躲避与接物游戏）
+# 小游戏组件库（下落式三轨道互动游戏合集）
 # -------------------------------------------------------------------
 
 
@@ -338,14 +338,12 @@ def render_dodge_game():
             ctx.clearRect(0, 0, 300, 210); ctx.strokeStyle = '#2d1b4e';
             for(let i=1; i<3; i++) { ctx.beginPath(); ctx.moveTo(i*trackWidth, 0); ctx.lineTo(i*trackWidth, 210); ctx.stroke(); }
             
-            // 绘制下落物品
             for(let i = obstacles.length - 1; i >= 0; i--) {
                 let obs = obstacles[i];
                 obs.y += 3.5;
                 ctx.font = '22px Arial';
                 ctx.fillText('💡', obs.lane * trackWidth + 36, obs.y);
                 
-                // 碰撞检测（当物品掉落到底部角色区域）
                 if(obs.y >= 155 && obs.y <= 195 && obs.lane === playerLane) {
                     score = Math.max(0, score - 1);
                     obstacles.splice(i, 1);
@@ -355,11 +353,9 @@ def render_dodge_game():
                 }
             }
 
-            // 绘制玩家角色
             ctx.font = '26px Arial';
             ctx.fillText('🧍‍♂️', playerLane * trackWidth + 34, 185);
 
-            // 绘制面板文字
             ctx.fillStyle = '#fff'; ctx.font = 'bold 11px Arial';
             ctx.fillText("⏳ 剩余: " + timeLeft + "s", 10, 18);
             ctx.fillText("🛡️ 得分: " + score, 210, 18);
@@ -583,94 +579,89 @@ def render_snapshot_game():
 
 
 def render_wink_game():
+  # Stage 20：下落式三轨道 Wink 电眼狙击游戏 (Canvas)
   html_code = """
     <!DOCTYPE html><html><head><style>
     body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
-    .game-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 10px; width: 300px; text-align: center; position: relative; }
-    .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
-    .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
-    .lane-box { display: flex; justify-content: space-around; background: #211035; border: 2px solid #ab47bc; border-radius: 8px; height: 75px; margin: 8px 0; align-items: center; font-size: 26px; }
-    .ctrl-row { display: flex; justify-content: space-around; width: 100%; margin-top: 4px; }
-    .wink-btn { background: linear-gradient(135deg, #ff4081, #ab47bc); color: white; border: none; padding: 8px 14px; font-size: 13px; font-weight: bold; border-radius: 10px; cursor: pointer; }
-    .wink-btn:active { transform: scale(0.92); }
+    .game-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 14px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); position: relative; overflow: hidden; width: 300px; height: 210px; }
+    canvas { display: block; }
+    .btn-row { display: flex; gap: 6px; margin-top: 8px; width: 300px; }
+    .wink-btn { background: linear-gradient(135deg, #ff4081, #7b1fa2); color: white; border: 2px solid #ff80ab; padding: 9px 0; font-size: 13px; font-weight: bold; border-radius: 10px; cursor: pointer; flex: 1; text-align: center; }
+    .wink-btn:active { background: #ff4081; transform: scale(0.92); }
+    .start-overlay { position: absolute; top:0; left:0; width:300px; height:210px; background: rgba(26,15,48,0.92); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; }
+    .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 20px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
     </style></head><body>
     <div class="game-box">
         <div id="startOverlay" class="start-overlay">
-            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">🌟 三轨道 Wink 电波狙击</div>
-            <div style="color:#fff; font-size:11px; margin-bottom:10px;">10秒内左右移动到粉丝区（💖）按下按钮发射 Wink！</div>
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">🌟 三轨道下落 Wink 电眼狙击</div>
+            <div style="color:#fff; font-size:11px; margin-bottom:10px; text-align:center; padding:0 10px;">10秒内左右移动，当 💖 粉丝掉落时按下发射 Wink！</div>
             <button class="start-btn" onclick="startGame()">▶️ 开始电眼巡游</button>
         </div>
-        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">🌟 巨蛋花车：三轨道电眼狙击</div>
-        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 2px;">💖 Wink得分: <span id="wScore">0</span> | ⏳ <span id="wTime">10</span>s</div>
-        <div class="lane-box">
-            <div id="wLane0">✨</div>
-            <div id="wLane1">✨</div>
-            <div id="wLane2">✨</div>
-        </div>
-        <div class="ctrl-row">
-            <button class="wink-btn" onclick="moveWink(-1)">⬅️ 往左</button>
-            <button class="wink-btn" style="background: linear-gradient(45deg, #00e676, #00b0ff); color:#000;" onclick="winkAction()">😉 发射Wink</button>
-            <button class="wink-btn" onclick="moveWink(1)">往右 ➡️</button>
-        </div>
-        <div id="w-tip" style="color: #fff; font-size: 11px; margin-top: 5px;">移动到粉丝区（💖）按下发射！</div>
+        <canvas id="winkCanvas" width="300" height="210"></canvas>
+    </div>
+    <div class="btn-row">
+        <button class="wink-btn" onclick="moveWink(-1)">⬅️ 往左</button>
+        <button class="wink-btn" style="background: linear-gradient(45deg, #00e676, #00b0ff); color:#000;" onclick="winkAction()">😉 发射Wink</button>
+        <button class="wink-btn" onclick="moveWink(1)">往右 ➡️</button>
     </div>
     <script>
-        let score = 0, timeLeft = 10, isStarted = false, isOver = false;
-        let playerLane = 1, fanLane = 0;
-        let timer, spawner;
+        const canvas = document.getElementById('winkCanvas'); const ctx = canvas.getContext('2d'); const trackWidth = 100;
+        let playerLane = 1, fans = [], score = 0, timeLeft = 10, isStarted = false, isGameOver = false, timer, spawner;
 
         function startGame() {
             document.getElementById('startOverlay').style.display = 'none';
             isStarted = true;
-            renderWink();
-            timer = setInterval(() => {
-                if(timeLeft > 0 && !isOver) {
-                    timeLeft--;
-                    document.getElementById('wTime').innerText = timeLeft;
-                } else if(!isOver) {
-                    endWink();
-                }
-            }, 1000);
-
-            spawner = setInterval(() => {
-                if(isOver || !isStarted) return;
-                fanLane = Math.floor(Math.random() * 3);
-                renderWink();
-            }, 1100);
+            timer = setInterval(() => { if(timeLeft > 0 && !isGameOver) timeLeft--; else { isGameOver = true; clearInterval(timer); clearInterval(spawner); } }, 1000);
+            spawner = setInterval(() => { if(!isGameOver && isStarted) fans.push({ lane: Math.floor(Math.random()*3), y: -30 }); }, 800);
+            loop();
         }
 
         function moveWink(dir) {
-            if(!isStarted || isOver) return;
+            if(!isStarted || isGameOver) return;
             playerLane = Math.max(0, Math.min(2, playerLane + dir));
-            renderWink();
         }
 
         function winkAction() {
-            if(!isStarted || isOver) return;
-            if(playerLane === fanLane) {
-                score++;
-                document.getElementById('wScore').innerText = score;
-                document.getElementById('w-tip').innerHTML = "<span style='color:#00e676;'>✨ Wink精准狙击！粉丝疯狂尖叫！</span>";
-            } else {
-                document.getElementById('w-tip').innerHTML = "<span style='color:#ff5252;'>💧 方向没对准，打到空气了！</span>";
+            if(!isStarted || isGameOver) return;
+            let hit = false;
+            for(let i = fans.length - 1; i >= 0; i--) {
+                let f = fans[i];
+                // 当粉丝掉落在底部发射有效区间时，如果在同一轨道即成功狙击
+                if(f.y >= 130 && f.y <= 195 && f.lane === playerLane) {
+                    score++;
+                    fans.splice(i, 1);
+                    hit = true;
+                    break;
+                }
             }
         }
 
-        function renderWink() {
-            for(let i=0; i<3; i++) {
-                let content = '✨';
-                if(i === playerLane && i === fanLane) content = '💖😉';
-                else if(i === playerLane) content = '🧍‍♂️';
-                else if(i === fanLane) content = '💖';
-                document.getElementById('wLane' + i).innerText = content;
+        function loop() {
+            ctx.clearRect(0, 0, 300, 210); ctx.strokeStyle = '#2d1b4e';
+            for(let i=1; i<3; i++) { ctx.beginPath(); ctx.moveTo(i*trackWidth, 0); ctx.lineTo(i*trackWidth, 210); ctx.stroke(); }
+            
+            for(let i = fans.length - 1; i >= 0; i--) {
+                let f = fans[i];
+                f.y += 3.2;
+                ctx.font = '22px Arial';
+                ctx.fillText('💖', f.lane * trackWidth + 36, f.y);
+                if(f.y > 210) { fans.splice(i, 1); }
             }
-        }
 
-        function endWink() {
-            isOver = true;
-            clearInterval(timer);
-            clearInterval(spawner);
-            document.getElementById('w-tip').innerHTML = score >= 4 ? "<span style='color:#00e676;'>🎉 电眼狙击大成功！得分: " + score + "</span>" : "<span style='color:#ff5252;'>💧 表现平平！得分: " + score + "</span>";
+            ctx.font = '26px Arial';
+            ctx.fillText('😉', playerLane * trackWidth + 34, 185);
+
+            ctx.fillStyle = '#fff'; ctx.font = 'bold 11px Arial';
+            ctx.fillText("⏳ 剩余: " + timeLeft + "s", 10, 18);
+            ctx.fillText("💖 得分: " + score, 210, 18);
+
+            if(!isGameOver) requestAnimationFrame(loop);
+            else {
+                ctx.fillStyle = 'rgba(0,0,0,0.88)'; ctx.fillRect(0, 0, 300, 210);
+                ctx.fillStyle = score >= 4 ? '#00e676' : '#ff5252';
+                ctx.font = 'bold 15px Arial';
+                ctx.fillText(score >= 4 ? "🎉 电眼狙击成功！得分: " + score : "💧 表现平平！得分: " + score, 45, 110);
+            }
         }
     </script></body></html>
     """
@@ -730,14 +721,12 @@ def render_outfit_game():
             ctx.clearRect(0, 0, 300, 210); ctx.strokeStyle = '#2d1b4e';
             for(let i=1; i<3; i++) { ctx.beginPath(); ctx.moveTo(i*trackWidth, 0); ctx.lineTo(i*trackWidth, 210); ctx.stroke(); }
             
-            // 绘制下落物品
             for(let i = items.length - 1; i >= 0; i--) {
                 let itm = items[i];
                 itm.y += 3.5;
                 ctx.font = '22px Arial';
                 ctx.fillText(itm.type, itm.lane * trackWidth + 36, itm.y);
                 
-                // 底部接物检测
                 if(itm.y >= 155 && itm.y <= 195 && itm.lane === basketLane) {
                     if(itm.type === '🧥') score += 1;
                     else score = Math.max(0, score - 1);
@@ -747,11 +736,9 @@ def render_outfit_game():
                 }
             }
 
-            // 绘制篮子
             ctx.font = '26px Arial';
             ctx.fillText('🧺', basketLane * trackWidth + 32, 185);
 
-            // 绘制面板文字
             ctx.fillStyle = '#fff'; ctx.font = 'bold 11px Arial';
             ctx.fillText("⏳ 剩余: " + timeLeft + "s", 10, 18);
             ctx.fillText("🧺 得分: " + score, 210, 18);
@@ -1087,11 +1074,11 @@ if st.session_state.game_started:
       st.session_state.stage = 16
       st.rerun()
 
-  # Stage 20：🌟 三轨道 Wink 电波狙击
+  # Stage 20：🌟 下落式三轨道 Wink 电眼狙击
   elif curr_stage == 20:
-    st.subheader("📍 Stage 20：【巨蛋花车巡游】Wink大神·三轨道电眼狙击")
+    st.subheader("📍 Stage 20：【巨蛋花车巡游】下落式 Wink 电眼狙击")
     st.markdown(
-        '<div class="event-card"><b>⚡ 【互动小游戏：三轨道左右移动 Wink】</b><br>巨蛋花车巡游，左右移动切换轨道，对准粉丝区（💖）按下按钮发射 Wink 电波！</div>',
+        '<div class="event-card"><b>⚡ 【互动小游戏：下落式三轨道电眼狙击】</b><br>巨蛋花车巡游！上方不断掉落 💖 粉丝，移动轨道并在粉丝掉落时按下发射按钮！</div>',
         unsafe_allow_html=True,
     )
     render_wink_game()
