@@ -298,7 +298,6 @@ def render_ramen_battle_game(member_name):
         function finishGame() {{ isOver = true; clearInterval(clock); clearInterval(aiTimer); if (pBowls > mBowls) {{ tipEl.innerHTML = "🎉 挑战成功！击败了队友！"; tipEl.style.color = "#00e676"; }} else {{ tipEl.innerHTML = "💧 挑战失败！吃得太慢，输给 {member_name} 了！"; tipEl.style.color = "#ff5252"; }} }}
     </script></body></html>
     """
-  )
   components.html(html_code, height=295)
 
 
