@@ -10,9 +10,18 @@ st.set_page_config(
     layout="centered",
 )
 
-# 2. 团队与成员数据（全团按年龄从大到小严格排序）
+# 2. 团队与成员数据（全团按年龄从大到小严格排序，已新增 Kis-My-Ft2）
 IDOL_GROUPS = {
     "ARASHI (岚)": ["大野智", "樱井翔", "相叶雅纪", "二宫和也", "松本润"],
+    "Kis-My-Ft2": [
+        "北山宏光",
+        "千贺健永",
+        "宫田俊哉",
+        "横尾涉",
+        "藤谷太辅",
+        "玉森裕太",
+        "二阶堂高嗣",
+    ],
     "NEWS": ["小山庆一郎", "加藤成亮", "增田贵久"],
     "Hey! Say! JUMP": [
         "薮宏太",
@@ -291,7 +300,6 @@ def render_shout_game():
 
 
 def render_dodge_game():
-  # Stage 10：下落式三轨道灯泡躲避游戏 (Canvas)
   html_code = """
     <!DOCTYPE html><html><head><style>
     body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
@@ -579,7 +587,6 @@ def render_snapshot_game():
 
 
 def render_wink_game():
-  # Stage 20：下落式三轨道 Wink 电眼狙击游戏 (Canvas)
   html_code = """
     <!DOCTYPE html><html><head><style>
     body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
@@ -626,7 +633,6 @@ def render_wink_game():
             let hit = false;
             for(let i = fans.length - 1; i >= 0; i--) {
                 let f = fans[i];
-                // 当粉丝掉落在底部发射有效区间时，如果在同一轨道即成功狙击
                 if(f.y >= 130 && f.y <= 195 && f.lane === playerLane) {
                     score++;
                     fans.splice(i, 1);
@@ -669,7 +675,6 @@ def render_wink_game():
 
 
 def render_outfit_game():
-  # Stage 22：下落式三轨道篮子接物游戏 (Canvas)
   html_code = """
     <!DOCTYPE html><html><head><style>
     body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
