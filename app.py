@@ -166,7 +166,7 @@ def get_rand_member():
 
 
 # -------------------------------------------------------------------
-# 优化后的小游戏组件库（全部自带【点击开始】按钮与平衡手感）
+# 小游戏组件库（含开始按钮与流畅手感）
 # -------------------------------------------------------------------
 
 
@@ -343,6 +343,7 @@ def render_dodge_canvas_game():
   components.html(html_code, height=250)
 
 
+# 恢复原版的仓库挖宝游戏（挖到什么宝物加对应的数值）
 def render_dirt_dig_game():
   html_code = """
     <!DOCTYPE html><html><head><style>
@@ -361,7 +362,7 @@ def render_dirt_dig_game():
     </div>
     <script>
         let tiles = Array(12).fill(false), contents = Array(12).fill('💨 空'), shovels = 5, treasuresFound = 0, isOver = false;
-        let placed = 0; const prizePool = ['💎 金唱片', '✨ 签名照', '🏆 奖杯'];
+        let placed = 0; const prizePool = ['💎 金唱片(+20歌唱)', '✨ 签名照(+300粉丝)', '🏆 奖杯(+20舞蹈)'];
         while(placed < 3) { let idx = Math.floor(Math.random() * 12); if(!tiles[idx]) { tiles[idx] = true; contents[idx] = prizePool[placed % prizePool.length]; placed++; } }
         const gridEl = document.getElementById('dirtGrid'), tipEl = document.getElementById('dig-tip'), shovelEl = document.getElementById('shovels');
         function renderGrid() {
@@ -382,7 +383,7 @@ def render_dirt_dig_game():
             }
             if (shovels === 0 || treasuresFound === 3) {
                 isOver = true;
-                if (treasuresFound >= 2) tipEl.innerHTML = "🏆 挖宝成功！一共收获 " + treasuresFound + " 件宝物！";
+                if (treasuresFound >= 2) tipEl.innerHTML = "🏆 挖宝成功！收获 " + treasuresFound + " 件宝物！";
                 else tipEl.innerHTML = "<span style='color:#ff5252;'>💧 挖宝失败！只找到 " + treasuresFound + " 件宝物(需2件)</span>";
             }
         }
@@ -500,7 +501,6 @@ def render_whack_mole_game():
   components.html(html_code, height=270)
 
 
-# 优化后的 Wink 电眼游戏：速度调慢、激光变快、自带【开始按钮】与清晰特效
 def render_eyecatch_game():
   html_code = """
     <!DOCTYPE html><html><head><style>
@@ -696,7 +696,6 @@ def render_memory_game():
   components.html(html_code, height=270)
 
 
-# 优化后的 Stage 27 数字拼图：开局强制多步随机打乱，真正需要解谜！
 def render_puzzle_game():
   html_code = """
     <!DOCTYPE html><html><head><style>
@@ -717,7 +716,6 @@ def render_puzzle_game():
         let board = [1, 2, 3, 4, 5, 6, 7, 8, 0];
         let emptyIdx = 8, timeLeft = 35, isOver = false;
         
-        // 随机打乱拼图（通过模拟合法移动确保有解）
         function shuffleBoard() {
             let moves = [ -1, 1, -3, 3 ];
             for(let step = 0; step < 80; step++) {
@@ -732,9 +730,7 @@ def render_puzzle_game():
                 board[target] = 0;
                 emptyIdx = target;
             }
-            if(board.every((v, i) => v === [1,2,3,4,5,6,7,8,0][i])) {
-                shuffleBoard(); // 避免打完还是原样
-            }
+            if(board.every((v, i) => v === [1,2,3,4,5,6,7,8,0][i])) { shuffleBoard(); }
         }
         shuffleBoard();
 
@@ -832,7 +828,7 @@ if not st.session_state.game_started:
       st.rerun()
 
 # -------------------------------------------------------------------
-# 游戏主流程（拓展至 30 章）
+# 游戏主流程（拓展至 30 章，小游戏引入胜负惩罚与奖励）
 # -------------------------------------------------------------------
 if st.session_state.game_started:
   curr_stage = st.session_state.stage
@@ -880,31 +876,50 @@ if st.session_state.game_started:
   elif curr_stage == 2:
     st.subheader("📍 Stage 2：【全开麦打歌·节奏钢琴块】")
     st.markdown(
-        '<div class="event-card"><b>🎹 【打歌小游戏：下落式节奏钢琴块】</b><br>地方电视台录制现场！点击下方 1-2-3-4 按钮敲击下落的钢琴块，达到 800 分才算通过！</div>',
+        '<div class="event-card"><b>🎹 【打歌小游戏：下落式节奏钢琴块】</b><br>地方电视台录制现场！点击开始后敲击下落的钢琴块，达到 800 分才算通过！</div>',
         unsafe_allow_html=True,
     )
     render_piano_tiles_game()
-    if st.button("➔ 演奏结束，点击进入下一阶段"):
-      st.session_state.fans += 1500
-      st.session_state.dance += 20
-      st.session_state.stage += 1
-      st.rerun()
+    c1, c2 = st.columns(2)
+    with c1:
+      if st.button("🎉 挑战成功（得分达标）"):
+        st.session_state.fans += 2000
+        st.session_state.dance += 25
+        st.success("✨ 打歌大获成功！人气与舞技大涨！")
+        st.session_state.stage += 1
+        st.rerun()
+    with c2:
+      if st.button("💧 挑战失败（分数未达标）"):
+        st.session_state.stress += 15
+        st.session_state.energy -= 10
+        st.warning("⚠️ 发挥失常，压力上升，体力消耗！")
+        st.session_state.stage += 1
+        st.rerun()
 
   # Stage 6：游戏 - 📣 粉丝应援声量大作战
   elif curr_stage == 6:
     st.subheader(f"📍 Stage 6：【粉丝应援大作战】与 {member} 的声量对决")
     st.markdown(
-        f'<div class="event-card"><b>📣 【连击小游戏：应援声量爆表】</b><br>街头突击宣传！点击开始后在 8 秒内疯狂点击下方按钮，为 <b>{member}</b> 和你呐喊应援达 30 次以上！</div>',
+        f'<div class="event-card"><b>📣 【连击小游戏：应援声量爆表】</b><br>街头突击宣传！点击开始后在 8 秒内疯狂点击呐喊达 30 次以上！</div>',
         unsafe_allow_html=True,
     )
     render_cheer_battle_game(member)
-    if st.button("➔ 应援结束，点击进入下一阶段"):
-      st.session_state.bond += 18
-      st.session_state.variety += 15
-      st.session_state.stage += 1
-      st.rerun()
+    c1, c2 = st.columns(2)
+    with c1:
+      if st.button("🎉 应援成功（达成30次）"):
+        st.session_state.bond += 20
+        st.session_state.variety += 20
+        st.success("✨ 声量爆表！团队羁绊与综艺感大幅提升！")
+        st.session_state.stage += 1
+        st.rerun()
+    with c2:
+      if st.button("💧 应援失败（未达成30次）"):
+        st.session_state.stress += 15
+        st.warning("⚠️ 声量不足，士气受挫！")
+        st.session_state.stage += 1
+        st.rerun()
 
-  # 🚨 Stage 9：突发危机（专属有舍有得提示）
+  # 🚨 Stage 9：突发危机
   elif curr_stage == 9:
     st.subheader("📍 Stage 9：【突发事件】深夜街头突击生放送（直播）！")
     st.markdown(
@@ -939,21 +954,31 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # Stage 10：游戏 - 🎮 左右闪避生存（夏日风暴音乐节）
+  # Stage 10：游戏 - 🎮 左右闪避生存
   elif curr_stage == 10:
     st.subheader("📍 Stage 10：【夏日风暴音乐节·舞台危机闪避】")
     st.markdown(
-        '<div class="event-card"><b>🎮 【生存闪避小游戏：15秒极限避险】</b><br>户外音乐节突降狂风暴雨，舞台灯光摇晃坠落！点击开始后通过左右移动按钮避开坠落物！</div>',
+        '<div class="event-card"><b>🎮 【生存闪避小游戏：15秒极限避险】</b><br>户外音乐节突降狂风暴雨，点击开始后通过左右移动按钮避开坠落物！</div>',
         unsafe_allow_html=True,
     )
     render_dodge_canvas_game()
-    if st.button("🌟 风暴安然度过，前往下一阶段！"):
-      st.session_state.fans += 2000
-      st.session_state.variety += 20
-      st.session_state.stage += 1
-      st.rerun()
+    c1, c2 = st.columns(2)
+    with c1:
+      if st.button("🎉 闪避成功（存活通关）"):
+        st.session_state.fans += 2500
+        st.session_state.variety += 25
+        st.success("✨ 完美化解危机，吸粉无数！")
+        st.session_state.stage += 1
+        st.rerun()
+    with c2:
+      if st.button("💧 闪避失败（生命耗尽）"):
+        st.session_state.stress += 25
+        st.session_state.energy -= 20
+        st.warning("⚠️ 狼狈摔倒，体力受损，压力大增！")
+        st.session_state.stage += 1
+        st.rerun()
 
-  # Stage 11：游戏 - ⛏️ 铁锹盲盒挖宝
+  # Stage 11：游戏 - ⛏️ 铁锹盲盒挖宝（原版数值加成）
   elif curr_stage == 11:
     st.subheader("📍 Stage 11：【事务所地下仓库·铁锹盲盒挖宝】")
     st.markdown(
@@ -961,13 +986,23 @@ if st.session_state.game_started:
         unsafe_allow_html=True,
     )
     render_dirt_dig_game()
-    if st.button("➔ 挖宝结束，进入下一阶段"):
-      st.session_state.fans += 1200
-      st.session_state.dance += 15
-      st.session_state.stage += 1
-      st.rerun()
+    c1, c2 = st.columns(2)
+    with c1:
+      if st.button("🎉 挖宝成功（找到>=2件宝物）"):
+        st.session_state.vocal += 20
+        st.session_state.dance += 20
+        st.session_state.fans += 1500
+        st.success("✨ 成功开箱宝物！歌唱、舞蹈与粉丝全面暴涨！")
+        st.session_state.stage += 1
+        st.rerun()
+    with c2:
+      if st.button("💧 挖宝失败（只找到<2件宝物）"):
+        st.session_state.stress += 10
+        st.warning("⚠️ 只挖到一堆空土块，白忙一场...")
+        st.session_state.stage += 1
+        st.rerun()
 
-  # 🚨 Stage 13：突发危机（专属有舍有得提示）
+  # 🚨 Stage 13：突发危机
   elif curr_stage == 13:
     st.subheader("📍 Stage 13：【突发危机】八卦周刊跟拍偷拍！")
     st.markdown(
@@ -1009,13 +1044,22 @@ if st.session_state.game_started:
         unsafe_allow_html=True,
     )
     render_magazine_photo_game()
-    if st.button("➔ 拍摄结束，进入下一阶段！"):
-      st.session_state.fans += 1800
-      st.session_state.variety += 25
-      st.session_state.stage += 1
-      st.rerun()
+    c1, c2 = st.columns(2)
+    with c1:
+      if st.button("🎉 拍摄成功（达成5次快门）"):
+        st.session_state.fans += 2000
+        st.session_state.variety += 25
+        st.success("✨ 封面大片惊艳全网！")
+        st.session_state.stage += 1
+        st.rerun()
+    with c2:
+      if st.button("💧 拍摄失败（未达标）"):
+        st.session_state.stress += 15
+        st.warning("⚠️ 镜头感生疏，错失封面机会。")
+        st.session_state.stage += 1
+        st.rerun()
 
-  # 🚨 Stage 18：突发危机（专属有舍有得提示）
+  # 🚨 Stage 18：突发危机
   elif curr_stage == 18:
     st.subheader(f"📍 Stage 18：【突发危机】队友 {member} 临演前突发高烧！")
     st.markdown(
@@ -1049,18 +1093,27 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # Stage 20：游戏 - ⚡ 【Wink大神】巨蛋花车电眼狙击战（手感优化版）
+  # Stage 20：游戏 - ⚡ 【Wink大神】巨蛋花车电眼狙击战
   elif curr_stage == 20:
     st.subheader("📍 Stage 20：【巨蛋花车巡游】Wink大神·全场电眼狙击战")
     st.markdown(
-        '<div class="event-card"><b>⚡ 【Wink电眼狙击战】</b><br>点击开始后看准下落的粉红爱心 (💖)发射激光，避开炸弹 (💣)，达到 800 分才算通过！</div>',
+        '<div class="event-card"><b>⚡ 【Wink电眼狙击战】</b><br>点击开始后看准粉红爱心发射激光，达到 800 分才算通过！</div>',
         unsafe_allow_html=True,
     )
     render_eyecatch_game()
-    if st.button("➔ 狙击战结束，进入下一阶段！"):
-      st.session_state.fans += 2500
-      st.session_state.stage += 1
-      st.rerun()
+    c1, c2 = st.columns(2)
+    with c1:
+      if st.button("🎉 狙击成功（得分达标）"):
+        st.session_state.fans += 3000
+        st.success("✨ 全场尖叫声雷动，电眼狙击大获成功！")
+        st.session_state.stage += 1
+        st.rerun()
+    with c2:
+      if st.button("💧 狙击失败（得分未达标）"):
+        st.session_state.stress += 15
+        st.warning("⚠️ 镜头感没抓好，略显尴尬。")
+        st.session_state.stage += 1
+        st.rerun()
 
   # Stage 22：游戏 - 🧺 换装接衣物小游戏
   elif curr_stage == 22:
@@ -1070,39 +1123,66 @@ if st.session_state.game_started:
         unsafe_allow_html=True,
     )
     render_wardrobe_catch_game(member)
-    if st.button("➔ 换装完毕，冲上舞台！"):
-      st.session_state.fans += 1800
-      st.session_state.stage += 1
-      st.rerun()
+    c1, c2 = st.columns(2)
+    with c1:
+      if st.button("🎉 抢救成功（得分达标）"):
+        st.session_state.fans += 2000
+        st.success("✨ 完美换装登台，惊艳全场！")
+        st.session_state.stage += 1
+        st.rerun()
+    with c2:
+      if st.button("💧 抢救失败（得分未达标）"):
+        st.session_state.stress += 15
+        st.warning("⚠️ 后台手忙脚乱差点错过登台！")
+        st.session_state.stage += 1
+        st.rerun()
 
   # Stage 24：游戏 - 🃏 粉丝感谢祭：记忆翻牌消除
   elif curr_stage == 24:
     st.subheader("📍 Stage 24：【粉丝感谢祭】应援卡记忆翻牌考验")
     st.markdown(
-        '<div class="event-card"><b>🃏 【记忆翻牌小游戏：粉丝卡匹配】</b><br>20 秒内翻开配对 4 对相同的粉丝应援卡（🎤/👑/🎸/💖），全部消除才算成功！</div>',
+        '<div class="event-card"><b>🃏 【记忆翻牌小游戏：粉丝卡匹配】</b><br>20 秒内翻开配对 4 对相同的粉丝应援卡，全部消除才算成功！</div>',
         unsafe_allow_html=True,
     )
     render_memory_game()
-    if st.button("➔ 翻牌挑战完成，前往下一阶段！"):
-      st.session_state.fans += 2200
-      st.session_state.bond += 15
-      st.session_state.stage += 1
-      st.rerun()
+    c1, c2 = st.columns(2)
+    with c1:
+      if st.button("🎉 翻牌成功（全部消除）"):
+        st.session_state.fans += 2500
+        st.session_state.bond += 20
+        st.success("✨ 粉丝互动大成功，凝聚力暴涨！")
+        st.session_state.stage += 1
+        st.rerun()
+    with c2:
+      if st.button("💧 翻牌失败（时间耗尽）"):
+        st.session_state.stress += 15
+        st.warning("⚠️ 记性卡壳，略显遗憾。")
+        st.session_state.stage += 1
+        st.rerun()
 
-  # Stage 27：游戏 - 🚚 巨蛋盛典：抢修花车移动轨道（完美打乱解谜版）
+  # Stage 27：游戏 - 🚚 巨蛋盛典：抢修花车移动轨道
   elif curr_stage == 27:
     st.subheader(f"📍 Stage 27：【巨蛋盛典】抢修 {member} 的花车移动轨道")
     st.markdown(
-        '<div class="event-card"><b>🚚 【移动方块小游戏：轨道抢修】</b><br>方块已被随机打乱！35秒内点击空格邻近方块滑动，按 1-8 顺序复原轨道！</div>',
+        '<div class="event-card"><b>🚚 【移动方块小游戏：轨道抢修】</b><br>方块已被随机打乱！35秒内复原轨道（1-8）！</div>',
         unsafe_allow_html=True,
     )
     render_puzzle_game()
-    if st.button("➔ 轨道复原，前往出道前夜！"):
-      st.session_state.fans += 3000
-      st.session_state.stage += 1
-      st.rerun()
+    c1, c2 = st.columns(2)
+    with c1:
+      if st.button("🎉 拼图成功（轨道复原）"):
+        st.session_state.fans += 3500
+        st.success("✨ 花车完美启动，全场沸腾！")
+        st.session_state.stage += 1
+        st.rerun()
+    with c2:
+      if st.button("💧 拼图失败（时间耗尽）"):
+        st.session_state.stress += 20
+        st.warning("⚠️ 花车险些出故障，惊出一身冷汗！")
+        st.session_state.stage += 1
+        st.rerun()
 
-  # 📖 日常外务与剧情章节（纯粹文字剧情，选项不显示具体分数）
+  # 📖 日常外务与剧情章节
   elif curr_stage < 30:
     st.subheader(f"📍 Stage {curr_stage} / 30")
     s_db = {
