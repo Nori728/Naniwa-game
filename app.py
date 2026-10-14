@@ -155,7 +155,6 @@ def init_game():
   st.session_state.trust = 50
   st.session_state.bond = 10
 
-  # 挖宝专属状态
   st.session_state.shovels_left = 6
   st.session_state.dig_logs = []
 
@@ -170,7 +169,7 @@ def get_rand_member():
 
 
 # -------------------------------------------------------------------
-# 小游戏组件库（钢琴块、打地鼠、拼图）
+# 完整的小游戏组件库
 # -------------------------------------------------------------------
 
 
@@ -238,6 +237,60 @@ def render_piano_tiles_game():
     </script></body></html>
     """
   components.html(html_code, height=295)
+
+
+def render_shout_game():
+  html_code = """
+    <!DOCTYPE html><html><head><style>
+    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+    .shout-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); padding: 12px; width: 300px; text-align: center; position: relative; }
+    .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
+    .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
+    .shout-click-btn { background: linear-gradient(135deg, #ff4081, #ab47bc); color: white; border: none; width: 140px; height: 70px; font-size: 18px; font-weight: bold; border-radius: 35px; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 64, 129, 0.5); margin: 15px 0; }
+    .shout-click-btn:active { transform: scale(0.92); }
+    </style></head><body>
+    <div class="shout-box">
+        <div id="startOverlay" class="start-overlay">
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:10px; font-size:13px;">📣 声量呐喊连击大作战</div>
+            <div style="color:#fff; font-size:11px; margin-bottom:12px;">20秒内疯狂点击，点击超过90下！</div>
+            <button class="start-btn" onclick="startGame()">▶️ 点击开始呐喊</button>
+        </div>
+        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">📣 街头突击应援声量对决</div>
+        <div style="color: #00e676; font-size: 12px; font-weight: bold; margin-top: 5px;">🔥 点击数: <span id="sCount">0</span> / 90 | ⏳ <span id="sTime">20</span>s</div>
+        <button class="shout-click-btn" onclick="handleClick()">🗣️ 疯狂呐喊！</button>
+        <div id="s-tip" style="color: #fff; font-size: 11px;">用尽全力把声音传达到广场每个角落！</div>
+    </div>
+    <script>
+        let count = 0, timeLeft = 20, isStarted = false, isOver = false, timer;
+        const countEl = document.getElementById('sCount'), timeEl = document.getElementById('sTime'), tipEl = document.getElementById('s-tip');
+
+        function startGame() {
+            document.getElementById('startOverlay').style.display = 'none';
+            isStarted = true;
+            timer = setInterval(() => {
+                if(timeLeft > 0 && !isOver) {
+                    timeLeft--;
+                    timeEl.innerText = timeLeft;
+                } else if(!isOver) {
+                    isOver = true;
+                    clearInterval(timer);
+                    if(count >= 90) {
+                        tipEl.innerHTML = "<span style='color:#00e676;'>🎉 声量爆表！应援大获全胜！</span>";
+                    } else {
+                        tipEl.innerHTML = "<span style='color:#ff5252;'>💧 声量不足90下，宣传效果不佳...</span>";
+                    }
+                }
+            }, 1000);
+        }
+
+        function handleClick() {
+            if(!isStarted || isOver) return;
+            count++;
+            countEl.innerText = count;
+        }
+    </script></body></html>
+    """
+  components.html(html_code, height=275)
 
 
 def render_whack_mole_game():
@@ -444,7 +497,7 @@ if not st.session_state.game_started:
       st.rerun()
 
 # -------------------------------------------------------------------
-# 游戏主流程（拓展至 30 章，完整保留全部外务与小游戏）
+# 游戏主流程（拓展至 30 章）
 # -------------------------------------------------------------------
 if st.session_state.game_started:
   curr_stage = st.session_state.stage
@@ -502,28 +555,19 @@ if st.session_state.game_started:
       st.session_state.stage = 3
       st.rerun()
 
-  # Stage 6：粉丝应援声量对决
+  # Stage 6：游戏 - 📣 声量呐喊连击对决（20秒超过90下）
   elif curr_stage == 6:
     st.subheader(f"📍 Stage 6：【粉丝应援大作战】与 {member} 的声量对决")
     st.markdown(
-        f'<div class="event-card"><b>📣 【街头应援考验】</b><br>街头突击宣传，考验你与 <b>{member}</b> 的默契与人气号召力。</div>',
+        f'<div class="event-card"><b>📣 【连击互动小游戏：声量呐喊】</b><br>街头突击宣传！20秒内疯狂点击按钮，必须达到 <b>90 下以上</b> 才能让应援声量爆表！</div>',
         unsafe_allow_html=True,
     )
-    if st.button("🎤 进行街头声量大声呐喊！"):
-      if st.session_state.variety + st.session_state.bond >= 40:
-        st.success(
-            f"🎉 **应援大获全胜！** 现场人山人海，声量爆表！\n\n✨ 奖励：团员羁绊 +20，综艺感 +20"
-        )
-        st.session_state.bond += 20
-        st.session_state.variety += 20
-      else:
-        st.error(
-            "💧 **应援声量不足！** 围观群众寥寥无几，宣传效果不佳。\n\n⚠️ 惩罚：压力 +15，士气受挫"
-        )
-        st.session_state.stress += 15
-      if st.button("➔ 进入下一阶段"):
-        st.session_state.stage += 1
-        st.rerun()
+    render_shout_game()
+    if st.button("➔ 应援结束，进入下一阶段"):
+      st.session_state.bond += 20
+      st.session_state.variety += 20
+      st.session_state.stage = 7  # 修复：确保正确推进至 Stage 7
+      st.rerun()
 
   # 🚨 Stage 9：突发危机
   elif curr_stage == 9:
@@ -601,7 +645,6 @@ if st.session_state.game_started:
           disabled=(st.session_state.shovels_left <= 0),
       ):
         st.session_state.shovels_left -= 1
-        # 随机盲盒结果
         outcome = random.choice([
             (
                 "💎 挖到了绝版金唱片与白金奖杯！",
@@ -633,11 +676,10 @@ if st.session_state.game_started:
     with col_dig2:
       if st.button("🚪 结束挖宝，前往下一关"):
         st.session_state.stage += 1
-        st.session_state.shovels_left = 6  # 重置以便下次或重玩
+        st.session_state.shovels_left = 6
         st.session_state.dig_logs = []
         st.rerun()
 
-    # 展示挖宝历史记录
     if st.session_state.dig_logs:
       st.write("### 📜 挖掘收获记录：")
       for log_text, log_type in st.session_state.dig_logs:
@@ -836,7 +878,7 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # 📖 日常外务与剧情章节（完整保留 30 章内所有常规日常）
+  # 📖 日常外务与剧情章节
   elif curr_stage < 30:
     st.subheader(f"📍 Stage {curr_stage} / 30")
     s_db = {
