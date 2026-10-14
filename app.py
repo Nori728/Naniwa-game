@@ -82,32 +82,34 @@ IDOL_GROUPS = {
     "ACEes": ["浮所飞贵", "那须雄登", "作间龙斗", "深田龙生", "佐藤龙我"],
 }
 
-# 3. 样式美化
+# 3. 样式美化（橙光游戏视觉风：高级霓虹渐变、丝滑卡片）
 st.markdown(
     """
     <style>
     .stApp {
-        background: linear-gradient(135deg, #fce4ec 0%, #f3e5f5 100%);
+        background: linear-gradient(135deg, #1a0f30 0%, #2d1b4e 50%, #4a148c 100%);
+        color: #ffffff;
     }
     .event-card {
-        background: #2d1b4e;
+        background: rgba(45, 27, 78, 0.85);
         color: #ffffff;
-        padding: 20px;
-        border-radius: 16px;
-        border: 3px solid #ff80ab;
-        box-shadow: 0px 8px 20px rgba(255, 128, 171, 0.3);
-        margin: 12px 0;
+        padding: 22px;
+        border-radius: 18px;
+        border: 2px solid #ff4081;
+        box-shadow: 0px 10px 30px rgba(255, 64, 129, 0.4);
+        margin: 14px 0;
         font-size: 15px;
-        line-height: 1.6;
+        line-height: 1.7;
     }
     .cute-info {
-        background-color: #ffffff;
+        background: rgba(255, 255, 255, 0.95);
         border-radius: 14px;
-        padding: 15px;
+        padding: 16px;
         border: 2px dashed #ff4081;
         color: #4a148c;
         font-weight: 600;
-        margin-bottom: 12px;
+        margin-bottom: 14px;
+        box-shadow: 0px 5px 15px rgba(0,0,0,0.2);
     }
     .stButton > button {
         background: linear-gradient(45deg, #ff4081, #ab47bc) !important;
@@ -116,7 +118,8 @@ st.markdown(
         font-weight: bold !important;
         border-radius: 18px !important;
         border: none !important;
-        padding: 8px 20px !important;
+        padding: 10px 22px !important;
+        box-shadow: 0px 4px 15px rgba(255, 64, 129, 0.5);
         touch-action: manipulation;
     }
     </style>
@@ -153,7 +156,7 @@ def get_rand_member():
 
 
 # -------------------------------------------------------------------
-# 🎹 1. 钢琴块打歌小游戏
+# 🎮 小游戏 1：经典钢琴块打歌
 # -------------------------------------------------------------------
 def render_piano_tiles_game():
   html_code = """
@@ -223,7 +226,7 @@ def render_piano_tiles_game():
 
 
 # -------------------------------------------------------------------
-# ⛏️ 2. 铁锹敲击土块挖宝
+# ⛏️ 小游戏 2：盲盒挖宝
 # -------------------------------------------------------------------
 def render_dirt_dig_game():
   html_code = """
@@ -315,7 +318,7 @@ def render_dirt_dig_game():
 
 
 # -------------------------------------------------------------------
-# 🔥 3. 小分队选拔多选题
+# 🔥 小游戏 3：小分队企划多选题
 # -------------------------------------------------------------------
 def render_unit_selection_game():
   html_code = """
@@ -359,7 +362,7 @@ def render_unit_selection_game():
                     options: [
                         {text: "🎸 强劲摇滚乐队编曲", correct: true},
                         {text: "📷 镜头前绝杀 Wink 放电", correct: true},
-                        {text: "📖 现场背诵社长讲话", correct: false},
+                        {text: "📖 来段精彩绝伦的一发技", correct: false},
                         {text: "🧍 呆立舞台毫无表情", correct: false}
                     ]
                 },
@@ -423,80 +426,124 @@ def render_unit_selection_game():
 
 
 # -------------------------------------------------------------------
-# 💖 替换换装 1：【后台饭撒互动：粉丝心愿手势对暗号】
+# ⚡ 经典电眼辣妹风小游戏：巨蛋巡演·全场电眼狙击战
 # -------------------------------------------------------------------
-def render_fans_service_game():
+def render_eyecatch_game():
   html_code = """
     <!DOCTYPE html>
     <html>
     <head>
         <style>
             body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
-            .fs-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 14px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); padding: 10px; width: 300px; text-align: center; }
-            .fs-card { background: linear-gradient(135deg, #ff4081, #7b1fa2); border: 2px solid #fff; border-radius: 12px; padding: 12px; margin: 8px 0; color: #fff; font-size: 15px; font-weight: bold; box-shadow: inset 0 0 10px rgba(255,255,255,0.3); }
-            .fs-btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
-            .fs-btn { background: linear-gradient(180deg, #ab47bc, #4a148c); color: white; border: 1.5px solid #ff80ab; padding: 10px 0; font-size: 12px; font-weight: bold; border-radius: 8px; cursor: pointer; }
-            .fs-btn:active { transform: scale(0.95); background: #ff4081; }
+            .game-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 14px; box-shadow: 0 6px 20px rgba(255,64,129,0.4); position: relative; overflow: hidden; width: 300px; height: 230px; }
+            canvas { display: block; }
+            .ctrl-panel { display: flex; gap: 6px; margin-top: 8px; width: 300px; justify-content: center; }
+            .m-btn { background: linear-gradient(45deg, #ff4081, #ab47bc); color: white; border: none; padding: 10px 0; font-size: 13px; font-weight: bold; border-radius: 10px; cursor: pointer; flex: 1; box-shadow: 0 3px 8px rgba(0,0,0,0.3); }
+            .m-btn:active { transform: scale(0.95); background: #00e676; color: #000; }
         </style>
     </head>
     <body>
-        <div class="fs-box">
-            <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">💖 演唱会花车巡游：粉丝饭撒大对决！</div>
-            <div style="color: #fff; font-size: 11px; margin-top: 2px;">看准应援牌手势，瞬间狙击粉丝内心！</div>
-            <div class="fs-card" id="targetSign">💌 粉丝高举应援牌：“求比心 (Finger Heart)”</div>
-            <div style="color: #00e676; font-size: 11px; font-weight: bold;">🔥 成功饭撒: <span id="fsScore">0</span> / 6 | ⏳ <span id="fsTime">10</span>s</div>
-            <div class="fs-btns">
-                <button class="fs-btn" onclick="pressFS('比心')">🫰 比心</button>
-                <button class="fs-btn" onclick="pressFS('Wink')">😉 Wink</button>
-                <button class="fs-btn" onclick="pressFS('飞吻')">💋 飞吻</button>
-            </div>
+        <div class="game-box"><canvas id="eyeCanvas" width="300" height="230"></canvas></div>
+        <div class="ctrl-panel">
+            <button class="m-btn" onclick="movePlayer(-1)">⬅️ 往左移动</button>
+            <button class="m-btn" onclick="fireWink()">⚡ 发射电眼！</button>
+            <button class="m-btn" onclick="movePlayer(1)">往右移动 ➡️</button>
         </div>
         <script>
-            const signs = [
-                { type: '比心', label: '💌 粉丝举牌：“求比心 (Finger Heart)”' },
-                { type: 'Wink', label: '✨ 粉丝举牌：“求绝杀 Wink (Wink)”' },
-                { type: '飞吻', label: '💋 粉丝举牌：“求抛飞吻 (Kiss)”' }
-            ];
-            let currentSign = signs[0], score = 0, timeLeft = 10, isOver = false;
+            const canvas = document.getElementById('eyeCanvas');
+            const ctx = canvas.getContext('2d');
+            let lane = 1, lanesX = [55, 150, 245], playerY = 190;
+            let items = [], score = 0, hp = 3, timeLeft = 15, isGameOver = false;
+            let laserEffect = null;
 
-            function nextSign() {
-                if (isOver) return;
-                currentSign = signs[Math.floor(Math.random() * signs.length)];
-                document.getElementById('targetSign').innerText = currentSign.label;
-            }
-
-            let timer = setInterval(() => {
-                if (timeLeft > 0 && !isOver) {
-                    timeLeft--; document.getElementById('fsTime').innerText = timeLeft;
-                } else {
-                    isOver = true; clearInterval(timer);
-                    document.getElementById('targetSign').innerText = score >= 6 ? "🎉 饭撒全场大成功！" : "哎呀，反应慢了一拍...";
-                }
+            let timer = setInterval(() => { 
+                if(timeLeft > 0 && !isGameOver) timeLeft--; 
+                else { isGameOver = true; clearInterval(timer); clearInterval(spawner); } 
             }, 1000);
 
-            function pressFS(type) {
-                if (isOver) return;
-                if (type === currentSign.type) {
-                    score++;
-                    document.getElementById('fsScore').innerText = score;
-                    if (score >= 6) {
-                        isOver = true;
-                        document.getElementById('targetSign').innerText = "🎉 饭撒全场大成功！";
-                    } else {
-                        nextSign();
+            let spawner = setInterval(() => { 
+                if(!isGameOver) {
+                    let type = Math.random() > 0.35 ? 'heart' : 'bomb';
+                    items.push({ lane: Math.floor(Math.random()*3), y: -20, speed: 3.2, type: type }); 
+                }
+            }, 600);
+
+            function movePlayer(dir) { 
+                if(!isGameOver) { lane += dir; if(lane < 0) lane = 0; if(lane > 2) lane = 2; } 
+            }
+
+            function fireWink() {
+                if(isGameOver) return;
+                laserEffect = { lane: lane, timer: 12 };
+                
+                for(let i = items.length - 1; i >= 0; i--) {
+                    let it = items[i];
+                    if(it.lane === lane && it.y >= 80 && it.y <= 210) {
+                        if(it.type === 'heart') {
+                            score += 200;
+                        } else {
+                            hp--; 
+                            if(hp <= 0) isGameOver = true;
+                        }
+                        items.splice(i, 1);
+                        break;
                     }
                 }
             }
-            nextSign();
+
+            function loop() {
+                ctx.clearRect(0, 0, 300, 230);
+                
+                ctx.strokeStyle = 'rgba(255, 128, 171, 0.15)'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 4]);
+                [100, 200].forEach(x => { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 230); ctx.stroke(); });
+                ctx.setLineDash([]);
+
+                for (let i = items.length - 1; i >= 0; i--) {
+                    let it = items[i]; it.y += it.speed;
+                    ctx.font = '20px Arial';
+                    ctx.fillText(it.type === 'heart' ? '💖' : '💣', lanesX[it.lane]-10, it.y+10);
+                    if (it.y > 230) items.splice(i, 1);
+                }
+
+                if(laserEffect && laserEffect.timer > 0) {
+                    ctx.strokeStyle = '#00ffff'; ctx.lineWidth = 4;
+                    ctx.shadowBlur = 15; ctx.shadowColor = '#00ffff';
+                    ctx.beginPath();
+                    ctx.moveTo(lanesX[laserEffect.lane], playerY);
+                    ctx.lineTo(lanesX[laserEffect.lane], 0);
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+                    laserEffect.timer--;
+                }
+
+                let px = lanesX[lane];
+                ctx.font = '24px Arial';
+                ctx.fillText('🌟', px-12, playerY+10);
+
+                ctx.fillStyle = '#fff'; ctx.font = 'bold 11px Arial';
+                ctx.fillText("⏱️ 倒计时: " + timeLeft + "s", 10, 18);
+                ctx.fillText("💖 得分: " + score, 110, 18);
+                ctx.fillStyle = '#ff5252'; ctx.fillText("❤️ " + "❤️".repeat(Math.max(0, hp)), 210, 18);
+
+                if (!isGameOver) requestAnimationFrame(loop);
+                else { 
+                    ctx.fillStyle = 'rgba(0,0,0,0.88)'; ctx.fillRect(0,0,300,230); 
+                    ctx.fillStyle = '#00e676'; ctx.font = 'bold 16px Arial'; 
+                    ctx.fillText("🎉 电眼狙击秀圆满成功！", 55, 115); 
+                    ctx.fillStyle = '#ffeb3b'; ctx.font = '13px Arial';
+                    ctx.fillText("最终得分: " + score, 110, 140);
+                }
+            }
+            loop();
         </script>
     </body>
     </html>
     """
-  components.html(html_code, height=275)
+  components.html(html_code, height=295)
 
 
 # -------------------------------------------------------------------
-# 📸 替换换装 2：【杂志封面拍摄：闪光灯快门抓拍 QTE】
+# 📸 杂志封面快门抓拍
 # -------------------------------------------------------------------
 def render_magazine_photo_game():
   html_code = """
@@ -569,7 +616,7 @@ def render_magazine_photo_game():
 
 
 # -------------------------------------------------------------------
-# 🪵 替换换装 3：【后台休息室：平衡木平衡挑战】（带可视化指针与进度条）
+# 🪵 带指针的平衡木挑战
 # -------------------------------------------------------------------
 def render_balance_game():
   html_code = """
@@ -610,7 +657,7 @@ def render_balance_game():
             </div>
         </div>
         <script>
-            let targetPos = 0; // -1左, 0中, 1右
+            let targetPos = 0; 
             let score = 0, timeLeft = 10, isOver = false;
 
             function nextTarget() {
@@ -1149,7 +1196,7 @@ def render_dodge_canvas_game():
                 ctx.fillStyle = '#fff'; ctx.font = 'bold 12px Arial'; ctx.fillText("⏱️ 倒计时: " + timeLeft + "s", 12, 18);
                 ctx.fillStyle = '#ff4081'; ctx.fillText("❤️ 生命: " + "❤️".repeat(Math.max(0, hp)), 195, 18);
                 if (!isGameOver) requestAnimationFrame(loop);
-                else { ctx.fillStyle = 'rgba(0,0,0,0.85);'; ctx.fillRect(0,0,300,185); ctx.fillStyle = '#00e676'; ctx.font = 'bold 16px Arial'; ctx.fillText("🎉 生存挑战成功！", 75, 98); }
+                else { ctx.fillStyle = 'rgba(0,0,0,0.88)'; ctx.fillRect(0,0,300,185); ctx.fillStyle = '#00e676'; ctx.font = 'bold 16px Arial'; ctx.fillText("🎉 生存挑战成功！", 75, 98); }
             }
             loop();
         </script>
@@ -1160,7 +1207,7 @@ def render_dodge_canvas_game():
 
 
 # -------------------------------------------------------------------
-# 剧情数据库
+# 剧情数据库（已加入新增的突发街头生放送剧情）
 # -------------------------------------------------------------------
 def get_story_database(player_name, member, group):
   return {
@@ -1221,11 +1268,11 @@ def get_story_database(player_name, member, group):
           "opt3": "保持冷静沉稳，用接下来的完美舞台回应质疑。",
       },
       14: {
-          "title": "🎶 Stage 14：【外务】音乐节 Showcase 自创曲唱跳",
-          "desc": "事务所给了一次机会，可以在音乐节上演唱一首由你们自己词曲创作的新歌！",
-          "opt1": "参与吉他与和声编曲，打造抒情动人的高难度曲目。",
-          "opt2": "负责舞蹈编排，设计一段炸裂的 Dance Break！",
-          "opt3": "撰写 Rap 词，将大家一路走来的汗水与羁绊写进歌里。",
+          "title": "📡 Stage 14：【突发事件】深夜街头突击生放送（直播）！",
+          "desc": f"刚结束排练和 {member} 走在涩谷街头，电视台的‘突击深夜街头生放送’摄影车突然把镜头怼到你们脸前，主持人随机要求现场即兴表现！",
+          "opt1": "当场清唱一段未公开的自创高音段落，惊艳全网直播间！",
+          "opt2": "一把拉过身边的队友开始疯狂搞笑模仿社长，节目效果直接拉满上热搜！",
+          "opt3": "礼貌微笑并把镜头推给队长：“我们团长有话说！”",
       },
       16: {
           "title": "⚡ Stage 16：【突发】同伴临演前突发高烧！",
@@ -1273,12 +1320,12 @@ st.title("💖 星途闪耀：我的练习生日常")
 # -------------------------------------------------------------------
 if not st.session_state.game_started:
   st.markdown(
-      '<div class="cute-info">✨ 欢迎来到 STARTO 偶像养成营！请输入你的名字，选择心仪组合并抽取开局幸运物！</div>',
+      '<div class="cute-info">✨ 欢迎来到 STARTO 偶像养成营！请输入你的名字，选择心仪组合并抽取开局传奇幸运物！</div>',
       unsafe_allow_html=True,
   )
 
   name_input = st.text_input(
-      "✏️ 请输入你的名字（或昵称）：", placeholder="例如：酱酱 / 小夏"
+      "✏️ 请输入你的名字（或昵称）：", placeholder="例如：小夏"
   )
 
   st.markdown("---")
@@ -1287,16 +1334,18 @@ if not st.session_state.game_started:
   )
 
   st.markdown("---")
-  st.subheader("🎁 抽开局幸运物扭蛋")
+  st.subheader("🎁 抽开局传奇幸运物扭蛋")
 
   if "temp_gacha" not in st.session_state:
     st.session_state.temp_gacha = ""
 
-  if st.button("🎲 点击抽取开局幸运物！"):
+  if st.button("🎲 点击抽取开局传奇幸运物！"):
     gacha_pool = [
         "🍀 前辈送的开光御守（遇到危机扣除信任度减半）",
         "👟 加厚防滑特制舞鞋（舞蹈练习与舞台爆发力大幅提升）",
-        "🍲 深夜暖心关东煮（粉丝增长效率额外提升）",
+        "🎸 已故摇滚前辈的吉他拨片（声乐与音乐特训收益翻倍）",
+        "🍱 传说中的前辈亲制爱心便当（大幅降低压力并瞬间回满体力）",
+        "📸 绝版未公开杂志拍立得（危机公关与信任度直接拉满）",
         "📖 记满心得的旧笔记本（歌唱与综艺事件收益大幅提升）",
     ]
     st.session_state.temp_gacha = random.choice(gacha_pool)
@@ -1484,18 +1533,18 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # 阶段 17：💖 演唱会花车饭撒互动
+  # 阶段 17：⚡ 【电眼辣妹风】巨蛋花车电眼狙击战
   elif curr_stage == 17:
-    st.subheader("📍 Stage 17：【巨蛋花车巡游】粉丝心愿手势饭撒互动")
+    st.subheader("📍 Stage 17：【巨蛋花车巡游】全场电眼狙击战")
     st.markdown(
-        '<div class="event-card"><b>💖 【饭撒互动小游戏：手势对暗号】</b><br>巡演花车开过应援席！看准粉丝高举的手幅指示（比心/Wink/飞吻），在下方点击对应的手势完成饭撒！</div>',
+        '<div class="event-card"><b>⚡ 【经典电眼辣妹风：电眼狙击战】</b><br>花车驶过应援席！左右移动控制偶像位置，看准下落的粉红爱心 (💖) 点击<b>发射电眼激光</b>收集粉丝，同时小心避开黑色炸弹 (💣)！</div>',
         unsafe_allow_html=True,
     )
-    render_fans_service_game()
+    render_eyecatch_game()
 
-    if st.button("➔ 饭撒互动结束，粉丝好感暴涨！"):
-      st.session_state.fans += 2200
-      st.session_state.variety += 20
+    if st.button("➔ 电眼狙击战结束，粉丝好感暴涨！"):
+      st.session_state.fans += 2500
+      st.session_state.variety += 25
       st.session_state.stage += 1
       st.rerun()
 
@@ -1514,7 +1563,7 @@ if st.session_state.game_started:
       st.session_state.stage += 1
       st.rerun()
 
-  # 阶段 19：🪵 【升级版带指针】后台休息室平衡木挑战
+  # 阶段 19：🪵 带指针的平衡木挑战
   elif curr_stage == 19:
     st.subheader("📍 Stage 19：【后台休息室】顶杂志平衡木热身")
     st.markdown(
