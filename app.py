@@ -10,10 +10,10 @@ st.set_page_config(
     layout="centered",
 )
 
-# 2. 团队与成员数据（全团按年龄从大到小严格排序）
+# 2. 团队与成员数据（全团按年龄从大到小严格排序，已新增 Kis-My-Ft2）
 IDOL_GROUPS = {
-    "KinKi Kids": ["堂本光一", "堂本刚"],
     "ARASHI (岚)": ["大野智", "樱井翔", "相叶雅纪", "二宫和也", "松本润"],
+    "KinKi Kids": ["堂本光一", "堂本刚"],
     "Kis-My-Ft2": [
         "北山宏光",
         "千贺健永",
@@ -102,7 +102,7 @@ IDOL_GROUPS = {
     "ACEes": ["浮所飞贵", "那须雄登", "佐藤龙我", "作间龙斗", "深田龙生"],
 }
 
-# 3. 样式美化与全局 BGM/音效注入
+# 3. 样式美化（橙光视觉风）
 st.markdown(
     """
     <style>
@@ -143,49 +143,9 @@ st.markdown(
         touch-action: manipulation;
     }
     </style>
-
-    <!-- 🌐 全局网页音效与 BGM 注入脚本 -->
-    <script>
-        // 1. 网页内置 Web Audio API 点击音效（无需外部文件，绝对不会加载失败）
-        function playClickSound() {
-            try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = audioCtx.createOscillator();
-                const gainNode = audioCtx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5 音符
-                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.08); // A5
-                gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
-                osc.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.08);
-            } catch(e) {}
-        }
-
-        // 监听全局点击事件，自动为所有按钮和可点击元素加上清脆的反馈音效
-        document.addEventListener('click', function(e) {
-            if(e.target.tagName === 'BUTTON' || e.target.closest('button')) {
-                playClickSound();
-            }
-        });
-    </script>
 """,
     unsafe_allow_html=True,
 )
-
-# 侧边栏：沉浸式 BGM 播放器
-with st.sidebar:
-  st.subheader("🎧 偶像电台 BGM")
-  st.markdown("享受练习生日常的陪伴音乐：")
-  # 使用稳定流畅的公共免版权 Lo-Fi 音乐流
-  st.audio(
-      "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf756.mp3?filename=lofi-study-112191.mp3",
-      format="audio/mp3",
-      loop=True,
-  )
-  st.caption("💡 提示：点击播放即可开启循环 BGM，随心调节音量！")
 
 
 # 4. 初始化数据
