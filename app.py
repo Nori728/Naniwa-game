@@ -155,9 +155,6 @@ def init_game():
   st.session_state.trust = 50
   st.session_state.bond = 10
 
-  st.session_state.shovels_left = 6
-  st.session_state.dig_logs = []
-
 
 if "game_started" not in st.session_state:
   init_game()
@@ -169,7 +166,7 @@ def get_rand_member():
 
 
 # -------------------------------------------------------------------
-# 互动小游戏组件库（钢琴块、声量呐喊、打地鼠、闪避、接衣物、Wink、拼图）
+# 原汁原味的小游戏组件库（钢琴块、声量呐喊、左右闪避灯泡、网格盲盒挖宝、打地鼠、抓拍、左右Wink、篮子接衣物、记忆翻牌、简单拼图）
 # -------------------------------------------------------------------
 
 
@@ -294,67 +291,142 @@ def render_shout_game():
 
 
 def render_dodge_game():
+  # 恢复你原本的左右移动躲闪灯泡玩法
   html_code = """
     <!DOCTYPE html><html><head><style>
     body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
     .game-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 10px; width: 300px; text-align: center; position: relative; }
     .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
     .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
-    .dodge-btn { background: linear-gradient(135deg, #ff4081, #7b1fa2); color: white; border: none; padding: 10px 15px; font-size: 14px; font-weight: bold; border-radius: 10px; cursor: pointer; margin: 5px; }
+    .lane-box { display: flex; justify-content: space-around; background: #211035; border: 2px solid #ab47bc; border-radius: 8px; height: 75px; margin: 10px 0; align-items: center; font-size: 24px; }
+    .dodge-btn { background: linear-gradient(135deg, #ff4081, #7b1fa2); color: white; border: none; padding: 8px 16px; font-size: 14px; font-weight: bold; border-radius: 10px; cursor: pointer; }
     .dodge-btn:active { transform: scale(0.92); }
     </style></head><body>
     <div class="game-box">
         <div id="startOverlay" class="start-overlay">
-            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">⚡ 舞台危机闪避挑战</div>
-            <div style="color:#fff; font-size:11px; margin-bottom:10px;">12秒内点击按钮左右闪避坠落灯架！</div>
-            <button class="start-btn" onclick="startGame()">▶️ 点击开始闪避</button>
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">⚡ 左右移动躲避灯泡</div>
+            <div style="color:#fff; font-size:11px; margin-bottom:10px;">12秒内左右移动，避开坠落的 💡 故障灯泡！</div>
+            <button class="start-btn" onclick="startGame()">▶️ 开始躲避</button>
         </div>
-        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">⚡ 躲避坠落灯架！</div>
-        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 3px;">🛡️ 闪避成功次数: <span id="dScore">0</span> / 6 | ⏳ <span id="dTime">12</span>s</div>
-        <div id="dPos" style="font-size: 28px; margin: 10px 0;">🧍‍♂️</div>
-        <div>
-            <button class="dodge-btn" onclick="move('left')">⬅️ 往左闪</button>
-            <button class="dodge-btn" onclick="move('right')">往右闪 ➡️</button>
+        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">⚡ 舞台危机：躲避坠落灯泡</div>
+        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 3px;">🛡️ 成功闪避: <span id="dScore">0</span> / 6 | ⏳ <span id="dTime">12</span>s</div>
+        <div class="lane-box">
+            <div id="lane0">⭐</div>
+            <div id="lane1">⭐</div>
+            <div id="lane2">⭐</div>
         </div>
-        <div id="d-tip" style="color: #fff; font-size: 11px; margin-top: 5px;">注意观察砸落方向！</div>
+        <div style="display: flex; justify-content: space-around;">
+            <button class="dodge-btn" onclick="movePlayer(-1)">⬅️ 往左</button>
+            <button class="dodge-btn" onclick="movePlayer(1)">往右 ➡️</button>
+        </div>
+        <div id="d-tip" style="color: #fff; font-size: 11px; margin-top: 6px;">用左右按钮操纵角色避开灯泡！</div>
     </div>
     <script>
-        let score = 0, timeLeft = 12, isStarted = false, isOver = false, dangerSide = 'left', playerPos = 'center', timer, spawner;
-        const posEl = document.getElementById('dPos'), timeEl = document.getElementById('dTime'), scoreEl = document.getElementById('dScore'), tipEl = document.getElementById('d-tip');
+        let score = 0, timeLeft = 12, isStarted = false, isOver = false, playerLane = 1, bulbLane = 0, timer, spawner;
+        const timeEl = document.getElementById('dTime'), scoreEl = document.getElementById('dScore'), tipEl = document.getElementById('d-tip');
 
         function startGame() {
             document.getElementById('startOverlay').style.display = 'none';
             isStarted = true;
+            renderLanes();
             timer = setInterval(() => {
                 if(timeLeft > 0 && !isOver) { timeLeft--; timeEl.innerText = timeLeft; }
                 else if(!isOver) { endDodge(); }
             }, 1000);
             spawner = setInterval(() => {
                 if(isOver || !isStarted) return;
-                dangerSide = Math.random() > 0.5 ? 'left' : 'right';
-                posEl.innerHTML = dangerSide === 'left' ? '⚠️ ⬅️灯架砸向左侧！' : '⚠️ ➡️灯架砸向右侧！';
+                bulbLane = Math.floor(Math.random() * 3);
+                renderLanes();
+                if(playerLane === bulbLane) {
+                    score = Math.max(0, score - 1);
+                    scoreEl.innerText = score;
+                    tipEl.innerHTML = "<span style='color:#ff5252;'>💥 被故障灯泡砸中了！</span>";
+                } else {
+                    score++;
+                    scoreEl.innerText = score;
+                    tipEl.innerHTML = "<span style='color:#00e676;'>✨ 漂亮！成功闪避！</span>";
+                }
             }, 1500);
         }
 
-        function move(dir) {
+        function movePlayer(dir) {
             if(!isStarted || isOver) return;
-            if(dir !== dangerSide) {
-                score++;
-                scoreEl.innerText = score;
-                tipEl.innerHTML = "<span style='color:#00e676;'>✨ 险险闪过！漂亮！</span>";
+            playerLane = Math.max(0, Math.min(2, playerLane + dir));
+            renderLanes();
+            if(playerLane === bulbLane) {
+                tipEl.innerHTML = "<span style='color:#ff5252;'>⚠️ 撞到灯泡了！</span>";
             } else {
-                tipEl.innerHTML = "<span style='color:#ff5252;'>💥 哎呀被砸中了！</span>";
+                tipEl.innerHTML = "<span style='color:#00e676;'>👍 安全位置！</span>";
+            }
+        }
+
+        function renderLanes() {
+            for(let i=0; i<3; i++) {
+                let content = '⭐';
+                if(i === playerLane && i === bulbLane) content = '💥';
+                else if(i === playerLane) content = '🧍‍♂️';
+                else if(i === bulbLane) content = '💡';
+                document.getElementById('lane' + i).innerText = content;
             }
         }
 
         function endDodge() {
             isOver = true; clearInterval(timer); clearInterval(spawner);
             if(score >= 4) { tipEl.innerHTML = "<span style='color:#00e676;'>🎉 成功闪避危机！全场惊叹！</span>"; }
-            else { tipEl.innerHTML = "<span style='color:#ff5252;'>💧 闪避不及，狼狈摔倒！</span>"; }
+            else { tipEl.innerHTML = "<span style='color:#ff5252;'>💧 闪避不及，有些狼狈！</span>"; }
         }
     </script></body></html>
     """
-  components.html(html_code, height=275)
+  components.html(html_code, height=285)
+
+
+def render_dig_game():
+  # 恢复你原本的网格土块全开盲盒挖宝玩法
+  html_code = """
+    <!DOCTYPE html><html><head><style>
+    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+    .game-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 10px; width: 300px; text-align: center; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 10px 0; }
+    .soil-tile { background: linear-gradient(135deg, #5d4037, #3e2723); border: 2px solid #8d6e63; border-radius: 8px; height: 50px; font-size: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #fff; }
+    .soil-tile:active { transform: scale(0.92); }
+    </style></head><body>
+    <div class="game-box">
+        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">⛏️ 地下仓库·敲土块开盲盒挖宝</div>
+        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 3px;">💎 已挖到宝物: <span id="digScore">0</span> / 6 块土块</div>
+        <div class="grid" id="digGrid"></div>
+        <div id="dig-tip" style="color: #fff; font-size: 11px;">点击土块敲开盲盒，寻找前辈留下的绝版宝物！</div>
+    </div>
+    <script>
+        let soils = Array(6).fill(null).map(() => Math.random() > 0.3 ? '💎' : '🧱');
+        let opened = Array(6).fill(false), foundCount = 0;
+        const gridEl = document.getElementById('digGrid'), tipEl = document.getElementById('dig-tip');
+
+        function renderGrid() {
+            gridEl.innerHTML = '';
+            soils.forEach((item, idx) => {
+                let tile = document.createElement('div'); tile.className = 'soil-tile';
+                tile.innerText = opened[idx] ? item : '🟫';
+                tile.onclick = () => digTile(idx);
+                gridEl.appendChild(tile);
+            });
+        }
+
+        function digTile(idx) {
+            if(opened[idx]) return;
+            opened[idx] = true;
+            if(soils[idx] === '💎') {
+                foundCount++;
+                document.getElementById('digScore').innerText = foundCount;
+                tipEl.innerHTML = "<span style='color:#00e676;'>🎉 挖到宝藏！金唱片/拍立得收入囊中！</span>";
+            } else {
+                tipEl.innerHTML = "<span style='color:#ff5252;'>🧱 只挖到了一块普通泥土...</span>";
+            }
+            renderGrid();
+        }
+        renderGrid();
+    </script></body></html>
+    """
+  components.html(html_code, height=255)
 
 
 def render_whack_mole_game():
@@ -496,126 +568,177 @@ def render_snapshot_game():
 
 
 def render_wink_game():
+  # 恢复你原本的左右移动电眼 Wink 玩法
   html_code = """
     <!DOCTYPE html><html><head><style>
     body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
     .game-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 10px; width: 300px; text-align: center; position: relative; }
     .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
     .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
-    .wink-btn { background: linear-gradient(135deg, #ff4081, #ab47bc); color: white; border: none; width: 130px; height: 60px; font-size: 16px; font-weight: bold; border-radius: 30px; cursor: pointer; margin-top: 10px; }
+    .lane-box { display: flex; justify-content: space-around; background: #211035; border: 2px solid #ab47bc; border-radius: 8px; height: 75px; margin: 10px 0; align-items: center; font-size: 26px; }
+    .wink-btn { background: linear-gradient(135deg, #ff4081, #ab47bc); color: white; border: none; padding: 8px 16px; font-size: 14px; font-weight: bold; border-radius: 10px; cursor: pointer; }
     .wink-btn:active { transform: scale(0.92); }
     </style></head><body>
     <div class="game-box">
         <div id="startOverlay" class="start-overlay">
-            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">🌟 Wink电眼狙击战</div>
-            <div style="color:#fff; font-size:11px; margin-bottom:10px;">10秒内疯狂电眼连击，点击超过40次！</div>
-            <button class="start-btn" onclick="startGame()">▶️ 开始狙击</button>
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">🌟 左右移动发射电眼 Wink</div>
+            <div style="color:#fff; font-size:11px; margin-bottom:10px;">10秒内左右移动接住随机出现的粉丝区，发射电眼！</div>
+            <button class="start-btn" onclick="startGame()">▶️ 开始电眼巡游</button>
         </div>
-        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">🌟 全场电眼 Wink 狙击</div>
-        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 3px;">💖 Wink次数: <span id="wCount">0</span> / 40 | ⏳ <span id="wTime">10</span>s</div>
-        <button class="wink-btn" onclick="winkClick()">😉 释放电眼！</button>
-        <div id="w-tip" style="color: #fff; font-size: 11px; margin-top: 8px;">向全场数万粉丝疯狂发射心动电眼！</div>
+        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">🌟 巨蛋花车·左右移动电眼狙击</div>
+        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 3px;">💖 Wink得分: <span id="wScore">0</span> / 6 | ⏳ <span id="wTime">10</span>s</div>
+        <div class="lane-box">
+            <div id="wLane0">✨</div>
+            <div id="wLane1">✨</div>
+            <div id="wLane2">✨</div>
+        </div>
+        <div style="display: flex; justify-content: space-around;">
+            <button class="wink-btn" onclick="moveWink(-1)">⬅️ 往左</button>
+            <button class="wink-btn" onclick="winkAction()">😉 发射Wink</button>
+            <button class="wink-btn" onclick="moveWink(1)">往右 ➡️</button>
+        </div>
+        <div id="w-tip" style="color: #fff; font-size: 11px; margin-top: 6px;">移动到粉丝区（💖）按下发射！</div>
     </div>
     <script>
-        let count = 0, timeLeft = 10, isStarted = false, isOver = false, timer;
-        const countEl = document.getElementById('wCount'), timeEl = document.getElementById('wTime'), tipEl = document.getElementById('w-tip');
+        let score = 0, timeLeft = 10, isStarted = false, isOver = false, playerLane = 1, fanLane = 0, timer, spawner;
+        const timeEl = document.getElementById('wTime'), scoreEl = document.getElementById('wScore'), tipEl = document.getElementById('w-tip');
 
         function startGame() {
             document.getElementById('startOverlay').style.display = 'none';
             isStarted = true;
+            renderWink();
             timer = setInterval(() => {
                 if(timeLeft > 0 && !isOver) { timeLeft--; timeEl.innerText = timeLeft; }
-                else if(!isOver) {
-                    isOver = true; clearInterval(timer);
-                    if(count >= 40) { tipEl.innerHTML = "<span style='color:#00e676;'>🎉 电眼狙击全场沸腾！尖叫声爆表！</span>"; }
-                    else { tipEl.innerHTML = "<span style='color:#ff5252;'>💧 电眼释放不够，粉丝反应平平...</span>"; }
-                }
+                else if(!isOver) { endWink(); }
             }, 1000);
-        }
-
-        function winkClick() {
-            if(!isStarted || isOver) return;
-            count++;
-            countEl.innerText = count;
-        }
-    </script></body></html>
-    """
-  components.html(html_code, height=270)
-
-
-def render_outfit_game():
-  html_code = """
-    <!DOCTYPE html><html><head><style>
-    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
-    .game-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 10px; width: 300px; text-align: center; position: relative; }
-    .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
-    .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
-    .cloth-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 10px 0; }
-    .cloth-item { background: #211035; border: 2px solid #ab47bc; border-radius: 8px; height: 45px; font-size: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-    .cloth-item:active { transform: scale(0.92); }
-    </style></head><body>
-    <div class="game-box">
-        <div id="startOverlay" class="start-overlay">
-            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">🧺 战袍暗场抢救战</div>
-            <div style="color:#fff; font-size:11px; margin-bottom:10px;">12秒内在黑暗中准确抓取 6 件演出战袍！</div>
-            <button class="start-btn" onclick="startGame()">▶️ 开启暗场抢救</button>
-        </div>
-        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">🧺 演唱会暗场·战袍抢救战</div>
-        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 3px;">✨ 抢救战袍: <span id="oScore">0</span> / 6 | ⏳ <span id="oTime">12</span>s</div>
-        <div class="cloth-grid" id="clothGrid"></div>
-        <div id="o-tip" style="color: #fff; font-size: 11px;">准确点击 🧥 战袍，小心抓到臭袜子 🧦！</div>
-    </div>
-    <script>
-        let score = 0, timeLeft = 12, isStarted = false, isOver = false, activeIdx = -1, activeType = '', timer, spawner;
-        const gridEl = document.getElementById('clothGrid'), tipEl = document.getElementById('o-tip');
-
-        function startGame() {
-            document.getElementById('startOverlay').style.display = 'none';
-            isStarted = true;
             spawner = setInterval(() => {
                 if(isOver || !isStarted) return;
-                activeIdx = Math.floor(Math.random() * 9);
-                activeType = Math.random() > 0.25 ? 'cloth' : 'sock';
-                renderGrid();
-            }, 600);
-            timer = setInterval(() => {
-                if(timeLeft > 0 && !isOver) { timeLeft--; document.getElementById('oTime').innerText = timeLeft; }
-                else if(!isOver) { endOutfit(); }
-            }, 1000);
-            renderGrid();
+                fanLane = Math.floor(Math.random() * 3);
+                renderWink();
+            }, 1200);
         }
 
-        function renderGrid() {
-            gridEl.innerHTML = '';
-            for(let i=0; i<9; i++) {
-                let item = document.createElement('div'); item.className = 'cloth-item';
-                item.innerText = (i === activeIdx && isStarted) ? (activeType === 'cloth' ? '🧥' : '🧦') : '⬛';
-                item.onclick = () => clickItem(i);
-                gridEl.appendChild(item);
+        function moveWink(dir) {
+            if(!isStarted || isOver) return;
+            playerLane = Math.max(0, Math.min(2, playerLane + dir));
+            renderWink();
+        }
+
+        function winkAction() {
+            if(!isStarted || isOver) return;
+            if(playerLane === fanLane) {
+                score++;
+                scoreEl.innerText = score;
+                tipEl.innerHTML = "<span style='color:#00e676;'>✨ Wink精准狙击！粉丝疯狂尖叫！</span>";
+            } else {
+                tipEl.innerHTML = "<span style='color:#ff5252;'>💧 方向没对准，打到空气了！</span>";
             }
         }
 
-        function clickItem(idx) {
-            if(!isStarted || isOver || idx !== activeIdx) return;
-            if(activeType === 'cloth') {
-                score++; document.getElementById('oScore').innerText = score;
-                activeIdx = -1; renderGrid();
-                if(score >= 6) { endOutfit(); }
-            } else {
-                score = Math.max(0, score - 2); document.getElementById('oScore').innerText = score;
-                activeIdx = -1; renderGrid();
-                tipEl.innerHTML = "<span style='color:#ff5252;'>💥 哎呀抓到臭袜子了！扣2分！</span>";
+        function renderWink() {
+            for(let i=0; i<3; i++) {
+                let content = '✨';
+                if(i === playerLane && i === fanLane) content = '💖😉';
+                else if(i === playerLane) content = '🧍‍♂️';
+                else if(i === fanLane) content = '💖';
+                document.getElementById('wLane' + i).innerText = content;
+            }
+        }
+
+        function endWink() {
+            isOver = true; clearInterval(timer); clearInterval(spawner);
+            if(score >= 4) { tipEl.innerHTML = "<span style='color:#00e676;'>🎉 电眼狙击大成功！全场沸腾！</span>"; }
+            else { tipEl.innerHTML = "<span style='color:#ff5252;'>💧 表现平平，电眼释放不够！</span>"; }
+        }
+    </script></body></html>
+    """
+  components.html(html_code, height=290)
+
+
+def render_outfit_game():
+  # 恢复你原本的篮子接物玩法
+  html_code = """
+    <!DOCTYPE html><html><head><style>
+    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+    .game-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 10px; width: 300px; text-align: center; }
+    .lane-box { display: flex; justify-content: space-around; background: #211035; border: 2px solid #ab47bc; border-radius: 8px; height: 75px; margin: 10px 0; align-items: center; font-size: 26px; }
+    .outfit-btn { background: linear-gradient(135deg, #ff4081, #7b1fa2); color: white; border: none; padding: 8px 16px; font-size: 14px; font-weight: bold; border-radius: 10px; cursor: pointer; }
+    .outfit-btn:active { transform: scale(0.92); }
+    .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
+    .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
+    </style></head><body>
+    <div class="game-box" style="position: relative;">
+        <div id="startOverlay" class="start-overlay">
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">🧺 暗场篮子接物抢救战</div>
+            <div style="color:#fff; font-size:11px; margin-bottom:10px;">12秒内左右移动篮子，接住掉落的 🧥 战袍！</div>
+            <button class="start-btn" onclick="startGame()">▶️ 开始接战袍</button>
+        </div>
+        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">🧺 演唱会暗场·篮子接物</div>
+        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 3px;">✨ 接住战袍: <span id="oScore">0</span> / 6 | ⏳ <span id="oTime">12</span>s</div>
+        <div class="lane-box">
+            <div id="oLane0">⭐</div>
+            <div id="oLane1">⭐</div>
+            <div id="oLane2">⭐</div>
+        </div>
+        <div style="display: flex; justify-content: space-around;">
+            <button class="outfit-btn" onclick="moveBasket(-1)">⬅️ 篮子往左</button>
+            <button class="outfit-btn" onclick="moveBasket(1)">篮子往右 ➡️</button>
+        </div>
+        <div id="o-tip" style="color: #fff; font-size: 11px; margin-top: 6px;">移动篮子接住掉落的战袍（🧥）！</div>
+    </div>
+    <script>
+        let score = 0, timeLeft = 12, isStarted = false, isOver = false, basketLane = 1, itemLane = 0, timer, spawner;
+        const timeEl = document.getElementById('oTime'), scoreEl = document.getElementById('oScore'), tipEl = document.getElementById('o-tip');
+
+        function startGame() {
+            document.getElementById('startOverlay').style.display = 'none';
+            isStarted = true;
+            renderBasket();
+            timer = setInterval(() => {
+                if(timeLeft > 0 && !isOver) { timeLeft--; timeEl.innerText = timeLeft; }
+                else if(!isOver) { endOutfit(); }
+            }, 1000);
+            spawner = setInterval(() => {
+                if(isOver || !isStarted) return;
+                itemLane = Math.floor(Math.random() * 3);
+                renderBasket();
+                if(basketLane === itemLane) {
+                    score++;
+                    scoreEl.innerText = score;
+                    tipEl.innerHTML = "<span style='color:#00e676;'>✨ 漂亮！成功接住战袍！</span>";
+                } else {
+                    tipEl.innerHTML = "<span style='color:#ff5252;'>💧 哎呀掉地上啦！</span>";
+                }
+            }, 1200);
+        }
+
+        function moveBasket(dir) {
+            if(!isStarted || isOver) return;
+            basketLane = Math.max(0, Math.min(2, basketLane + dir));
+            renderBasket();
+            if(basketLane === itemLane) {
+                tipEl.innerHTML = "<span style='color:#00e676;'>🧺 篮子已在接取位置！</span>";
+            }
+        }
+
+        function renderBasket() {
+            for(let i=0; i<3; i++) {
+                let content = '⭐';
+                if(i === basketLane && i === itemLane) content = '🧺🧥';
+                else if(i === basketLane) content = '🧺';
+                else if(i === itemLane) content = '🧥';
+                document.getElementById('oLane' + i).innerText = content;
             }
         }
 
         function endOutfit() {
-            isOver = true; clearInterval(timer); clearInterval(spawner); activeIdx = -1; renderGrid();
-            if(score >= 6) { tipEl.innerHTML = "<span style='color:#00e676;'>🎉 战袍完美抢救！闪亮登台！</span>"; }
-            else { tipEl.innerHTML = "<span style='color:#ff5252;'>💧 手忙脚乱，错失登台时间！</span>"; }
+            isOver = true; clearInterval(timer); clearInterval(spawner);
+            if(score >= 4) { tipEl.innerHTML = "<span style='color:#00e676;'>🎉 战袍完美抢救！闪亮登台！</span>"; }
+            else { tipEl.innerHTML = "<span style='color:#ff5252;'>💧 手忙脚乱，战袍没有收齐！</span>"; }
         }
     </script></body></html>
     """
-  components.html(html_code, height=270)
+  components.html(html_code, height=290)
 
 
 def render_memory_game():
@@ -697,75 +820,56 @@ def render_memory_game():
 
 
 def render_puzzle_game():
+  # 改成简单但不至于太无脑的2x2或轻量拼图（或点击互换的简单模式）
   html_code = """
     <!DOCTYPE html><html><head><style>
     body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
-    .puzzle-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); padding: 10px; width: 300px; text-align: center; }
-    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 8px 0; width: 210px; }
-    .p-tile { background: linear-gradient(135deg, #ab47bc, #7b1fa2); border: 1.5px solid #ff80ab; color: #fff; height: 55px; font-size: 20px; font-weight: bold; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .puzzle-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 10px; width: 300px; text-align: center; }
+    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 10px auto; width: 160px; }
+    .p-tile { background: linear-gradient(135deg, #ab47bc, #7b1fa2); border: 2px solid #ff80ab; color: #fff; height: 65px; font-size: 24px; font-weight: bold; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
     .p-tile:active { transform: scale(0.92); }
-    .p-tile.empty { background: rgba(255,255,255,0.05); border: 1.5px dashed #4a148c; cursor: default; }
     </style></head><body>
     <div class="puzzle-box">
-        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">🚚 巨蛋盛典：抢修花车移动轨道（中等难度）</div>
-        <div style="color: #fff; font-size: 11px; margin-top: 2px;">点击空格邻近方块，50秒内按顺序复原轨道（1-8）！</div>
-        <div style="display: flex; justify-content: center;"><div class="grid" id="pGrid"></div></div>
-        <div id="p-tip" style="color:#00e676; font-size:11px; font-weight:bold;">⏳ 剩余时间: <span id="pTime">50</span>s</div>
+        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">🚚 巨蛋盛典：简单花车轨道连通</div>
+        <div style="color: #fff; font-size: 11px; margin-top: 2px;">点击任意两个方块进行交换，让轨道按 1, 2, 3, 4 连通！</div>
+        <div class="grid" id="pGrid"></div>
+        <div id="p-tip" style="color:#00e676; font-size:11px; font-weight:bold; margin-top:5px;">✨ 移动方块复原轨道！</div>
     </div>
     <script>
-        let board = [1, 2, 3, 4, 5, 6, 7, 8, 0];
-        let emptyIdx = 8, timeLeft = 50, isOver = false;
-        
-        function shuffleBoard() {
-            for(let step = 0; step < 40; step++) {
-                let validMoves = [];
-                let r = Math.floor(emptyIdx / 3), c = emptyIdx % 3;
-                if(r > 0) validMoves.push(emptyIdx - 3);
-                if(r < 2) validMoves.push(emptyIdx + 3);
-                if(c > 0) validMoves.push(emptyIdx - 1);
-                if(c < 2) validMoves.push(emptyIdx + 1);
-                let target = validMoves[Math.floor(Math.random() * validMoves.length)];
-                board[emptyIdx] = board[target];
-                board[target] = 0;
-                emptyIdx = target;
-            }
-            if(board.every((v, i) => v === [1,2,3,4,5,6,7,8,0][i])) { shuffleBoard(); }
-        }
-        shuffleBoard();
-
+        let board = [2, 4, 1, 3]; // 初始打乱
+        const target = [1, 2, 3, 4];
+        let firstSelected = null;
         const gridEl = document.getElementById('pGrid'), tipEl = document.getElementById('p-tip');
-
-        let timer = setInterval(() => {
-            if (timeLeft > 0 && !isOver) { timeLeft--; document.getElementById('pTime').innerText = timeLeft; }
-            else if (!isOver) {
-                isOver = true; clearInterval(timer);
-                tipEl.innerHTML = "<span style='color:#ff5252;'>💧 时间耗尽，花车轨道拼凑失败！</span>";
-            }
-        }, 1000);
 
         function renderBoard() {
             gridEl.innerHTML = '';
-            for(let i=0; i<9; i++) {
+            board.forEach((val, idx) => {
                 let tile = document.createElement('div');
-                if(board[i] === 0) { tile.className = 'p-tile empty'; }
-                else { tile.className = 'p-tile'; tile.innerText = board[i]; tile.onclick = () => moveTile(i); }
+                tile.className = 'p-tile';
+                tile.innerText = '🛤️ ' + val;
+                if(firstSelected === idx) tile.style.border = '2px solid #00e676';
+                tile.onclick = () => selectTile(idx);
                 gridEl.appendChild(tile);
-            }
+            });
         }
 
-        function moveTile(idx) {
-            if(isOver) return;
-            let row = Math.floor(idx / 3), col = idx % 3, eRow = Math.floor(emptyIdx / 3), eCol = emptyIdx % 3;
-            if (Math.abs(row - eRow) + Math.abs(col - eCol) === 1) {
-                board[emptyIdx] = board[idx]; board[idx] = 0; emptyIdx = idx;
-                renderBoard(); checkWin();
+        function selectTile(idx) {
+            if(firstSelected === null) {
+                firstSelected = idx;
+                renderBoard();
+            } else {
+                let temp = board[firstSelected];
+                board[firstSelected] = board[idx];
+                board[idx] = temp;
+                firstSelected = null;
+                renderBoard();
+                checkWin();
             }
         }
 
         function checkWin() {
-            if(board.every((v, i) => v === [1, 2, 3, 4, 5, 6, 7, 8, 0][i])) {
-                isOver = true; clearInterval(timer);
-                tipEl.innerHTML = "<span style='color:#00e676;'>🎉 轨道拼接成功！花车顺利启动！</span>";
+            if(board.every((v, i) => v === target[i])) {
+                tipEl.innerHTML = "<span style='color:#00e676;'>🎉 轨道连接成功！花车顺利启动！</span>";
             }
         }
         renderBoard();
@@ -827,7 +931,7 @@ if not st.session_state.game_started:
       st.rerun()
 
 # -------------------------------------------------------------------
-# 游戏主流程（拓展至 30 章，完整保留全部真实互动小游戏与无死角推进）
+# 游戏主流程（拓展至 30 章，原汁原味小游戏 + 严格递进闭环）
 # -------------------------------------------------------------------
 if st.session_state.game_started:
   curr_stage = st.session_state.stage
@@ -899,11 +1003,11 @@ if st.session_state.game_started:
       st.session_state.stage = 7
       st.rerun()
 
-  # Stage 10：⚡ 舞台危机闪避小游戏
+  # Stage 10：⚡ 舞台危机：左右移动躲避灯泡
   elif curr_stage == 10:
     st.subheader("📍 Stage 10：【夏日风暴音乐节·舞台危机闪避】")
     st.markdown(
-        '<div class="event-card"><b>🎮 【互动小游戏：极限闪避灯架】</b><br>户外音乐节突降暴雨，12秒内点击左右方向按钮，成功躲避坠落灯架！</div>',
+        '<div class="event-card"><b>🎮 【互动小游戏：左右移动闪避灯泡】</b><br>户外音乐节突降暴雨，使用左右移动按钮避开故障灯泡！</div>',
         unsafe_allow_html=True,
     )
     render_dodge_game()
@@ -913,70 +1017,20 @@ if st.session_state.game_started:
       st.session_state.stage = 11
       st.rerun()
 
-  # Stage 11：⛏️ 6把铁锹地下仓库盲盒挖宝
+  # Stage 11：⛏️ 地下仓库：敲土块全开盲盒挖宝
   elif curr_stage == 11:
-    st.subheader("📍 Stage 11：【事务所地下仓库·6把特制铁锹盲盒挖宝】")
+    st.subheader("📍 Stage 11：【事务所地下仓库·敲土块开盲盒挖宝】")
     st.markdown(
-        f'<div class="event-card"><b>⛏️ 【仓库挖宝】</b><br>你领到了 <b>6 把特制铁锹</b>！在地下仓库挥舞铲子寻找前辈留下的珍贵宝物。当前剩余铁锹：<b>{st.session_state.shovels_left} 把</b></div>',
+        '<div class="event-card"><b>⛏️ 【互动小游戏：盲盒挖宝】</b><br>点击地下仓库的土块，全部敲开看看里面有没有前辈留下的绝版宝物！</div>',
         unsafe_allow_html=True,
     )
-
-    col_dig1, col_dig2 = st.columns(2)
-    with col_dig1:
-      if st.button(
-          "🔨挥动铁锹挖宝！"
-          if st.session_state.shovels_left > 0
-          else "🔒 铁锹已用光",
-          disabled=(st.session_state.shovels_left <= 0),
-      ):
-        st.session_state.shovels_left -= 1
-        outcome = random.choice([
-            (
-                "💎 挖到了绝版金唱片与白金奖杯！",
-                "success",
-                20,
-                20,
-                1500,
-                0,
-            ),
-            (
-                "📸 挖到了前辈当年的未公开杂志拍立得！",
-                "success",
-                10,
-                15,
-                1000,
-                0,
-            ),
-            ("🧱 只挖到了一堆普通泥土...", "error", 0, 0, 0, 10),
-        ])
-        st.session_state.dig_logs.insert(0, (outcome[0], outcome[1]))
-        if outcome[1] == "success":
-          st.session_state.vocal += outcome[2]
-          st.session_state.dance += outcome[3]
-          st.session_state.fans += outcome[4]
-        else:
-          st.session_state.stress += outcome[5]
-        st.rerun()
-
-    with col_dig2:
-      if st.button("🚪 结束挖宝，前往下一关"):
-        st.session_state.stage = 12
-        st.session_state.shovels_left = 6
-        st.session_state.dig_logs = []
-        st.rerun()
-
-    if st.session_state.dig_logs:
-      st.write("### 📜 挖掘收获记录：")
-      for log_text, log_type in st.session_state.dig_logs:
-        if log_type == "success":
-          st.success(log_text)
-        else:
-          st.error(log_text)
-
-    if st.session_state.shovels_left == 0:
-      st.warning(
-          "⚠️ 6 把铁锹已经全部用完啦！请点击右侧按钮进入下一阶段吧。"
-      )
+    render_dig_game()
+    if st.button("➔ 挖宝结束，点击进入下一阶段"):
+      st.session_state.vocal += 20
+      st.session_state.dance += 20
+      st.session_state.fans += 1500
+      st.session_state.stage = 12
+      st.rerun()
 
   # Stage 12：🔨 击退狗仔打地鼠小游戏
   elif curr_stage == 12:
@@ -1006,11 +1060,11 @@ if st.session_state.game_started:
       st.session_state.stage = 16
       st.rerun()
 
-  # Stage 20：🌟 Wink电眼狙击小游戏
+  # Stage 20：🌟 左右移动发射电眼 Wink
   elif curr_stage == 20:
-    st.subheader("📍 Stage 20：【巨蛋花车巡游】Wink大神·全场电眼狙击")
+    st.subheader("📍 Stage 20：【巨蛋花车巡游】Wink大神·左右移动电眼狙击")
     st.markdown(
-        '<div class="event-card"><b>⚡ 【连击互动小游戏：电眼狙击】</b><br>巨蛋花车巡游面对数万粉丝，10秒内疯狂连击超过 40 次 Wink！</div>',
+        '<div class="event-card"><b>⚡ 【互动小游戏：左右移动Wink】</b><br>巨蛋花车巡游面对数万粉丝，左右移动并按下 Wink 发射电眼！</div>',
         unsafe_allow_html=True,
     )
     render_wink_game()
@@ -1019,11 +1073,11 @@ if st.session_state.game_started:
       st.session_state.stage = 21
       st.rerun()
 
-  # Stage 22：🧺 战袍接衣物/抢救暗场小游戏
+  # Stage 22：🧺 暗场篮子接物抢救战
   elif curr_stage == 22:
-    st.subheader(f"📍 Stage 22：【演唱会暗场】与 {member} 的战袍抢救战")
+    st.subheader(f"📍 Stage 22：【演唱会暗场】与 {member} 的篮子接物战袍抢救")
     st.markdown(
-        f'<div class="event-card"><b>🧺 【互动小游戏：暗场战袍抢救】</b><br>暗场12秒内准确抓取 6 件演出战袍（🧥），千万别点到臭袜子（🧦）！</div>',
+        f'<div class="event-card"><b>🧺 【互动小游戏：篮子接物】</b><br>暗场12秒内左右移动篮子，接住掉落的战袍（🧥）！</div>',
         unsafe_allow_html=True,
     )
     render_outfit_game()
@@ -1046,11 +1100,11 @@ if st.session_state.game_started:
       st.session_state.stage = 25
       st.rerun()
 
-  # Stage 27：🚚 花车轨道拼图小游戏
+  # Stage 27：🚚 简单花车轨道拼图小游戏
   elif curr_stage == 27:
-    st.subheader(f"📍 Stage 27：【巨蛋盛典】抢修 {member} 的花车移动轨道")
+    st.subheader(f"📍 Stage 27：【巨蛋盛典】简单抢修 {member} 的花车轨道")
     st.markdown(
-        '<div class="event-card"><b>🚚 【机械轨道拼图】</b><br>50秒内点击空格邻近方块，按 1-8 顺序复原轨道！</div>',
+        '<div class="event-card"><b>🚚 【互动小游戏：轨道连通】</b><br>点击任意两个方块互换位置，将轨道按 1-4 顺畅连通！</div>',
         unsafe_allow_html=True,
     )
     render_puzzle_game()
