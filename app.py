@@ -243,21 +243,21 @@ def render_ramen_battle_game(member_name):
         <div id="ramen-tip" style="color: #fff; font-size: 11px; font-weight: bold; margin-top: 6px;">⏳ 倒计时: <span id="rTime">10</span>s | 目标: 20碗且超队友</div>
         <button class="eat-btn" onclick="eatRamen()">🥢 疯狂手速：炫面！</button>
     </div>
-    <script>
+<script>
         let pBowls = 0, mBowls = 0, timeLeft = 10, isOver = false; const targetBowls = 20;
         const pSpan = document.getElementById('pCount'), mSpan = document.getElementById('mCount');
         const pBar = document.getElementById('pBar'), mBar = document.getElementById('mBar'), tSpan = document.getElementById('rTime'), tipEl = document.getElementById('ramen-tip');
         let aiTimer = setInterval(() => {{ if (!isOver) {{ mBowls += 0.75; mSpan.innerText = Math.floor(mBowls); mBar.style.width = Math.min(100, (mBowls / targetBowls) * 100) + '%'; }} }}, 300);
         let clock = setInterval(() => {{ if (timeLeft > 0 && !isOver) {{ timeLeft--; tSpan.innerText = timeLeft; }} else {{ finishGame(); }} }}, 1000);
         function eatRamen() {{ if (isOver) return; pBowls++; pSpan.innerText = pBowls; pBar.style.width = Math.min(100, (pBowls / targetBowls) * 100) + '%'; }}
-        function finishGame() {{ 
+        function finishGame() 
             isOver = true; clearInterval(clock); clearInterval(aiTimer); 
-            if (pBowls >= targetBowls && pBowls > mBowls) {{ tipEl.innerHTML = "🎉 炫面大胜！击败了 " + "{member_name}"; tipEl.style.color = "#00e676"; }} 
-            else {{ tipEl.innerHTML = "💧 挑战失败！吃得太慢或未达标！"; tipEl.style.color = "#ff5252"; }} 
-        }}
+            if (pBowls >= targetBowls && pBowls > mBowls) {{ tipEl.innerHTML = "🎉 炫面大胜！击败了 " + "{member_name}"; tipEl.style.color = "#00e676";  
+            else  tipEl.innerHTML = "💧 挑战失败！吃得太慢或未达标！"; tipEl.style.color = "#ff5252"; 
+        
     </script></body></html>
     """
-  components.html(html_code, height=295)
+    components.html(html_code, height=295)
 
 
 def render_dodge_canvas_game():
@@ -1176,12 +1176,15 @@ if st.session_state.game_started:
   # -------------------------------------------------------------------
   else:
     st.subheader("🏁 Stage 30：帝国剧场 CD 出道终局裁决")
-    st.markdownf
+    st.markdown(
+        """
         <div class="event-card">
             <b>✨ 【命运的聚光灯】</b><br>
             帝国剧场金碧辉煌，全日本数百家媒体的闪光灯不断闪烁。历经 30 章的汗水与成长，社长坐在话筒前，即将宣读最终的 CD 出道考核结果！
         </div>
-        """
+        """,
+        unsafe_allow_html=True,
+    )
 
     if st.button("🌟 揭晓最终出道结果 🌟", use_container_width=True):
       st.markdown("---")
