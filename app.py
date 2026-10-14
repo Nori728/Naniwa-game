@@ -166,7 +166,7 @@ def get_rand_member():
 
 
 # -------------------------------------------------------------------
-# 原汁原味的小游戏组件库（钢琴块、声量呐喊、左右闪避灯泡、网格盲盒挖宝、打地鼠、抓拍、左右Wink、篮子接衣物、记忆翻牌、简单拼图）
+# 小游戏组件库
 # -------------------------------------------------------------------
 
 
@@ -291,7 +291,6 @@ def render_shout_game():
 
 
 def render_dodge_game():
-  # 恢复你原本的左右移动躲闪灯泡玩法
   html_code = """
     <!DOCTYPE html><html><head><style>
     body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
@@ -381,7 +380,6 @@ def render_dodge_game():
 
 
 def render_dig_game():
-  # 恢复你原本的网格土块全开盲盒挖宝玩法
   html_code = """
     <!DOCTYPE html><html><head><style>
     body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
@@ -568,7 +566,6 @@ def render_snapshot_game():
 
 
 def render_wink_game():
-  # 恢复你原本的左右移动电眼 Wink 玩法
   html_code = """
     <!DOCTYPE html><html><head><style>
     body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
@@ -656,7 +653,6 @@ def render_wink_game():
 
 
 def render_outfit_game():
-  # 恢复你原本的篮子接物玩法
   html_code = """
     <!DOCTYPE html><html><head><style>
     body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
@@ -820,7 +816,6 @@ def render_memory_game():
 
 
 def render_puzzle_game():
-  # 改成简单但不至于太无脑的2x2或轻量拼图（或点击互换的简单模式）
   html_code = """
     <!DOCTYPE html><html><head><style>
     body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
@@ -836,8 +831,8 @@ def render_puzzle_game():
         <div id="p-tip" style="color:#00e676; font-size:11px; font-weight:bold; margin-top:5px;">✨ 移动方块复原轨道！</div>
     </div>
     <script>
-        let board = [2, 4, 1, 3]; // 初始打乱
-        const target = [1, 2, 3, 4];
+        let board = [2, 4, 1, 3];
+        let target = [1, 2, 3, 4];
         let firstSelected = null;
         const gridEl = document.getElementById('pGrid'), tipEl = document.getElementById('p-tip');
 
@@ -931,7 +926,7 @@ if not st.session_state.game_started:
       st.rerun()
 
 # -------------------------------------------------------------------
-# 游戏主流程（拓展至 30 章，原汁原味小游戏 + 严格递进闭环）
+# 游戏主流程（拓展至 30 章，加入团员羁绊分流判定）
 # -------------------------------------------------------------------
 if st.session_state.game_started:
   curr_stage = st.session_state.stage
@@ -1309,7 +1304,7 @@ if st.session_state.game_started:
         st.rerun()
 
   # -------------------------------------------------------------------
-  # STAGE 30: 帝国剧场终局裁决
+  # STAGE 30: 帝国剧场终局裁决（引入团队羁绊/Solo分流判定）
   # -------------------------------------------------------------------
   else:
     st.subheader("🏁 Stage 30：帝国剧场 CD 出道终局裁决")
@@ -1331,23 +1326,39 @@ if st.session_state.game_started:
           + st.session_state.variety
       )
 
-      if st.session_state.fans >= 3000 and total >= 160:
-        st.balloons()
-        st.success(
-            f"🎉 恭喜 **{st.session_state.player_name}**！你携带【{st.session_state.lucky_item}】，与 **{st.session_state.group}** 的伙伴们历经 30 章的汗水与磨砺，完美闪耀帝国剧场，正式华丽 CD 出道！"
-        )
+      # 判定逻辑：
+      # 1. 基础门槛：粉丝 >= 3000 且 三维总和 >= 160 且 信任度 >= 40
+      if st.session_state.fans >= 3000 and total >= 160 and st.session_state.trust >= 40:
+          # 2. 羁绊判定
+          if st.session_state.bond >= 35:
+              st.balloons()
+              st.success(
+                  f"🎉 **【完美结局：组合华丽出道】**\n\n"
+                  f"恭喜 **{st.session_state.player_name}**！你携带【{st.session_state.lucky_item}】，与 **{st.session_state.group}** 的伙伴们历经 30 章的汗水与深厚羁绊，全员闪耀帝国剧场，正式以完整组合名义华丽 CD 出道！"
+              )
+          else:
+              st.warning(
+                  f"🎤 **【意难平结局：孤高 Solo 出道】**\n\n"
+                  f"虽然 **{st.session_state.player_name}** 你的个人实力顶尖、粉丝无数且通过了公司考核，但由于你一路走来与队友交流较少、**团员羁绊（{st.session_state.bond} pt）过低**……\n\n"
+                  f"社长最终拍板：**“取消组合出道名额，改由你个人 Solo 出道！”**。灯光虽然为你一人闪耀，但后台却显得格外孤单。"
+              )
+      elif st.session_state.trust < 40:
+          st.error(
+              f"🛡️ **【信任危机结局：无限期雪藏】**\n\n"
+              f"因为前期累积的事务所信任度过低（仅剩 {st.session_state.trust} pt），高层认为你风险极大、难以掌控，决选当天社长直接驳回了你的出道企划，未来堪忧……"
+          )
       else:
         st.warning(
-            f"⚠️ **{st.session_state.player_name}** 距离完美标准还有一丝差距，社长安排你继续深耕舞台，未来可期！"
+            f"⚠️ **{st.session_state.player_name}** 你的粉丝数或唱跳综艺综合实力尚未达标（粉丝需 $\ge 3000$，三维总和需 $\ge 160$），社长安排你继续深耕舞台，未来可期！"
         )
 
       st.markdown("---")
-      st.markdown(f"### 📊 练习生【{st.session_state.player_name}】的终极能力")
+      st.markdown(f"### 📊 练习生【{st.session_state.player_name}】的终极能力档案")
       st.write(
           f"- 💃 舞蹈：**{st.session_state.dance} pt** | 🎤 歌唱：**{st.session_state.vocal} pt** | 🤡 综艺：**{st.session_state.variety} pt**"
       )
       st.write(
-          f"- 💖 粉丝数：**{st.session_state.fans:,} 人** | 💞 团员羁绊：**{st.session_state.bond}** | 🛡️ 事务所信任：**{st.session_state.trust}**"
+          f"- 💖 粉丝数：**{st.session_state.fans:,} 人** | 💞 团员羁绊：**{st.session_state.bond} pt** | 🛡️ 事务所信任：**{st.session_state.trust} pt**"
       )
 
       st.write("")
