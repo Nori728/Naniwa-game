@@ -938,7 +938,7 @@ def render_watermelon_game():
             <button class="start-btn" onclick="startGame()">▶️ 开始挑战</button>
         </div>
         <div class="top-panel">
-            <div>✨ 最高: <span id="wLevel" style="color:#ffeb3b;">🍙 小饭团</span> | ⏳ <span id="wTime">15</span>s</div>
+            <div>✨ 最高: <span id="wLevel" style="color:#ffeb3b;">🍙 小饭团</span> | ⏳ <span id="wTime">40</span>s</div>
             <div style="display:flex; align-items:center; gap:5px;"><span>NEXT:</span><div class="next-preview" id="nextPreview">🍙</div></div>
         </div>
         <div class="game-container" id="gameBoard" onclick="boardClick(event)">
@@ -947,7 +947,7 @@ def render_watermelon_game():
         <div id="w-tip" style="color: #fff; font-size: 11px; margin-top: 5px;">跟随黄线，点击投放萌物！</div>
     </div>
     <script>
-        let timeLeft = 15, isStarted = false, isOver = false, timer, balls = [];
+        let timeLeft = 40, isStarted = false, isOver = false, timer, balls = [];
         const boardEl = document.getElementById('gameBoard'), timeEl = document.getElementById('wTime'), lvlEl = document.getElementById('wLevel'), tipEl = document.getElementById('w-tip'), guideLine = document.getElementById('guideLine'), nextPreview = document.getElementById('nextPreview');
         
         const items = [
