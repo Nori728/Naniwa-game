@@ -189,7 +189,7 @@ def get_rand_member():
 
 
 # -------------------------------------------------------------------
-# 甄选考核小游戏（松饼采用稳定定时器平移，绝不卡顿跳帧）
+# 甄选考核小游戏（松饼采用纯 CSS GPU 硬件加速往返运动，绝对丝滑不跳帧）
 # -------------------------------------------------------------------
 
 
@@ -414,7 +414,7 @@ def render_audition_rap_game():
 
 
 def render_audition_variety_game():
-  # 升级优化：采用极速稳定的 setInterval 匀速步长驱动，彻底解决手机端卡顿跳帧
+  # 极致丝滑升级：使用纯 CSS 动画 GPU 硬件加速摆动，彻底告别卡顿与跳帧
   html_code = """
     <!DOCTYPE html><html><head><style>
     body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; color: #fff; }
@@ -422,7 +422,14 @@ def render_audition_variety_game():
     .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.96); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
     .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
     .stage-area { background: #211035; border: 2px solid #ab47bc; border-radius: 10px; height: 130px; margin: 10px 0; position: relative; overflow: hidden; }
-    .moving-pancake { position: absolute; top: 8px; font-size: 26px; height: 30px; }
+    
+    @keyframes swing {
+        0% { transform: translateX(5px); }
+        50% { transform: translateX(235px); }
+        100% { transform: translateX(5px); }
+    }
+    .moving-pancake { position: absolute; top: 8px; left: 0px; font-size: 26px; height: 30px; animation: swing 2.2s ease-in-out infinite alternate; will-change: transform; }
+    
     .plate { position: absolute; bottom: 8px; left: 110px; width: 80px; height: 12px; background: #e0e0e0; border-radius: 6px; border: 2px solid #bdbdbd; text-align: center; font-size: 9px; color: #333; line-height: 12px; font-weight: bold; }
     .pancake-stack { position: absolute; bottom: 22px; width: 100%; display: flex; flex-direction: column-reverse; align-items: center; }
     .pancake-item { font-size: 22px; line-height: 18px; height: 18px; }
@@ -432,14 +439,14 @@ def render_audition_variety_game():
     <div class="box">
         <div id="startOverlay" class="start-overlay">
             <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">🤹 甄选项目考核</div>
-            <div style="color:#fff; font-size:11px; margin-bottom:10px;">星光松饼在顶部左右平移摆动，看准正上方时机落下（成功叠高4层）！</div>
+            <div style="color:#fff; font-size:11px; margin-bottom:10px;">星光松饼在顶部平稳左右摆动，看准正下方托盘中央时机落下（成功叠高4层）！</div>
             <button class="start-btn" onclick="startGame()">▶️ 开始考核</button>
         </div>
         <div style="color: #ffeb3b; font-weight: bold; font-size: 13px;">🤹 堆松饼技巧考核</div>
         <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 3px;">🥞 成功叠高: <span id="pScore">0</span> / 4 | ⏳ <span id="pTime">15</span>s</div>
         
         <div class="stage-area">
-            <div class="moving-pancake" id="movingPancake" style="left: 0px;">🥞</div>
+            <div class="moving-pancake" id="movingPancake">🥞</div>
             <div class="pancake-stack" id="pancakeStack"></div>
             <div class="plate">🍽️ 托盘</div>
         </div>
@@ -448,7 +455,7 @@ def render_audition_variety_game():
         <div id="p-tip" style="color: #fff; font-size: 11px; margin-top: 5px;">看准松饼平移到托盘中央的瞬间按下！</div>
     </div>
     <script>
-        let score = 0, timeLeft = 15, isStarted = false, isOver = false, posX = 0, dir = 3, timer, moveTimer;
+        let score = 0, timeLeft = 15, isStarted = false, isOver = false, timer;
         const cakeEl = document.getElementById('movingPancake'), stackEl = document.getElementById('pancakeStack'), scoreEl = document.getElementById('pScore'), timeEl = document.getElementById('pTime'), tipEl = document.getElementById('p-tip');
 
         function startGame() {
@@ -458,19 +465,20 @@ def render_audition_variety_game():
                 if(timeLeft > 0 && !isOver) { timeLeft--; timeEl.innerText = timeLeft; }
                 else if(!isOver) { endPancake(); }
             }, 1000);
-            
-            moveTimer = setInterval(() => {
-                if(isOver || !isStarted) return;
-                posX += dir;
-                if(posX <= 5 || posX >= 265) dir *= -1;
-                cakeEl.style.left = posX + 'px';
-            }, 18);
         }
 
         function dropPancake() {
             if(!isStarted || isOver) return;
-            // 完美判定区：95px - 165px
-            if(posX >= 95 && posX <= 165) {
+            // 获取当前 CSS 动画实时像素坐标
+            let matrix = window.getComputedStyle(cakeEl).transform;
+            let currentX = 120; // 默认容错中点
+            if (matrix && matrix !== 'none') {
+                let values = matrix.split(', ');
+                currentX = parseFloat(values[4]); // 获取 matrix 的 translateX 实时值
+            }
+            
+            // 托盘中心对应 translateX 大约在 90px 到 170px 之间
+            if(currentX >= 85 && currentX <= 175) {
                 score++;
                 scoreEl.innerText = score;
                 let item = document.createElement('div');
@@ -480,12 +488,13 @@ def render_audition_variety_game():
                 tipEl.innerHTML = "<span style='color:#00e676;'>🎉 完美的平衡！松饼稳稳落下！</span>";
                 if(score >= 4) endPancake(true);
             } else {
-                tipEl.innerHTML = "<span style='color:#ff5252;'>💧 偏得太远！松饼滑落倾斜了！</span>";
+                tipEl.innerHTML = "<span style='color:#ff5252;'>💧 偏离中心！松饼滑落倾斜了！</span>";
             }
         }
 
         function endPancake(success = false) {
-            isOver = true; clearInterval(timer); clearInterval(moveTimer);
+            isOver = true; clearInterval(timer);
+            cakeEl.style.animationPlayState = 'paused';
             if(success || score >= 3) { tipEl.innerHTML = "<span style='color:#00e676;'>🎉 特技考核通关！完美定格！</span>"; }
             else { tipEl.innerHTML = "<span style='color:#ff5252;'>💧 没叠够层数，松饼塔倒了！</span>"; }
         }
