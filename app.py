@@ -1043,9 +1043,8 @@ def render_watermelon_game():
             { name: '🧢 应援帽', size: 36, emoji: '🧢' },
             { name: '🎧 音乐耳机', size: 46, emoji: '🎧' },
             { name: '🎤 黄金话筒', size: 56, emoji: '🎤' },
-            { name: '🏆 闪亮奖杯', size: 68, emoji: '🏆' },
-            { name: '🌟 终极大西瓜蛋糕', size: 82, emoji: '🍉' }
-        ];
+            { name: '🏆 闪亮奖杯', size: 68, emoji: '🏆' }
+     ];
 
         let nextIdx = 0, maxAchievedIdx = 0;
 
