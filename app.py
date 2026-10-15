@@ -189,7 +189,7 @@ def get_rand_member():
 
 
 # -------------------------------------------------------------------
-# 甄选考核小游戏（松饼采用纯 CSS GPU 硬件加速往返运动，绝对丝滑不跳帧）
+# 甄选考核小游戏（松饼采用 CSS GPU 硬件加速，绝对丝滑不跳帧）
 # -------------------------------------------------------------------
 
 
@@ -414,7 +414,6 @@ def render_audition_rap_game():
 
 
 def render_audition_variety_game():
-  # 极致丝滑升级：使用纯 CSS 动画 GPU 硬件加速摆动，彻底告别卡顿与跳帧
   html_code = """
     <!DOCTYPE html><html><head><style>
     body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; color: #fff; }
@@ -469,15 +468,12 @@ def render_audition_variety_game():
 
         function dropPancake() {
             if(!isStarted || isOver) return;
-            // 获取当前 CSS 动画实时像素坐标
             let matrix = window.getComputedStyle(cakeEl).transform;
-            let currentX = 120; // 默认容错中点
+            let currentX = 120;
             if (matrix && matrix !== 'none') {
                 let values = matrix.split(', ');
-                currentX = parseFloat(values[4]); // 获取 matrix 的 translateX 实时值
+                currentX = parseFloat(values[4]);
             }
-            
-            // 托盘中心对应 translateX 大约在 90px 到 170px 之间
             if(currentX >= 85 && currentX <= 175) {
                 score++;
                 scoreEl.innerText = score;
@@ -504,7 +500,7 @@ def render_audition_variety_game():
 
 
 # -------------------------------------------------------------------
-# 三大特殊突发外务小游戏组件
+# 真正经典的【合成大西瓜】小游戏组件（点击落球、同级碰撞自动合成、系统自动判定胜负）
 # -------------------------------------------------------------------
 
 
@@ -515,73 +511,164 @@ def render_watermelon_game():
     .box { background: #1a0f30; border: 2px solid #ff2a75; border-radius: 14px; padding: 12px; width: 300px; text-align: center; position: relative; }
     .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.96); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 14px; }
     .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
-    .game-board { background: #211035; border: 2px solid #ab47bc; border-radius: 10px; height: 160px; position: relative; overflow: hidden; display: flex; flex-wrap: wrap; align-content: flex-end; padding: 6px; gap: 6px; justify-content: center; }
-    .ball { border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-    .drop-action-btn { background: linear-gradient(135deg, #ff2a75, #ab47bc); color: white; border: none; padding: 10px 20px; font-size: 15px; font-weight: bold; border-radius: 20px; cursor: pointer; margin-top: 10px; }
-    .drop-action-btn:active { transform: scale(0.92); }
+    
+    .game-container { background: #211035; border: 2px solid #ab47bc; border-radius: 10px; height: 180px; position: relative; overflow: hidden; cursor: pointer; margin-top: 6px; }
+    .drop-guide { position: absolute; top: 0; width: 4px; height: 100%; background: rgba(255,255,255,0.3); pointer-events: none; }
+    
+    .ball { position: absolute; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 11px; box-shadow: 0 3px 8px rgba(0,0,0,0.4); transform: translate(-50%, -50%); transition: top 0.2s linear, left 0.1s linear; }
     </style></head><body>
     <div class="box">
         <div id="startOverlay" class="start-overlay">
-            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">🍉 顶奢综艺外务：合成大西瓜挑战</div>
-            <div style="color:#fff; font-size:11px; margin-bottom:10px; padding: 0 10px;">15秒内不断投放道具合成，达到 <b>Lv.5 终极大西瓜徽章</b> 即可通关！</div>
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:6px; font-size:13px;">🍉 顶奢综艺外务：合成大西瓜挑战</div>
+            <div style="color:#fff; font-size:11px; margin-bottom:10px; padding: 0 10px;">点击下方箱子任意位置投放徽章，<b>相同等级碰撞自动合成</b>！合成出 <b>Lv.5 终极大西瓜</b> 即系统自动判定胜利！</div>
             <button class="start-btn" onclick="startGame()">▶️ 开始合成挑战</button>
         </div>
         <div style="color: #ffeb3b; font-weight: bold; font-size: 13px;">🍉 偶像大西瓜合成演播室</div>
-        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 3px;">✨ 最高合成: <span id="wLevel">Lv.1 萌新徽章</span> | ⏳ <span id="wTime">15</span>s</div>
-        <div class="game-board" id="watermelonBoard"></div>
-        <button class="drop-action-btn" onclick="dropNewBall()">➕ 投放新道具合成！</button>
-        <div id="w-tip" style="color: #fff; font-size: 11px; margin-top: 6px;">点击按钮合成升级，冲刺大西瓜！</div>
+        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 2px;">✨ 最高合成: <span id="wLevel">Lv.1 萌新徽章</span> | ⏳ <span id="wTime">15</span>s</div>
+        
+        <div class="game-container" id="gameBoard" onclick="boardClick(event)">
+            <div class="drop-guide" id="guideLine" style="left: 150px;"></div>
+        </div>
+        
+        <div id="w-tip" style="color: #fff; font-size: 11px; margin-top: 6px;">点击箱子内部任意处投放徽章！</div>
     </div>
     <script>
-        let timeLeft = 15, isStarted = false, isOver = false, timer, maxLvl = 1;
-        const boardEl = document.getElementById('watermelonBoard'), timeEl = document.getElementById('wTime'), lvlEl = document.getElementById('wLevel'), tipEl = document.getElementById('w-tip');
+        let timeLeft = 15, isStarted = false, isOver = false, timer;
+        let balls = []; // 存储所有小球 {x, y, level}
+        const boardEl = document.getElementById('gameBoard'), timeEl = document.getElementById('wTime'), lvlEl = document.getElementById('wLevel'), tipEl = document.getElementById('w-tip'), guideLine = document.getElementById('guideLine');
+
         const levels = [
-            { name: 'Lv.1 萌新徽章', size: '30px', color: '#e91e63' },
-            { name: 'Lv.2 闪耀卡片', size: '42px', color: '#9c27b0' },
-            { name: 'Lv.3 专属手办', size: '56px', color: '#3f51b5' },
-            { name: 'Lv.4 黄金话筒', size: '70px', color: '#00bcd4' },
-            { name: 'Lv.5 🌟 终极大西瓜', size: '86px', color: '#00e676' }
+            { name: 'Lv.1 萌新徽章', size: 26, color: '#e91e63' },
+            { name: 'Lv.2 闪耀卡片', size: 38, color: '#9c27b0' },
+            { name: 'Lv.3 专属手办', size: 50, color: '#3f51b5' },
+            { name: 'Lv.4 黄金话筒', size: 62, color: '#00bcd4' },
+            { name: 'Lv.5 🌟 终极大西瓜', size: 76, color: '#00e676' }
         ];
+
+        let maxAchievedLvl = 1;
 
         function startGame() {
             document.getElementById('startOverlay').style.display = 'none';
             isStarted = true;
             timer = setInterval(() => {
-                if(timeLeft > 0 && !isOver) { timeLeft--; timeEl.innerText = timeLeft; }
-                else if(!isOver) { endWatermelon(false); }
+                if(timeLeft > 0 && !isOver) { 
+                    timeLeft--; 
+                    timeEl.innerText = timeLeft; 
+                } else if(!isOver) {
+                    endGame(false);
+                }
             }, 1000);
         }
 
-        function dropNewBall() {
+        boardEl.onmousemove = (e) => {
+            let rect = boardEl.getBoundingClientRect();
+            let x = e.clientX - rect.left;
+            guideLine.style.left = x + 'px';
+        };
+
+        function boardClick(e) {
             if(!isStarted || isOver) return;
-            if(maxLvl < 5) {
-                maxLvl++;
-                lvlEl.innerText = levels[maxLvl-1].name;
-                let b = document.createElement('div');
-                b.className = 'ball';
-                b.style.width = levels[maxLvl-1].size;
-                b.style.height = levels[maxLvl-1].size;
-                b.style.background = levels[maxLvl-1].color;
-                b.innerText = 'W' + maxLvl;
-                boardEl.appendChild(b);
-                tipEl.innerHTML = "<span style='color:#00e676;'>🎉 成功合成升级到 " + levels[maxLvl-1].name + "！</span>";
-                if(maxLvl >= 5) {
-                    endWatermelon(true);
+            let rect = boardEl.getBoundingClientRect();
+            let x = e.clientX - rect.left;
+            x = Math.max(20, Math.min(280, x)); // 限制边界
+            
+            // 投放新球（默认Lv.1或Lv.2）
+            let spawnLvl = Math.random() < 0.7 ? 1 : 2;
+            let newBall = { x: x, y: 25, level: spawnLvl };
+            
+            // 简单物理下落与碰撞检测
+            balls.push(newBall);
+            settleBalls();
+            renderBalls();
+        }
+
+        function settleBalls() {
+            // 让球下落到底部或堆叠在其他球上方
+            for(let i = 0; i < balls.length; i++) {
+                let b = balls[i];
+                let targetY = 155; // 底部高度
+                
+                // 检查下方是否有其他球
+                for(let j = 0; j < balls.length; j++) {
+                    if(i === j) continue;
+                    let other = balls[j];
+                    // 如果在同一列附近且在下方
+                    if(Math.abs(b.x - other.x) < (levels[b.level-1].size/2 + levels[other.level-1].size/2) && other.y > b.y) {
+                        let candidateY = other.y - levels[other.level-1].size;
+                        if(candidateY < targetY) targetY = candidateY;
+                    }
+                }
+                b.y = targetY;
+            }
+
+            // 检查相同等级碰撞自动合成
+            for(let i = 0; i < balls.length; i++) {
+                for(let j = i + 1; j < balls.length; j++) {
+                    let b1 = balls[i], b2 = balls[j];
+                    let dist = Math.hypot(b1.x - b2.x, b1.y - b2.y);
+                    if(dist < (levels[b1.level-1].size/2 + levels[b2.level-1].size/2 + 5)) {
+                        if(b1.level === b2.level && b1.level < 5) {
+                            // 相同等级合成！升级到下一级
+                            b1.level++;
+                            if(b1.level > maxAchievedLvl) {
+                                maxAchievedLvl = b1.level;
+                                lvlEl.innerText = levels[maxAchievedLvl-1].name;
+                            }
+                            // 移除 b2
+                            balls.splice(j, 1);
+                            tipEl.innerHTML = "<span style='color:#00e676;'>🎉 碰撞成功！合成为 " + levels[b1.level-1].name + "！</span>";
+                            
+                            if(b1.level >= 5) {
+                                renderBalls();
+                                setTimeout(() => endGame(true), 400);
+                                return;
+                            }
+                            break;
+                        }
+                    }
                 }
             }
         }
 
-        function endWatermelon(success = false) {
-            isOver = true; clearInterval(timer);
-            if(success) {
-                tipEl.innerHTML = "<span style='color:#00e676; font-weight:bold;'>🎉 达成终极大西瓜！通告大获全胜！</span>";
-            } else {
-                tipEl.innerHTML = "<span style='color:#ff5252; font-weight:bold;'>💧 时间耗尽，合成未达成终极目标！</span>";
-            }
+        function renderBalls() {
+            // 清除旧DOM球
+            let oldEls = boardEl.querySelectorAll('.ball');
+            oldEls.forEach(el => el.remove());
+
+            // 重新渲染
+            balls.forEach(b => {
+                let lvlInfo = levels[b.level-1];
+                let el = document.createElement('div');
+                el.className = 'ball';
+                el.style.width = lvlInfo.size + 'px';
+                el.style.height = lvlInfo.size + 'px';
+                el.style.background = lvlInfo.color;
+                el.style.left = b.x + 'px';
+                el.style.top = b.y + 'px';
+                el.innerText = 'W' + b.level;
+                boardEl.appendChild(el);
+            });
+        }
+
+        function endGame(success) {
+            if(isOver) return;
+            isOver = true;
+            clearInterval(timer);
+            
+            // 通过 Streamlit 自定义组件与父页面通信或自动刷新进入判定
+            setTimeout(() => {
+                if(success) {
+                    alert("🎉 恭喜你成功合成终极大西瓜！外务挑战大获全胜！");
+                    window.location.reload();
+                } else {
+                    alert("💧 时间耗尽，未合成出终极大西瓜，外务挑战失利！");
+                    window.location.reload();
+                }
+            }, 300);
         }
     </script></body></html>
     """
-  components.html(html_code, height=330)
+  components.html(html_code, height=350)
 
 
 def render_match_game():
@@ -891,7 +978,7 @@ else:
         st.session_state.stage += 1
         st.rerun()
 
-  # 特殊高张力外务危机挑战 1：🍉 Stage 15 顶奢综艺合成大西瓜挑战
+  # 特殊高张力外务危机 1：🍉 Stage 15 顶奢综艺【合成大西瓜】挑战
   elif curr_stage == 15:
     st.subheader(
         "📍 Stage 15：【高风险外务】国民顶奢黄金档综艺独家通告邀请"
@@ -899,155 +986,56 @@ else:
     st.markdown(
         """
         <div class="event-card">
-            <b>🍉 【特殊危机挑战说明】</b><br>
-            你迎来了国民级黄金档综艺的唯一宝贵通告机会！各大事务所竞争极其惨烈。<br>
-            - <b>选择接受挑战（合成大西瓜）</b>：若成功，各项指标全方位暴涨，人气飙升！若失败，将遭受高层严厉质疑，直接扣除大量信任度与粉丝！<br>
-            - <b>选择稳妥放弃</b>：安全无风险，但错失爆红机遇。
+            <b>🍉 【合成大西瓜外务说明】</b><br>
+            你迎来了国民级黄金档综艺的唯一宝贵通告机会！<br>
+            请在下方演播室中进行<b>合成大西瓜</b>挑战：通过点击投放徽章，让同等级徽章碰撞合成，<b>只要成功合成出 Lv.5 终极大西瓜，系统将自动为你判定胜利并通关！</b>
         </div>
         """,
         unsafe_allow_html=True,
     )
+    render_watermelon_game()
 
-    choice = st.radio(
-        "是否接受这项高风险、高回报的顶奢综艺通告挑战？",
-        ["🔥 接受挑战！誓要拿下国民综艺曝光！", "🛡️ 稳妥拒绝，专注于基础练习"],
-    )
-    if choice.startswith("🔥"):
-      st.markdown("---")
-      render_watermelon_game()
-      col1, col2 = st.columns(2)
-      with col1:
-        if st.button("🏆 挑战成功！结算丰厚奖励"):
-          st.session_state.vocal += 40
-          st.session_state.dance += 40
-          st.session_state.variety += 50
-          st.session_state.fans += 5000
-          st.session_state.trust += 25
-          st.success(
-              "🎉 **【大获全胜：国民综艺ACE诞生！】** 恭喜！你凭借出色的合成表现震撼全场导演组，国民知名度呈指数级暴涨！各项指标全线大丰收！"
-          )
-          time.sleep(1)
-          st.session_state.stage = 16
-          st.rerun()
-      with col2:
-        if st.button("💧 挑战失败/未达标！接受惨痛惩罚"):
-          st.session_state.trust -= 20
-          st.session_state.fans = max(0, st.session_state.fans - 1500)
-          st.session_state.stress += 40
-          st.error(
-              "💥 **【惨痛失利：通告泡汤与信任雪崩】** 由于表现不佳，现场气氛尴尬，不仅通告被同台竞争对手顶替，事务所高层对你的信任度也大幅跌落！"
-          )
-          time.sleep(1)
-          st.session_state.stage = 16
-          st.rerun()
-    else:
-      if st.button("➔ 确认放弃，进入下一阶段"):
-        st.session_state.stage = 16
-        st.rerun()
-
-  # 特殊高张力外务危机挑战 2：🧩 Stage 20 大型音乐节连线消除挑战
+  # 特殊高张力外务危机 2：🧩 Stage 20 大型音乐节连线消除挑战
   elif curr_stage == 20:
     st.subheader("📍 Stage 20：【高风险外务】全亚洲跨年音乐祭核心表演位")
     st.markdown(
         """
         <div class="event-card">
             <b>🧩 【特殊危机挑战说明】</b><br>
-            全亚洲跨年音乐祭总导演临时点将，要求你在直播前完成极高难度的“音乐消除祭”盲验考核！<br>
-            - <b>接受挑战（连线消除）</b>：成功则一战成名，粉丝数狂飙！失败则遭到全网群嘲，惩罚极重！
+            全亚洲跨年音乐祭总导演临时点将，要求你在直播前完成极高难度的盲验考核！
         </div>
         """,
         unsafe_allow_html=True,
     )
+    render_match_game()
 
-    choice = st.radio(
-        "是否接受跨年音乐祭的连线消除考核挑战？",
-        ["🔥 接受挑战！绝不放过任何舞台！", "🛡️ 稳妥拒绝，保守等待安排"],
-    )
-    if choice.startswith("🔥"):
-      st.markdown("---")
-      render_match_game()
-      col1, col2 = st.columns(2)
-      with col1:
-        if st.button("🏆 挑战成功！结算丰厚奖励"):
-          st.session_state.vocal += 45
-          st.session_state.rap += 40
-          st.session_state.fans += 6000
-          st.session_state.trust += 30
-          st.success(
-              "🎉 **【大获全胜：全网疯狂圈粉！】** 完美通关！你展现出了无可挑剔的音乐节奏掌控力，粉丝数暴涨，全网热搜第一！"
-          )
-          time.sleep(1)
-          st.session_state.stage = 21
-          st.rerun()
-      with col2:
-        if st.button("💧 挑战失败/未达标！接受惨痛惩罚"):
-          st.session_state.trust -= 25
-          st.session_state.fans = max(0, st.session_state.fans - 2000)
-          st.session_state.stress += 45
-          st.error(
-              "💥 **【惨痛失利：舞台失误与舆论反噬】** 考核失利，不仅错失了黄金表演位，还被黑粉抓住痛脚大肆带节奏，压力瞬间拉满！"
-          )
-          time.sleep(1)
-          st.session_state.stage = 21
-          st.rerun()
-    else:
-      if st.button("➔ 确认放弃，进入下一阶段"):
-        st.session_state.stage = 21
-        st.rerun()
-
-  # 特殊高张力外务危机挑战 3：🏃 Stage 24 日本金唱片大赏红毯跳跃跑酷挑战
+  # 特殊高张力外务危机 3：🏃 Stage 24 日本金唱片大赏红毯跳跃跑酷挑战
   elif curr_stage == 24:
     st.subheader("📍 Stage 24：【高风险外务】日本金唱片大赏红毯极限突围")
     st.markdown(
         """
         <div class="event-card">
             <b>🏃 【特殊危机挑战说明】</b><br>
-            金唱片大赏红毯现场突发狗仔围堵与直播事故！你必须在镜头前完成极限红毯跳跃突围！<br>
-            - <b>接受挑战（横版跑酷跳跃）</b>：成功则拿下年度最具人气大奖！失败则形象大跌，遭遇事务所冷藏危机！
+            金唱片大赏红毯现场突发狗仔围堵与直播事故！你必须在镜头前完成极限红毯跳跃突围！
         </div>
         """,
         unsafe_allow_html=True,
     )
+    render_parkour_game()
 
-    choice = st.radio(
-        "是否接受金唱片大赏红毯极限突围挑战？",
-        ["🔥 接受挑战！闪耀红毯绝不退缩！", "🛡️ 稳妥拒绝，低调走完流程"],
-    )
-    if choice.startswith("🔥"):
-      st.markdown("---")
-      render_parkour_game()
-      col1, col2 = st.columns(2)
-      with col1:
-        if st.button("🏆 挑战成功！结算丰厚奖励"):
-          st.session_state.dance += 50
-          st.session_state.variety += 45
-          st.session_state.fans += 8000
-          st.session_state.trust += 35
-          st.success(
-              "🎉 **【大获全胜：红毯封神与金奖加冕】** 完美跑酷突围！你矫健的身姿与完美的表情管理惊艳全亚洲媒体，斩获年度至高荣耀！"
-          )
-          time.sleep(1)
-          st.session_state.stage = 25
-          st.rerun()
-      with col2:
-        if st.button("💧 挑战失败/未达标！接受惨痛惩罚"):
-          st.session_state.trust -= 30
-          st.session_state.fans = max(0, st.session_state.fans - 2500)
-          st.session_state.stress += 50
-          st.error(
-              "💥 **【惨痛失利：红毯摔倒与形象重创】** 突围失败，在直播镜头前狼狈不堪，不仅丢尽颜面，还遭到事务所严厉警告与无限期通告削减！"
-          )
-          time.sleep(1)
-          st.session_state.stage = 25
-          st.rerun()
-    else:
-      if st.button("➔ 确认放弃，进入下一阶段"):
-        st.session_state.stage = 25
-        st.rerun()
-
-  # 📖 常规剧情章节与突发危机
+  # 📖 9大日常修炼游戏与常规剧情
   elif curr_stage < 30:
     st.subheader(f"📍 Stage {curr_stage} / 30")
+
+    if curr_stage in [1, 6, 11]:
+      render_audition_dance_game()
+    elif curr_stage in [2, 7, 12]:
+      render_audition_vocal_game()
+    elif curr_stage in [3, 8, 14]:
+      render_audition_rap_game()
+    elif curr_stage in [5, 10, 22]:
+      render_audition_variety_game()
+
     s_db = {
         1: {
             "title": "🎵 Stage 1：雨后练习室的汗水",
@@ -1101,9 +1089,9 @@ else:
         9: {
             "title": "📍 Stage 9：【突发事件】深夜街头突击生放送（直播）！",
             "desc": f"刚结束排练和 {member} 走在涩谷街头，电视台摄影车突然把镜头怼到你们脸前，主持人随机要求现场即兴表现！",
-            "opt1": "当场清唱自创高音段落！【🎤 歌唱+25，💖 粉丝+800 | ⚠️ 🔥 压力+20】",
-            "opt2": "拉过队友搞怪模仿社长！【🤡 综艺+30，💞 羁绊+20 | ⚠️ 🛡️ 信任度-15】",
-            "opt3": "礼貌推给队长稳妥应对！【🛡️ 信任度+15，🔥 压力-10 | ⚠️ 💖 粉丝-200】",
+            "opt1": "当场清唱自创高音段落",
+            "opt2": "拉过队友搞怪模仿社长",
+            "opt3": "礼貌推给队长稳妥应对",
         },
         10: {
             "title": "⚡ Stage 10：夏日风暴音乐节舞台危机",
@@ -1129,9 +1117,9 @@ else:
         13: {
             "title": "📍 Stage 13：【黑暗面波折】资源遭恶意顶替与排挤！",
             "desc": "你原本内定的杂志核心单人页和电视节目通告，在临录制前夕被高层关系户空降顶替。队友私下提醒你这只是圈子残酷冰山的一角……",
-            "opt1": "咽下委屈，在深夜无人的练习室疯狂加练宣泄不甘【💃 舞蹈+25，🔥 压力+20】",
-            "opt2": "找高层据理力争，用实力和人气争取公开公平竞争【🛡️ 信任度+20，💖 粉丝+1000】",
-            "opt3": "心态崩盘陷入自我怀疑，想要逃避训练【⚠️ 信任度-20，🔥 压力+30】",
+            "opt1": "咽下委屈，在深夜无人的练习室疯狂加练宣泄不甘",
+            "opt2": "找高层据理力争，用实力和人气争取公开公平竞争",
+            "opt3": "心态崩盘陷入自我怀疑，想要逃避训练",
         },
         14: {
             "title": "🎭 Stage 14：【外务】帝国剧场舞台剧试镜",
@@ -1143,16 +1131,16 @@ else:
         17: {
             "title": "📍 Stage 17：【黑暗面波折】网络黑粉恶意造谣与带节奏！",
             "desc": "匿名论坛突然出现大量针对你的恶意谣言和抹黑通稿，质疑你的业务能力并试图劝退粉丝，舆论陷入冰点。",
-            "opt1": "发布直面质疑的个人直拍和实力反击舞台，用作品说话【💖 粉丝+2000，🎤 歌唱+25】",
-            "opt2": "配合事务所冷处理，不给黑粉眼神和流量【🛡️ 信任度+15，🔥 压力+10】",
-            "opt3": "情绪崩溃与黑粉在网络上互撕【⚠️ 信任度-30，🔥 压力+40】",
+            "opt1": "发布直面质疑的个人直拍和实力反击舞台，用作品说话",
+            "opt2": "配合事务所冷处理，不给黑粉眼神和流量",
+            "opt3": "情绪崩溃与黑粉在网络上互撕",
         },
         18: {
             "title": f"📍 Stage 18：【突发危机】队友 {member} 临演前突发高烧！",
             "desc": f"开演前 1 小时，核心成员 {member} 突发高烧晕倒无法登台！他的高音和舞蹈空出了大块缺口！",
-            "opt1": "挺身而出，30分钟硬记高音救场！【🎤 歌唱+30，💖 粉丝+1000 | ⚠️ 🔥 压力+25】",
-            "opt2": "协助队长重排走位填补空缺【🛡️ 信任度+20，💃 舞蹈+15 | ⚠️ 💖 无额外粉丝】",
-            "opt3": "在后台照顾队友并安抚情绪【💞 羁绊+30 | ⚠️ 缺席彩排，🛡️ 信任度-10】",
+            "opt1": "挺身而出，30分钟硬记高音救场",
+            "opt2": "协助队长重排走位填补空缺",
+            "opt3": "在后台照顾队友并安抚情绪",
         },
         19: {
             "title": "🏢 Stage 19：社长办公室的顶楼闭门谈话",
