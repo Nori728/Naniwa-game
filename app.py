@@ -10,10 +10,10 @@ st.set_page_config(
     layout="centered",
 )
 
-# 2. 团队与成员数据（全团按年龄从大到小严格排序，已新增 Kis-My-Ft2）
+# 2. 团队与成员数据（全团按年龄从大到小严格排序）
 IDOL_GROUPS = {
-    "ARASHI (岚)": ["大野智", "樱井翔", "相叶雅纪", "二宫和也", "松本润"],
     "KinKi Kids": ["堂本光一", "堂本刚"],
+    "ARASHI (岚)": ["大野智", "樱井翔", "相叶雅纪", "二宫和也", "松本润"],
     "Kis-My-Ft2": [
         "北山宏光",
         "千贺健永",
@@ -151,6 +151,8 @@ st.markdown(
 # 4. 初始化数据
 def init_game():
   st.session_state.game_started = False
+  st.session_state.passed_audition = False
+  st.session_state.audition_track = ""
   st.session_state.stage = 1
   st.session_state.player_name = ""
   st.session_state.group = ""
@@ -161,6 +163,7 @@ def init_game():
   st.session_state.dance = 20
   st.session_state.vocal = 20
   st.session_state.variety = 20
+  st.session_state.rap = 20
   st.session_state.fans = 100
   st.session_state.trust = 50
   st.session_state.bond = 10
@@ -176,10 +179,254 @@ def get_rand_member():
 
 
 # -------------------------------------------------------------------
-# 小游戏组件库（下落式三轨道互动游戏合集）
+# 甄选专属互动小游戏组件（Vocal / Dance / Rap / 杂耍）
 # -------------------------------------------------------------------
 
 
+def render_audition_vocal_game():
+  html_code = """
+    <!DOCTYPE html><html><head><style>
+    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+    .box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 12px; width: 300px; text-align: center; position: relative; }
+    .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
+    .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
+    .vocal-btn { background: linear-gradient(135deg, #ff4081, #ab47bc); color: white; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; border-radius: 20px; cursor: pointer; margin-top: 10px; }
+    .vocal-btn:active { transform: scale(0.92); }
+    </style></head><body>
+    <div class="box">
+        <div id="startOverlay" class="start-overlay">
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">🎤 甄选项目：Vocal 高音长音挑战</div>
+            <div style="color:#fff; font-size:11px; margin-bottom:10px;">当光标移动到 🎯 完美绿区时按下保持高音！</div>
+            <button class="start-btn" onclick="startGame()">▶️ 开始 Vocal 考核</button>
+        </div>
+        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">🎤 Vocal 甄选：长音爆发力</div>
+        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 3px;">✨ 完美高音: <span id="vScore">0</span> / 4 | ⏳ <span id="vTime">12</span>s</div>
+        <div style="background: #211035; border: 2px solid #ab47bc; border-radius: 8px; height: 35px; margin: 12px 0; position: relative; overflow: hidden;">
+            <div style="position: absolute; left: 115px; width: 70px; height: 100%; background: rgba(0, 230, 118, 0.4); border-left: 2px dashed #00e676; border-right: 2px dashed #00e676;">🎯</div>
+            <div id="vCursor" style="position: absolute; left: 0px; width: 8px; height: 100%; background: #ff4081; border-radius: 4px;"></div>
+        </div>
+        <button class="vocal-btn" onclick="hitVocal()">🎶 稳定高音！</button>
+        <div id="v-tip" style="color: #fff; font-size: 11px; margin-top: 5px;">看准绿区稳住气息！</div>
+    </div>
+    <script>
+        let score = 0, timeLeft = 12, isStarted = false, isOver = false, cursorX = 0, dir = 3.5, timer, animator;
+        const cursorEl = document.getElementById('vCursor'), timeEl = document.getElementById('vTime'), scoreEl = document.getElementById('vScore'), tipEl = document.getElementById('v-tip');
+
+        function startGame() {
+            document.getElementById('startOverlay').style.display = 'none';
+            isStarted = true;
+            timer = setInterval(() => {
+                if(timeLeft > 0 && !isOver) { timeLeft--; timeEl.innerText = timeLeft; }
+                else if(!isOver) { endAudition(); }
+            }, 1000);
+            animator = setInterval(() => {
+                if(isOver || !isStarted) return;
+                cursorX += dir;
+                if(cursorX <= 0 || cursorX >= 284) dir *= -1;
+                cursorEl.style.left = cursorX + 'px';
+            }, 20);
+        }
+
+        function hitVocal() {
+            if(!isStarted || isOver) return;
+            if(cursorX >= 115 && cursorX <= 185) {
+                score++;
+                scoreEl.innerText = score;
+                tipEl.innerHTML = "<span style='color:#00e676;'>🎉 完美高音震撼全场！</span>";
+            } else {
+                tipEl.innerHTML = "<span style='color:#ff5252;'>💧 音准飘忽，气息不稳！</span>";
+            }
+        }
+
+        function endAudition() {
+            isOver = true; clearInterval(timer); clearInterval(animator);
+            if(score >= 3) { tipEl.innerHTML = "<span style='color:#00e676;'>🎉 Vocal 甄选大成功！顺利晋级！</span>"; }
+            else { tipEl.innerHTML = "<span style='color:#ff5252;'>💧 发挥失常，但评委网开一面让你通过！</span>"; }
+        }
+    </script></body></html>
+    """
+  components.html(html_code, height=275)
+
+
+def render_audition_dance_game():
+  html_code = """
+    <!DOCTYPE html><html><head><style>
+    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+    .box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 12px; width: 300px; text-align: center; position: relative; }
+    .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
+    .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
+    .click-btn { background: linear-gradient(135deg, #ff4081, #ab47bc); color: white; border: none; width: 140px; height: 65px; font-size: 18px; font-weight: bold; border-radius: 32px; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 64, 129, 0.5); margin: 10px 0; }
+    .click-btn:active { transform: scale(0.92); }
+    </style></head><body>
+    <div class="box">
+        <div id="startOverlay" class="start-overlay">
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">💃 甄选项目：Dance 舞步爆发连击</div>
+            <div style="color:#fff; font-size:11px; margin-bottom:10px;">12秒内疯狂点击按钮，达成 70 下以上！</div>
+            <button class="start-btn" onclick="startGame()">▶️ 开始 Dance 考核</button>
+        </div>
+        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">💃 Dance 甄选：动感舞步连击</div>
+        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 5px;">🔥 舞步连击: <span id="dCount">0</span> / 70 | ⏳ <span id="dTime">12</span>s</div>
+        <button class="click-btn" onclick="handleDance()">🕺 疯狂卡点！</button>
+        <div id="d-tip" style="color: #fff; font-size: 11px;">展现极致的身体协调与爆发力！</div>
+    </div>
+    <script>
+        let count = 0, timeLeft = 12, isStarted = false, isOver = false, timer;
+        const countEl = document.getElementById('dCount'), timeEl = document.getElementById('dTime'), tipEl = document.getElementById('d-tip');
+
+        function startGame() {
+            document.getElementById('startOverlay').style.display = 'none';
+            isStarted = true;
+            timer = setInterval(() => {
+                if(timeLeft > 0 && !isOver) {
+                    timeLeft--;
+                    timeEl.innerText = timeLeft;
+                } else if(!isOver) {
+                    isOver = true;
+                    clearInterval(timer);
+                    if(count >= 70) {
+                        tipEl.innerHTML = "<span style='color:#00e676;'>🎉 舞步燃爆全场！首席舞者预定！</span>";
+                    } else {
+                        tipEl.innerHTML = "<span style='color:#ff5252;'>💧 体力不支，动作稍显僵硬...</span>";
+                    }
+                }
+            }, 1000);
+        }
+
+        function handleDance() {
+            if(!isStarted || isOver) return;
+            count++;
+            countEl.innerText = count;
+        }
+    </script></body></html>
+    """
+  components.html(html_code, height=265)
+
+
+def render_audition_rap_game():
+  html_code = """
+    <!DOCTYPE html><html><head><style>
+    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+    .box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 12px; width: 300px; text-align: center; position: relative; }
+    .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
+    .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
+    .rap-btn { background: linear-gradient(135deg, #ff4081, #ab47bc); color: white; border: none; width: 140px; height: 65px; font-size: 18px; font-weight: bold; border-radius: 32px; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 64, 129, 0.5); margin: 10px 0; }
+    .rap-btn:active { transform: scale(0.92); }
+    </style></head><body>
+    <div class="box">
+        <div id="startOverlay" class="start-overlay">
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">🔥 甄选项目：Rap 机关枪快嘴连击</div>
+            <div style="color:#fff; font-size:11px; margin-bottom:10px;">12秒内疯狂点击按钮，达成 80 下以上！</div>
+            <button class="start-btn" onclick="startGame()">▶️ 开始 Rap 考核</button>
+        </div>
+        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">🔥 Rap 甄选：快嘴节奏风暴</div>
+        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 5px;">⚡ 快嘴连击: <span id="rCount">0</span> / 80 | ⏳ <span id="rTime">12</span>s</div>
+        <button class="rap-btn" onclick="handleRap()">🎤 疯狂输出！</button>
+        <div id="r-tip" style="color: #fff; font-size: 11px;">用密集的韵律掌控全场空气！</div>
+    </div>
+    <script>
+        let count = 0, timeLeft = 12, isStarted = false, isOver = false, timer;
+        const countEl = document.getElementById('rCount'), timeEl = document.getElementById('rTime'), tipEl = document.getElementById('r-tip');
+
+        function startGame() {
+            document.getElementById('startOverlay').style.display = 'none';
+            isStarted = true;
+            timer = setInterval(() => {
+                if(timeLeft > 0 && !isOver) {
+                    timeLeft--;
+                    timeEl.innerText = timeLeft;
+                } else if(!isOver) {
+                    isOver = true;
+                    clearInterval(timer);
+                    if(count >= 80) {
+                        tipEl.innerHTML = "<span style='color:#00e676;'>🎉 节奏风暴！全场评委起立鼓掌！</span>";
+                    } else {
+                        tipEl.innerHTML = "<span style='color:#ff5252;'>💧 词句卡壳，气势稍逊一筹...</span>";
+                    }
+                }
+            }, 1000);
+        }
+
+        function handleRap() {
+            if(!isStarted || isOver) return;
+            count++;
+            countEl.innerText = count;
+        }
+    </script></body></html>
+    """
+  components.html(html_code, height=265)
+
+
+def render_audition_variety_game():
+  html_code = """
+    <!DOCTYPE html><html><head><style>
+    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+    .box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 12px; width: 300px; text-align: center; position: relative; }
+    .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
+    .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 10px auto; width: 240px; }
+    .tile { background: linear-gradient(135deg, #ab47bc, #7b1fa2); border: 2px solid #ff80ab; color: #fff; height: 50px; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .tile:active { transform: scale(0.92); }
+    </style></head><body>
+    <div class="box">
+        <div id="startOverlay" class="start-overlay">
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">🤡 甄选项目：特殊才艺平衡杂耍</div>
+            <div style="color:#fff; font-size:11px; margin-bottom:10px;">点击互换9宫格道具，按 1 到 9 排序！</div>
+            <button class="start-btn" onclick="startGame()">▶️ 开始杂耍考核</button>
+        </div>
+        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">🤡 特殊才艺：道具平衡拼图</div>
+        <div class="grid" id="vGrid"></div>
+        <div id="v-tip" style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 3px;">✨ 点击两两交换道具复原平衡！</div>
+    </div>
+    <script>
+        let board = [3, 1, 5, 2, 8, 4, 9, 6, 7];
+        let target = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+        let firstSelected = null;
+        const gridEl = document.getElementById('vGrid'), tipEl = document.getElementById('v-tip');
+
+        function startGame() {
+            document.getElementById('startOverlay').style.display = 'none';
+            renderBoard();
+        }
+
+        function renderBoard() {
+            gridEl.innerHTML = '';
+            board.forEach((val, idx) => {
+                let tile = document.createElement('div');
+                tile.className = 'tile';
+                tile.innerText = '🤹‍♂️' + val;
+                if(firstSelected === idx) tile.style.border = '2px solid #00e676';
+                tile.onclick = () => selectTile(idx);
+                gridEl.appendChild(tile);
+            });
+        }
+
+        function selectTile(idx) {
+            if(firstSelected === null) {
+                firstSelected = idx;
+                renderBoard();
+            } else {
+                let temp = board[firstSelected];
+                board[firstSelected] = board[idx];
+                board[idx] = temp;
+                firstSelected = null;
+                renderBoard();
+                checkWin();
+            }
+        }
+
+        function checkWin() {
+            if(board.every((v, i) => v === target[i])) {
+                tipEl.innerHTML = "<span style='color:#00e676;'>🎉 杂耍道具完美平衡！全场爆笑惊叹！</span>";
+            }
+        }
+    </script></body></html>
+    """
+  components.html(html_code, height=275)
+
+
+# -------------------------------------------------------------------
+# 原有小游戏组件库保持原样
+# -------------------------------------------------------------------
 def render_piano_tiles_game():
   html_code = """
     <!DOCTYPE html><html><head><style>
@@ -902,7 +1149,7 @@ def render_puzzle_game():
 st.title("💖 星途闪耀：我的练习生日常")
 
 # -------------------------------------------------------------------
-# STAGE 0: 开局
+# STAGE 0: 开局与甄选阶段
 # -------------------------------------------------------------------
 if not st.session_state.game_started:
   st.markdown(
@@ -938,7 +1185,7 @@ if not st.session_state.game_started:
     st.success(f"✨ 你抽中了：**{st.session_state.temp_gacha}**")
 
   st.markdown("---")
-  if st.button("🚀 签订研修契约，正式开启练习生生活！", use_container_width=True):
+  if st.button("🚀 签订研修契约，进入甄选考核！", use_container_width=True):
     if not name_input.strip():
       st.error("请先输入你的名字哦！")
     else:
@@ -951,9 +1198,64 @@ if not st.session_state.game_started:
       st.rerun()
 
 # -------------------------------------------------------------------
-# 游戏主流程
+# STAGE 0.5: 练习生甄选分流考核
 # -------------------------------------------------------------------
-if st.session_state.game_started:
+elif not st.session_state.passed_audition:
+  st.subheader("🌟 【练习生甄选大舞台】初次考核定位")
+  st.markdown(
+      '<div class="event-card"><b>🎯 甄选环节说明：</b><br>想要成为正式 Jr 必须通过残酷的初试！请选择你擅长的初舞台表演项目，顺利完成考核即可正式进入事务所！</div>',
+      unsafe_allow_html=True,
+  )
+
+  audition_choice = st.radio(
+      "请选择你的初次甄选表演项目：",
+      [
+          "1. 🎤 Vocal（声乐高音展示）",
+          "2. Dance（动感舞步卡点）",
+          "3. Rap（机关枪快嘴节奏）",
+          "4. 🤹 特殊才艺杂耍（平衡道具展示）",
+      ],
+  )
+  st.markdown("---")
+
+  if audition_choice.startswith("1"):
+    st.session_state.audition_track = "vocal"
+    render_audition_vocal_game()
+  elif audition_choice.startswith("2"):
+    st.session_state.audition_track = "dance"
+    render_audition_dance_game()
+  elif audition_choice.startswith("3"):
+    st.session_state.audition_track = "rap"
+    render_audition_rap_game()
+  else:
+    st.session_state.audition_track = "variety"
+    render_audition_variety_game()
+
+  st.markdown("---")
+  if st.button(
+      "🌟 完成考核，接受社长与评委的最终裁决！", use_container_width=True
+  ):
+    # 根据不同轨道给予初始属性加成
+    if st.session_state.audition_track == "vocal":
+      st.session_state.vocal += 30
+    elif st.session_state.audition_track == "dance":
+      st.session_state.dance += 30
+    elif st.session_state.audition_track == "rap":
+      st.session_state.rap += 30
+    else:
+      st.session_state.variety += 30
+
+    st.session_state.passed_audition = True
+    st.success(
+        "🎉 评委席全票通过！恭喜你正式成为 STARTO 事务所的签约 Jr 练习生！"
+    )
+    time.sleep(1)
+    st.rerun()
+
+# -------------------------------------------------------------------
+# 游戏主流程（Jr 时期与黑暗面波折）
+# -------------------------------------------------------------------
+else:
   curr_stage = st.session_state.stage
   member = get_rand_member()
 
@@ -1133,7 +1435,7 @@ if st.session_state.game_started:
       st.session_state.stage = 28
       st.rerun()
 
-  # 📖 常规剧情章节与突发危机
+  # 📖 常规剧情章节与突发危机（包含黑暗面波折剧情）
   elif curr_stage < 30:
     st.subheader(f"📍 Stage {curr_stage} / 30")
     s_db = {
@@ -1180,11 +1482,11 @@ if st.session_state.game_started:
             "opt3": "礼貌推给队长稳妥应对！【🛡️ 信任度+15，🔥 压力-10 | ⚠️ 💖 粉丝-200】",
         },
         13: {
-            "title": "📍 Stage 13：【突发危机】八卦周刊跟拍偷拍！",
-            "desc": "八卦周刊拍到了你深夜与友人聚会的照片并恶意解读，网络舆论一时间沸沸扬扬！",
-            "opt1": "连夜向社长坦白原委配合公关【🛡️ 信任度+20 | ⚠️ 💖 粉丝-400，🔥 压力+15】",
-            "opt2": "博客发长文宣誓“爱只属于舞台”【💖 粉丝+1500 | ⚠️ 🛡️ 信任度-25】",
-            "opt3": "保持沉寂，用下次舞台实力说话【💃 舞蹈+20，🎤 歌唱+20 | ⚠️ 💖 粉丝-500】",
+            "title": "📍 Stage 13：【黑暗面波折】资源遭恶意顶替与排挤！",
+            "desc": "你原本内定的杂志核心单人页和电视节目通告，在临录制前夕被高层关系户空降顶替。队友私下提醒你这只是圈子残酷冰山的一角……",
+            "opt1": "咽下委屈，在深夜无人的练习室疯狂加练宣泄不甘【💃 舞蹈+25，🔥 压力+20】",
+            "opt2": "找高层据理力争，用实力和人气争取公开公平竞争【🛡️ 信任度+20，💖 粉丝+1000】",
+            "opt3": "心态崩盘陷入自我怀疑，想要逃避训练【⚠️ 信任度-20，🔥 压力+30】",
         },
         14: {
             "title": "🎭 Stage 14：【外务】帝国剧场舞台剧试镜",
@@ -1192,6 +1494,13 @@ if st.session_state.game_started:
             "opt1": "咬牙克服恐高，反复练空中翻滚。",
             "opt2": "专注于台词念白与眼神爆发力。",
             "opt3": "主动拉着同台伙伴互相对戏。",
+        },
+        17: {
+            "title": "📍 Stage 17：【黑暗面波折】网络黑粉恶意造谣与带节奏！",
+            "desc": "匿名论坛突然出现大量针对你的恶意谣言和抹黑通稿，质疑你的业务能力并试图劝退粉丝，舆论陷入冰点。",
+            "opt1": "发布直面质疑的个人直拍和实力反击舞台，用作品说话【💖 粉丝+2000，🎤 歌唱+25】",
+            "opt2": "配合事务所冷处理，不给黑粉眼神和流量【🛡️ 信任度+15，🔥 压力+10】",
+            "opt3": "情绪崩溃与黑粉在网络上互撕【⚠️ 信任度-30，🔥 压力+40】",
         },
         18: {
             "title": f"📍 Stage 18：【突发危机】队友 {member} 临演前突发高烧！",
@@ -1266,16 +1575,18 @@ if st.session_state.game_started:
     c2 = st.button(f"2. {story['opt2']}")
     c3 = st.button(f"3. {story['opt3']}")
 
-    if curr_stage in [9, 13, 18]:
+    if curr_stage in [9, 13, 17, 18]:
       if c1:
         if curr_stage == 9:
           st.session_state.vocal += 25
           st.session_state.fans += 800
           st.session_state.stress += 20
         elif curr_stage == 13:
-          st.session_state.trust += 20
-          st.session_state.fans = max(0, st.session_state.fans - 400)
-          st.session_state.stress += 15
+          st.session_state.dance += 25
+          st.session_state.stress += 20
+        elif curr_stage == 17:
+          st.session_state.fans += 2000
+          st.session_state.vocal += 25
         elif curr_stage == 18:
           st.session_state.vocal += 30
           st.session_state.fans += 1000
@@ -1288,8 +1599,11 @@ if st.session_state.game_started:
           st.session_state.bond += 20
           st.session_state.trust -= 15
         elif curr_stage == 13:
-          st.session_state.fans += 1500
-          st.session_state.trust -= 25
+          st.session_state.trust += 20
+          st.session_state.fans += 1000
+        elif curr_stage == 17:
+          st.session_state.trust += 15
+          st.session_state.stress += 10
         elif curr_stage == 18:
           st.session_state.trust += 20
           st.session_state.dance += 15
@@ -1301,9 +1615,11 @@ if st.session_state.game_started:
           st.session_state.stress = max(0, st.session_state.stress - 10)
           st.session_state.fans = max(0, st.session_state.fans - 200)
         elif curr_stage == 13:
-          st.session_state.dance += 20
-          st.session_state.vocal += 20
-          st.session_state.fans = max(0, st.session_state.fans - 500)
+          st.session_state.trust -= 20
+          st.session_state.stress += 30
+        elif curr_stage == 17:
+          st.session_state.trust -= 30
+          st.session_state.stress += 40
         elif curr_stage == 18:
           st.session_state.bond += 30
           st.session_state.trust -= 10
@@ -1329,7 +1645,7 @@ if st.session_state.game_started:
         st.rerun()
 
   # -------------------------------------------------------------------
-  # STAGE 30: 帝国剧场终局裁决
+  # STAGE 30: 帝国剧场终局裁决与个性化称号结算
   # -------------------------------------------------------------------
   else:
     st.subheader("🏁 Stage 30：帝国剧场 CD 出道终局裁决")
@@ -1337,40 +1653,73 @@ if st.session_state.game_started:
         """
         <div class="event-card">
             <b>✨ 【命运的聚光灯】</b><br>
-            帝国剧场金碧辉煌，全日本数百家媒体的闪光灯不断闪烁。历经 30 章的汗水与成长，社长坐在话筒前，即将宣读最终的 CD 出道考核结果！
+            帝国剧场金碧辉煌，全日本数百家媒体的闪光灯不断闪烁。历经 30 章的汗水、波折与成长，社长坐在话筒前，即将宣读最终的 CD 出道考核结果！
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    if st.button("🌟 揭晓最终出道结果 🌟", use_container_width=True):
+    if st.button("🌟 揭晓最终出道结果与个人称号 🌟", use_container_width=True):
       st.markdown("---")
       total = (
           st.session_state.dance
           + st.session_state.vocal
           + st.session_state.variety
+          + st.session_state.rap
       )
+
+      # 评定最高属性以生成个性化出道头衔
+      max_attr = max(
+          st.session_state.vocal,
+          st.session_state.dance,
+          st.session_state.variety,
+          st.session_state.rap,
+      )
+      title_desc = ""
+      if max_attr == st.session_state.vocal and st.session_state.vocal >= 150:
+        title_desc = (
+            "🎤 **【恭喜作为大主唱出道！】** 你的天籁高音和磁性声线征服了全场，"
+            "成为组合当之无愧的灵魂歌姬/主唱大人！"
+        )
+      elif max_attr == st.session_state.dance and st.session_state.dance >= 150:
+        title_desc = (
+            "💃 **【恭喜作为大主舞出道！】** 你的肢体爆发力与完美卡点惊艳四座，"
+            "每次登台都是视觉焦点的首席舞者！"
+        )
+      elif (
+          max_attr == st.session_state.variety
+          and st.session_state.variety >= 150
+      ):
+        title_desc = (
+            "🤡 **【恭喜拿下团体综艺位/ACE担当！】** 你的幽默感与控场能力满分，"
+            "是组合里无可替代的综艺之神与全能 ACE！"
+        )
+      elif max_attr == st.session_state.rap and st.session_state.rap >= 150:
+        title_desc = (
+            "🔥 **【恭喜作为王牌 Rap 担当出道！】** 你的快嘴说唱与节奏爆发力炸裂全场，"
+            "为组合注入了最强烈的个性色彩！"
+        )
+      else:
+        title_desc = "🌟 **【全能实力派出道】** 各项均衡发展的舞台多面手！"
 
       if (
           st.session_state.fans >= 3000
-          and total >= 160
+          and total >= 180
           and st.session_state.trust >= 40
       ):
         if st.session_state.bond >= 35:
           st.balloons()
           st.success(
-              f"🎉 **【完美结局：组合华丽出道】**\n\n"
+              f"🎉 **【完美结局：组合华丽出道】**\n\n{title_desc}\n\n"
               f"恭喜 **{st.session_state.player_name}**！你携带【{st.session_state.lucky_item}】，与"
               f" **{st.session_state.group}**"
-              " 的伙伴们历经 30"
-              " 章的汗水与深厚羁绊，全员闪耀帝国剧场，正式以完整组合名义华丽"
+              " 的伙伴们历经风雨、跨越黑暗面波折与深厚羁绊，全员闪耀帝国剧场，正式以完整组合名义华丽"
               " CD 出道！"
           )
         else:
           st.warning(
-              f"🎤 **【意难平结局：孤高 Solo 出道】**\n\n"
-              f"虽然 **{st.session_state.player_name}**"
-              " 你的个人实力顶尖、粉丝无数且通过了公司考核，但由于你一路走来与队友交流较少、**团员羁绊（{st.session_state.bond}"
+              f"🎤 **【意难平结局：孤高 Solo 出道】**\n\n{title_desc}\n\n"
+              f"虽然你的个人实力顶尖、粉丝无数，但由于一路走来与队友交流较少、**团员羁绊（{st.session_state.bond}"
               " pt）过低**……\n\n"
               "社长最终拍板：**取消组合出道名额，改由你个人 Solo"
               " 出道！**。灯光虽然为你一人闪耀，但后台却显得格外孤单。"
@@ -1379,13 +1728,13 @@ if st.session_state.game_started:
         st.error(
             f"🛡️ **【信任危机结局：无限期雪藏】**\n\n"
             f"因为前期累积的事务所信任度过低（仅剩 {st.session_state.trust}"
-            " pt），高层认为你风险极大、难以掌控，决选当天社长直接驳回了你的出道企划，未来堪忧……"
+            " pt），高层认为你风波不断、难以掌控，决选当天社长直接驳回了你的出道企划，未来堪忧……"
         )
       else:
         st.warning(
             f"⚠️ **{st.session_state.player_name}**"
-            " 你的粉丝数或唱跳综艺综合实力尚未达标（粉丝需"
-            " $\ge 3000$，三维总和需 $\ge 160$），社长安排你继续深耕舞台，未来可期！"
+            " 你的粉丝数或综合实力尚差火候（粉丝需 $\ge 3000$，三维总和需 $\ge"
+            " 180$），社长安排你继续深耕舞台，未来可期！"
         )
 
       st.markdown("---")
@@ -1394,7 +1743,8 @@ if st.session_state.game_started:
       )
       st.write(
           f"- 💃 舞蹈：**{st.session_state.dance} pt** | 🎤"
-          f" 歌唱：**{st.session_state.vocal} pt** | 🤡"
+          f" 歌唱：**{st.session_state.vocal} pt** | 🔥"
+          f" Rap：**{st.session_state.rap} pt** | 🤡"
           f" 综艺：**{st.session_state.variety} pt**"
       )
       st.write(
