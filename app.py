@@ -189,47 +189,388 @@ def get_rand_member():
 
 
 # -------------------------------------------------------------------
-# 甄选考核小游戏（松饼采用 CSS GPU 硬件加速，绝对丝滑不跳帧）
+# 完整保留的 9 大日常游戏与甄选考核组件库
 # -------------------------------------------------------------------
 
 
-def render_audition_vocal_game():
+def render_piano_tiles_game():
   html_code = """
     <!DOCTYPE html><html><head><style>
-    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; color: #fff; }
-    .box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 12px; width: 300px; text-align: center; position: relative; }
-    .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.96); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
-    .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
-    .vocal-btn { background: linear-gradient(135deg, #ff4081, #ab47bc); color: white; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; border-radius: 20px; cursor: pointer; margin-top: 10px; }
-    .vocal-btn:active { transform: scale(0.92); }
+    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+    .piano-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 14px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); position: relative; overflow: hidden; width: 300px; height: 220px; }
+    canvas { display: block; }
+    .btn-row { display: flex; gap: 6px; margin-top: 8px; width: 300px; }
+    .piano-btn { background: linear-gradient(180deg, #ab47bc, #7b1fa2); color: white; border: 2px solid #ff80ab; padding: 10px 0; font-size: 16px; font-weight: bold; border-radius: 10px; cursor: pointer; flex: 1; text-align: center; }
+    .piano-btn:active { background: #ff4081; transform: scale(0.92); }
+    .start-overlay { position: absolute; top:0; left:0; width:300px; height:220px; background: rgba(26,15,48,0.92); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; }
+    .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 20px; font-size: 15px; font-weight: bold; border-radius: 12px; cursor: pointer; }
     </style></head><body>
-    <div class="box">
+    <div class="piano-box">
         <div id="startOverlay" class="start-overlay">
-            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">🎤 甄选项目考核</div>
-            <div style="color:#fff; font-size:11px; margin-bottom:10px;">当光标进入 🎯 绿区时点击稳定高音（需抓中4次）！</div>
-            <button class="start-btn" onclick="startGame()">▶️ 开始考核</button>
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:10px; font-size:13px;">🎹 准备好开始打歌了吗？</div>
+            <button class="start-btn" onclick="startGame()">▶️ 点击开始挑战</button>
         </div>
-        <div style="color: #ffeb3b; font-weight: bold; font-size: 13px;">🎤 声音爆发力考核</div>
-        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 3px;">✨ 完美抓准: <span id="vScore">0</span> / 4 | ⏳ <span id="vTime">12</span>s</div>
-        <div style="background: #211035; border: 2px solid #ab47bc; border-radius: 8px; height: 35px; margin: 12px 0; position: relative; overflow: hidden;">
-            <div style="position: absolute; left: 115px; width: 70px; height: 100%; background: rgba(0, 230, 118, 0.4); border-left: 2px dashed #00e676; border-right: 2px dashed #00e676;">🎯</div>
-            <div id="vCursor" style="position: absolute; left: 0px; width: 8px; height: 100%; background: #ff4081; border-radius: 4px;"></div>
-        </div>
-        <button class="vocal-btn" onclick="hitVocal()">🎶 稳定高音！</button>
-        <div id="v-tip" style="color: #fff; font-size: 11px; margin-top: 5px;">看准绿区瞬间稳住气息！</div>
+        <canvas id="pianoCanvas" width="300" height="220"></canvas>
+    </div>
+    <div class="btn-row">
+        <button class="piano-btn" onclick="tapTrack(0)">1</button>
+        <button class="piano-btn" onclick="tapTrack(1)">2</button>
+        <button class="piano-btn" onclick="tapTrack(2)">3</button>
+        <button class="piano-btn" onclick="tapTrack(3)">4</button>
     </div>
     <script>
-        let score = 0, timeLeft = 12, isStarted = false, isOver = false, cursorX = 0, dir = 3.5, timer, animator;
-        const cursorEl = document.getElementById('vCursor'), timeEl = document.getElementById('vTime'), scoreEl = document.getElementById('vScore'), tipEl = document.getElementById('v-tip');
+        const canvas = document.getElementById('pianoCanvas'); const ctx = canvas.getContext('2d'); const trackWidth = 75;
+        let tiles = [], score = 0, combo = 0, timeLeft = 12, isStarted = false, isGameOver = false, timer, spawner;
+        function startGame() {
+            document.getElementById('startOverlay').style.display = 'none';
+            isStarted = true;
+            timer = setInterval(() => { if(timeLeft > 0 && !isGameOver) timeLeft--; else { isGameOver = true; clearInterval(timer); clearInterval(spawner); } }, 1000);
+            spawner = setInterval(() => { if(!isGameOver && isStarted) tiles.push({ track: Math.floor(Math.random()*4), y: -35, h: 35, hit: false }); }, 500);
+            loop();
+        }
+        function tapTrack(idx) {
+            if(!isStarted || isGameOver) return; let ok = false;
+            for(let t of tiles) { if(t.track === idx && !t.hit && t.y >= 110 && t.y <= 210) { t.hit = true; ok = true; score += 100; combo++; break; } }
+            if(!ok) combo = 0;
+        }
+        function loop() {
+            ctx.clearRect(0, 0, 300, 220); ctx.strokeStyle = '#2d1b4e';
+            for(let i=1; i<4; i++) { ctx.beginPath(); ctx.moveTo(i*trackWidth, 0); ctx.lineTo(i*trackWidth, 220); ctx.stroke(); }
+            ctx.fillStyle = 'rgba(255, 64, 129, 0.2)'; ctx.fillRect(0, 150, 300, 50);
+            for(let i=tiles.length-1; i>=0; i--) {
+                let t = tiles[i];
+                if(!t.hit) {
+                    t.y += 4.0; ctx.fillStyle = '#211035'; ctx.fillRect(t.track*trackWidth+4, t.y, trackWidth-8, t.h);
+                    ctx.strokeStyle = '#ea80fc'; ctx.strokeRect(t.track*trackWidth+4, t.y, trackWidth-8, t.h);
+                    ctx.fillStyle = '#ff80ab'; ctx.font = '11px Arial'; ctx.fillText('🎵', t.track*trackWidth+26, t.y+22);
+                    if(t.y > 220) { tiles.splice(i, 1); combo = 0; }
+                } else { tiles.splice(i, 1); }
+            }
+            ctx.fillStyle = '#fff'; ctx.font = 'bold 11px Arial'; ctx.fillText("⏳ 剩余: " + timeLeft + "s", 10, 18); ctx.fillText("🔥 分数: " + score, 120, 18); ctx.fillText("⚡ Combo: " + combo, 210, 18);
+            if(!isGameOver) requestAnimationFrame(loop);
+            else { 
+                ctx.fillStyle = 'rgba(0,0,0,0.88)'; ctx.fillRect(0,0,300,220); 
+                if(score >= 800) { ctx.fillStyle = '#00e676'; ctx.font = 'bold 16px Arial'; ctx.fillText("🎉 打歌挑战成功！总分: " + score, 35, 115); }
+                else { ctx.fillStyle = '#ff5252'; ctx.font = 'bold 16px Arial'; ctx.fillText("💧 挑战失败！分数未达标: " + score, 15, 115); }
+            }
+        }
+    </script></body></html>
+    """
+  components.html(html_code, height=295)
+
+
+def render_shout_game():
+  html_code = """
+    <!DOCTYPE html><html><head><style>
+    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+    .shout-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); padding: 12px; width: 300px; text-align: center; position: relative; }
+    .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
+    .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
+    .shout-click-btn { background: linear-gradient(135deg, #ff4081, #ab47bc); color: white; border: none; width: 140px; height: 70px; font-size: 18px; font-weight: bold; border-radius: 35px; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 64, 129, 0.5); margin: 15px 0; }
+    .shout-click-btn:active { transform: scale(0.92); }
+    </style></head><body>
+    <div class="shout-box">
+        <div id="startOverlay" class="start-overlay">
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:10px; font-size:13px;">📣 声量呐喊连击大作战</div>
+            <div style="color:#fff; font-size:11px; margin-bottom:12px;">20秒内疯狂点击，点击超过90下！</div>
+            <button class="start-btn" onclick="startGame()">▶️ 点击开始呐喊</button>
+        </div>
+        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">📣 街头突击应援声量对决</div>
+        <div style="color: #00e676; font-size: 12px; font-weight: bold; margin-top: 5px;">🔥 点击数: <span id="sCount">0</span> / 90 | ⏳ <span id="sTime">20</span>s</div>
+        <button class="shout-click-btn" onclick="handleClick()">🗣️ 疯狂呐喊！</button>
+        <div id="s-tip" style="color: #fff; font-size: 11px;">用尽全力把声音传达到广场每个角落！</div>
+    </div>
+    <script>
+        let count = 0, timeLeft = 20, isStarted = false, isOver = false, timer;
+        const countEl = document.getElementById('sCount'), timeEl = document.getElementById('sTime'), tipEl = document.getElementById('s-tip');
+
+        function startGame() {
+            document.getElementById('startOverlay').style.display = 'none';
+            isStarted = true;
+            timer = setInterval(() => {
+                if(timeLeft > 0 && !isOver) {
+                    timeLeft--;
+                    timeEl.innerText = timeLeft;
+                } else if(!isOver) {
+                    isOver = true;
+                    clearInterval(timer);
+                    if(count >= 90) {
+                        tipEl.innerHTML = "<span style='color:#00e676;'>🎉 声量爆表！应援大获全胜！</span>";
+                    } else {
+                        tipEl.innerHTML = "<span style='color:#ff5252;'>💧 声量不足90下，宣传效果不佳...</span>";
+                    }
+                }
+            }, 1000);
+        }
+
+        function handleClick() {
+            if(!isStarted || isOver) return;
+            count++;
+            countEl.innerText = count;
+        }
+    </script></body></html>
+    """
+  components.html(html_code, height=275)
+
+
+def render_dodge_game():
+  html_code = """
+    <!DOCTYPE html><html><head><style>
+    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+    .game-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 14px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); position: relative; overflow: hidden; width: 300px; height: 210px; }
+    canvas { display: block; }
+    .btn-row { display: flex; gap: 8px; margin-top: 8px; width: 300px; }
+    .dodge-btn { background: linear-gradient(135deg, #ff4081, #7b1fa2); color: white; border: 2px solid #ff80ab; padding: 9px 0; font-size: 14px; font-weight: bold; border-radius: 10px; cursor: pointer; flex: 1; text-align: center; }
+    .dodge-btn:active { background: #ff4081; transform: scale(0.92); }
+    .start-overlay { position: absolute; top:0; left:0; width:300px; height:210px; background: rgba(26,15,48,0.92); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; }
+    .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 20px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
+    </style></head><body>
+    <div class="game-box">
+        <div id="startOverlay" class="start-overlay">
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">⚡ 三轨道下落躲避灯泡</div>
+            <div style="color:#fff; font-size:11px; margin-bottom:10px; text-align:center; padding:0 10px;">12秒内左右移动，避开上方掉落的 💡 故障灯泡！</div>
+            <button class="start-btn" onclick="startGame()">▶️ 开始躲避挑战</button>
+        </div>
+        <canvas id="dodgeCanvas" width="300" height="210"></canvas>
+    </div>
+    <div class="btn-row">
+        <button class="dodge-btn" onclick="movePlayer(-1)">⬅️ 往左</button>
+        <button class="dodge-btn" style="background: linear-gradient(135deg, #ab47bc, #4a148c);" onclick="movePlayer(0)">⏺️ 居中</button>
+        <button class="dodge-btn" onclick="movePlayer(1)">往右 ➡️</button>
+    </div>
+    <script>
+        const canvas = document.getElementById('dodgeCanvas'); const ctx = canvas.getContext('2d'); const trackWidth = 100;
+        let playerLane = 1, obstacles = [], score = 0, timeLeft = 12, isStarted = false, isGameOver = false, timer, spawner;
+
+        function startGame() {
+            document.getElementById('startOverlay').style.display = 'none';
+            isStarted = true;
+            timer = setInterval(() => { if(timeLeft > 0 && !isGameOver) timeLeft--; else { isGameOver = true; clearInterval(timer); clearInterval(spawner); } }, 1000);
+            spawner = setInterval(() => { if(!isGameOver && isStarted) obstacles.push({ lane: Math.floor(Math.random()*3), y: -30 }); }, 700);
+            loop();
+        }
+
+        function movePlayer(dir) {
+            if(!isStarted || isGameOver) return;
+            if(dir === 0) playerLane = 1;
+            else playerLane = Math.max(0, Math.min(2, playerLane + dir));
+        }
+
+        function loop() {
+            ctx.clearRect(0, 0, 300, 210); ctx.strokeStyle = '#2d1b4e';
+            for(let i=1; i<3; i++) { ctx.beginPath(); ctx.moveTo(i*trackWidth, 0); ctx.lineTo(i*trackWidth, 210); ctx.stroke(); }
+            
+            for(let i = obstacles.length - 1; i >= 0; i--) {
+                let obs = obstacles[i];
+                obs.y += 3.5;
+                ctx.font = '22px Arial';
+                ctx.fillText('💡', obs.lane * trackWidth + 36, obs.y);
+                
+                if(obs.y >= 155 && obs.y <= 195 && obs.lane === playerLane) {
+                    score = Math.max(0, score - 1);
+                    obstacles.splice(i, 1);
+                } else if(obs.y > 210) {
+                    score += 1;
+                    obstacles.splice(i, 1);
+                }
+            }
+
+            ctx.font = '26px Arial';
+            ctx.fillText('🧍‍♂️', playerLane * trackWidth + 34, 185);
+
+            ctx.fillStyle = '#fff'; ctx.font = 'bold 11px Arial';
+            ctx.fillText("⏳ 剩余: " + timeLeft + "s", 10, 18);
+            ctx.fillText("🛡️ 得分: " + score, 210, 18);
+
+            if(!isGameOver) requestAnimationFrame(loop);
+            else {
+                ctx.fillStyle = 'rgba(0,0,0,0.88)'; ctx.fillRect(0, 0, 300, 210);
+                ctx.fillStyle = score >= 5 ? '#00e676' : '#ff5252';
+                ctx.font = 'bold 15px Arial';
+                ctx.fillText(score >= 5 ? "🎉 闪避挑战成功！得分: " + score : "💧 闪避不及！得分: " + score, 45, 110);
+            }
+        }
+    </script></body></html>
+    """
+  components.html(html_code, height=275)
+
+
+def render_dig_game():
+  html_code = """
+    <!DOCTYPE html><html><head><style>
+    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+    .game-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 10px; width: 300px; text-align: center; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 8px 0; }
+    .soil-tile { background: linear-gradient(135deg, #5d4037, #3e2723); border: 2px solid #8d6e63; border-radius: 8px; height: 50px; font-size: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #fff; }
+    .soil-tile:active { transform: scale(0.92); }
+    </style></head><body>
+    <div class="game-box">
+        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">⛏️ 地下仓库·9宫格3宝物盲盒挖掘</div>
+        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 3px;">💎 找到宝物: <span id="digScore">0</span> / 3 | ⛏️ 剩余次数: <span id="digLeft">6</span></div>
+        <div class="grid" id="digGrid"></div>
+        <div id="dig-tip" style="color: #fff; font-size: 11px;">9个土块里藏着3个宝物，限挖6次！</div>
+    </div>
+    <script>
+        let treasures = ['💎', '🎸', '📸'];
+        let items = ['🧱', '🧱', '🧱', '🧱', '🧱', '🧱', treasures[0], treasures[1], treasures[2]];
+        items.sort(() => Math.random() - 0.5);
+
+        let opened = Array(9).fill(false);
+        let foundCount = 0;
+        let digLeft = 6;
+        let isOver = false;
+
+        const gridEl = document.getElementById('digGrid'), tipEl = document.getElementById('dig-tip');
+
+        function renderGrid() {
+            gridEl.innerHTML = '';
+            items.forEach((item, idx) => {
+                let tile = document.createElement('div'); tile.className = 'soil-tile';
+                tile.innerText = opened[idx] ? item : '🟫';
+                tile.onclick = () => digTile(idx);
+                gridEl.appendChild(tile);
+            });
+        }
+
+        function digTile(idx) {
+            if(isOver || opened[idx] || digLeft <= 0) return;
+            opened[idx] = true;
+            digLeft--;
+            document.getElementById('digLeft').innerText = digLeft;
+
+            if(items[idx] !== '🧱') {
+                foundCount++;
+                document.getElementById('digScore').innerText = foundCount;
+                tipEl.innerHTML = "<span style='color:#00e676;'>🎉 挖到珍贵宝物 (" + items[idx] + ")！能力全面提升！</span>";
+                if(foundCount >= 3) {
+                    isOver = true;
+                    tipEl.innerHTML = "<span style='color:#00e676;'>🎉 太神了！3个宝物全部找齐！</span>";
+                }
+            } else {
+                tipEl.innerHTML = "<span style='color:#ff5252;'>🧱 挖到了普通泥土...</span>";
+            }
+
+            if(digLeft === 0 && foundCount < 3) {
+                isOver = true;
+                tipEl.innerHTML = "<span style='color:#ff5252;'>💧 挖掘次数已用完，寻宝结束！</span>";
+            }
+            renderGrid();
+        }
+        renderGrid();
+    </script></body></html>
+    """
+  components.html(html_code, height=265)
+
+
+def render_whack_mole_game():
+  html_code = """
+    <!DOCTYPE html><html><head><style>
+    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+    .mole-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); padding: 10px; width: 300px; text-align: center; position: relative; }
+    .mole-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 8px 0; }
+    .hole { background: #211035; border: 2px solid #ab47bc; border-radius: 10px; height: 50px; font-size: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .hole:active { transform: scale(0.92); }
+    .start-overlay { position: absolute; top:0; left:0; width:300px; height:100%; background: rgba(26,15,48,0.92); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
+    .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
+    </style></head><body>
+    <div class="mole-box">
+        <div id="startOverlay" class="start-overlay">
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:10px; font-size:13px;">🔨 击退狗仔防卫战</div>
+            <button class="start-btn" onclick="startGame()">▶️ 点击开始挑战</button>
+        </div>
+        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">🔨 击退狗仔队：点击打掉偷拍镜头！</div>
+        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 3px;">🔥 击退狗仔: <span id="mScore">0</span> / 8 | ⏳ <span id="mTime">14</span>s</div>
+        <div class="mole-grid" id="moleGrid"></div>
+        <div id="m-tip" style="color: #fff; font-size: 11px;">小心别误伤 💖 粉丝！只点击 📷 狗仔！</div>
+    </div>
+    <script>
+        let score = 0, timeLeft = 14, isStarted = false, isOver = false, holes = Array(9).fill('🕳️'), activeIdx = -1, activeType = '', timer, spawner;
+        const gridEl = document.getElementById('moleGrid'), tipEl = document.getElementById('m-tip');
+
+        function startGame() {
+            document.getElementById('startOverlay').style.display = 'none';
+            isStarted = true;
+            spawner = setInterval(() => {
+                if(isOver || !isStarted) return;
+                activeIdx = Math.floor(Math.random() * 9);
+                activeType = Math.random() > 0.3 ? 'paparazzi' : 'fan';
+                renderHoles();
+            }, 600);
+
+            timer = setInterval(() => {
+                if(timeLeft > 0 && !isOver) { timeLeft--; document.getElementById('mTime').innerText = timeLeft; }
+                else if(!isOver) {
+                    isOver = true; clearInterval(timer); clearInterval(spawner); activeIdx = -1; renderHoles();
+                    if(score >= 8) tipEl.innerHTML = "<span style='color:#00e676;'>🎉 成功击退所有偷拍狗仔！公关胜利！</span>";
+                    else tipEl.innerHTML = "<span style='color:#ff5252;'>💧 击退失败！狗仔抓到了漏洞照片...</span>";
+                }
+            }, 1000);
+            renderHoles();
+        }
+
+        function renderHoles() {
+            gridEl.innerHTML = '';
+            for(let i=0; i<9; i++) {
+                let h = document.createElement('div'); h.className = 'hole';
+                h.innerText = (i === activeIdx && isStarted) ? (activeType === 'paparazzi' ? '📷' : '💖') : '🕳️';
+                h.onclick = () => hitHole(i);
+                gridEl.appendChild(h);
+            }
+        }
+
+        function hitHole(idx) {
+            if(!isStarted || isOver || idx !== activeIdx) return;
+            if(activeType === 'paparazzi') {
+                score++; document.getElementById('mScore').innerText = score;
+                activeIdx = -1; renderHoles();
+                if(score >= 8) { isOver = true; clearInterval(timer); clearInterval(spawner); tipEl.innerHTML = "<span style='color:#00e676;'>🎉 成功击退所有偷拍狗仔！公关胜利！</span>"; }
+            } else {
+                score = Math.max(0, score - 2); document.getElementById('mScore').innerText = score;
+                activeIdx = -1; renderHoles();
+            }
+        }
+        renderHoles();
+    </script></body></html>
+    """
+  components.html(html_code, height=270)
+
+
+def render_snapshot_game():
+  html_code = """
+    <!DOCTYPE html><html><head><style>
+    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+    .game-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 10px; width: 300px; text-align: center; position: relative; }
+    .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
+    .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
+    .snap-btn { background: linear-gradient(135deg, #ff4081, #ab47bc); color: white; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; border-radius: 20px; cursor: pointer; margin-top: 10px; }
+    .snap-btn:active { transform: scale(0.92); }
+    </style></head><body>
+    <div class="game-box">
+        <div id="startOverlay" class="start-overlay">
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">📸 杂志封面快门抓拍</div>
+            <div style="color:#fff; font-size:11px; margin-bottom:10px;">当光标移动到 🎯 完美区时按下快门！</div>
+            <button class="start-btn" onclick="startGame()">▶️ 开始拍摄</button>
+        </div>
+        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">📸 快门抓拍大作战</div>
+        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 3px;">✨ 成功抓拍: <span id="snapScore">0</span> / 5 | ⏳ <span id="snapTime">12</span>s</div>
+        <div style="background: #211035; border: 2px solid #ab47bc; border-radius: 8px; height: 35px; margin: 12px 0; position: relative; overflow: hidden;">
+            <div style="position: absolute; left: 115px; width: 70px; height: 100%; background: rgba(0, 230, 118, 0.4); border-left: 2px dashed #00e676; border-right: 2px dashed #00e676;">🎯</div>
+            <div id="barCursor" style="position: absolute; left: 0px; width: 8px; height: 100%; background: #ff4081; border-radius: 4px;"></div>
+        </div>
+        <button class="snap-btn" onclick="takePhoto()">📷 咔嚓！按下快门</button>
+        <div id="snap-tip" style="color: #fff; font-size: 11px; margin-top: 5px;">看准绿框瞬间按下！</div>
+    </div>
+    <script>
+        let score = 0, timeLeft = 12, isStarted = false, isOver = false, cursorX = 0, dir = 3, timer, animator;
+        const cursorEl = document.getElementById('barCursor'), timeEl = document.getElementById('snapTime'), scoreEl = document.getElementById('snapScore'), tipEl = document.getElementById('snap-tip');
 
         function startGame() {
             document.getElementById('startOverlay').style.display = 'none';
             isStarted = true;
             timer = setInterval(() => {
                 if(timeLeft > 0 && !isOver) { timeLeft--; timeEl.innerText = timeLeft; }
-                else if(!isOver) { endAudition(); }
+                else if(!isOver) { endSnap(); }
             }, 1000);
-            
             animator = setInterval(() => {
                 if(isOver || !isStarted) return;
                 cursorX += dir;
@@ -238,269 +579,204 @@ def render_audition_vocal_game():
             }, 20);
         }
 
-        function hitVocal() {
+        function takePhoto() {
             if(!isStarted || isOver) return;
             if(cursorX >= 115 && cursorX <= 185) {
-                score++; scoreEl.innerText = score;
-                tipEl.innerHTML = "<span style='color:#00e676;'>🎉 完美高音震撼全场！</span>";
-                if(score >= 4) endAudition(true);
+                score++;
+                scoreEl.innerText = score;
+                tipEl.innerHTML = "<span style='color:#00e676;'>🎉 完美的封面瞬间！绝杀！</span>";
             } else {
-                tipEl.innerHTML = "<span style='color:#ff5252;'>💧 音准飘忽，气息不稳！</span>";
+                tipEl.innerHTML = "<span style='color:#ff5252;'>💧 拍虚了，表情没管理好！</span>";
             }
         }
 
-        function endAudition(success = false) {
+        function endSnap() {
             isOver = true; clearInterval(timer); clearInterval(animator);
-            if(success || score >= 3) { tipEl.innerHTML = "<span style='color:#00e676;'>🎉 考核大成功！顺利晋级！</span>"; }
-            else { tipEl.innerHTML = "<span style='color:#ff5252;'>💧 练习生初试未达标，但评委网开一面！</span>"; }
+            if(score >= 3) { tipEl.innerHTML = "<span style='color:#00e676;'>🎉 杂志大片拍摄大成功！</span>"; }
+            else { tipEl.innerHTML = "<span style='color:#ff5252;'>💧 拍摄未达标，错失封面！</span>"; }
         }
     </script></body></html>
     """
   components.html(html_code, height=275)
 
 
-def render_audition_dance_game():
+def render_wink_game():
   html_code = """
     <!DOCTYPE html><html><head><style>
-    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; color: #fff; }
-    .box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 12px; width: 300px; text-align: center; position: relative; }
-    .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.96); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
-    .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
-    .arrow-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 12px 0; }
-    .arrow-node { background: #211035; border: 2px solid #553377; border-radius: 12px; padding: 12px 0; font-size: 26px; font-weight: bold; cursor: pointer; color: #666; }
-    .arrow-node.active { background: linear-gradient(135deg, #00e676, #00b0ff); color: #fff; border: 2px solid #fff; box-shadow: 0 0 20px #00e676, 0 0 30px #00b0ff; transform: scale(1.06); }
-    .arrow-node:active { transform: scale(0.92); }
+    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+    .game-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 14px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); position: relative; overflow: hidden; width: 300px; height: 210px; }
+    canvas { display: block; }
+    .btn-row { display: flex; gap: 6px; margin-top: 8px; width: 300px; }
+    .wink-btn { background: linear-gradient(135deg, #ff4081, #7b1fa2); color: white; border: 2px solid #ff80ab; padding: 9px 0; font-size: 13px; font-weight: bold; border-radius: 10px; cursor: pointer; flex: 1; text-align: center; }
+    .wink-btn:active { background: #ff4081; transform: scale(0.92); }
+    .start-overlay { position: absolute; top:0; left:0; width:300px; height:210px; background: rgba(26,15,48,0.92); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; }
+    .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 20px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
     </style></head><body>
-    <div class="box">
+    <div class="game-box">
         <div id="startOverlay" class="start-overlay">
-            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">💃 甄选项目考核</div>
-            <div style="color:#fff; font-size:11px; margin-bottom:10px;">看准哪个箭头发光高亮，迅速按下发光的箭头！</div>
-            <button class="start-btn" onclick="startGame()">▶️ 开始考核</button>
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">🌟 三轨道下落 Wink 电眼狙击</div>
+            <div style="color:#fff; font-size:11px; margin-bottom:10px; text-align:center; padding:0 10px;">10秒内左右移动，当 💖 粉丝掉落时按下发射 Wink！</div>
+            <button class="start-btn" onclick="startGame()">▶️ 开始电眼巡游</button>
         </div>
-        <div style="color: #ffeb3b; font-weight: bold; font-size: 13px;">💃 霓虹卡点考核</div>
-        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 3px;">✨ 精准击中: <span id="dScore">0</span> / 7 | ⏳ <span id="dTime">12</span>s</div>
-        
-        <div class="arrow-container">
-            <div class="arrow-node" id="btn-up" onclick="pressArrow('up')">⬆️ 上</div>
-            <div class="arrow-node" id="btn-down" onclick="pressArrow('down')">⬇️ 下</div>
-            <div class="arrow-node" id="btn-left" onclick="pressArrow('left')">⬅️ 左</div>
-            <div class="arrow-node" id="btn-right" onclick="pressArrow('right')">➡️ 右</div>
-        </div>
-        
-        <div id="d-tip" style="color: #fff; font-size: 11px;">看准亮起来的箭头迅速点击！</div>
+        <canvas id="winkCanvas" width="300" height="210"></canvas>
+    </div>
+    <div class="btn-row">
+        <button class="wink-btn" onclick="moveWink(-1)">⬅️ 往左</button>
+        <button class="wink-btn" style="background: linear-gradient(45deg, #00e676, #00b0ff); color:#000;" onclick="winkAction()">😉 发射Wink</button>
+        <button class="wink-btn" onclick="moveWink(1)">往右 ➡️</button>
     </div>
     <script>
-        let score = 0, timeLeft = 12, isStarted = false, isOver = false, timer, currentActive = '';
-        const dirs = ['up', 'down', 'left', 'right'];
-        const scoreEl = document.getElementById('dScore'), timeEl = document.getElementById('dTime'), tipEl = document.getElementById('d-tip');
+        const canvas = document.getElementById('winkCanvas'); const ctx = canvas.getContext('2d'); const trackWidth = 100;
+        let playerLane = 1, fans = [], score = 0, timeLeft = 10, isStarted = false, isGameOver = false, timer, spawner;
 
         function startGame() {
             document.getElementById('startOverlay').style.display = 'none';
             isStarted = true;
-            nextHighlight();
-            timer = setInterval(() => {
-                if(timeLeft > 0 && !isOver) { timeLeft--; timeEl.innerText = timeLeft; }
-                else if(!isOver) { endDance(); }
-            }, 1000);
+            timer = setInterval(() => { if(timeLeft > 0 && !isGameOver) timeLeft--; else { isGameOver = true; clearInterval(timer); clearInterval(spawner); } }, 1000);
+            spawner = setInterval(() => { if(!isGameOver && isStarted) fans.push({ lane: Math.floor(Math.random()*3), y: -30 }); }, 800);
+            loop();
         }
 
-        function nextHighlight() {
-            if(isOver) return;
-            dirs.forEach(d => document.getElementById('btn-' + d).classList.remove('active'));
-            currentActive = dirs[Math.floor(Math.random() * dirs.length)];
-            document.getElementById('btn-' + currentActive).classList.add('active');
+        function moveWink(dir) {
+            if(!isStarted || isGameOver) return;
+            playerLane = Math.max(0, Math.min(2, playerLane + dir));
         }
 
-        function pressArrow(dir) {
-            if(!isStarted || isOver) return;
-            if(dir === currentActive) {
-                score++;
-                scoreEl.innerText = score;
-                tipEl.innerHTML = "<span style='color:#00e676;'>🎉 完美踩中发光节点！</span>";
-                if(score >= 7) endDance(true);
-                else nextHighlight();
-            } else {
-                tipEl.innerHTML = "<span style='color:#ff5252;'>💧 没按中发光的箭头！拍子错了！</span>";
+        function winkAction() {
+            if(!isStarted || isGameOver) return;
+            let hit = false;
+            for(let i = fans.length - 1; i >= 0; i--) {
+                let f = fans[i];
+                if(f.y >= 130 && f.y <= 195 && f.lane === playerLane) {
+                    score++;
+                    fans.splice(i, 1);
+                    hit = true;
+                    break;
+                }
             }
         }
 
-        function endDance(success = false) {
-            isOver = true; clearInterval(timer);
-            dirs.forEach(d => document.getElementById('btn-' + d).classList.remove('active'));
-            if(success || score >= 6) { tipEl.innerHTML = "<span style='color:#00e676;'>🎉 考核大成功！</span>"; }
-            else { tipEl.innerHTML = "<span style='color:#ff5252;'>💧 节奏跟不上发光节点！未达标！</span>"; }
+        function loop() {
+            ctx.clearRect(0, 0, 300, 210); ctx.strokeStyle = '#2d1b4e';
+            for(let i=1; i<3; i++) { ctx.beginPath(); ctx.moveTo(i*trackWidth, 0); ctx.lineTo(i*trackWidth, 210); ctx.stroke(); }
+            
+            for(let i = fans.length - 1; i >= 0; i--) {
+                let f = fans[i];
+                f.y += 3.2;
+                ctx.font = '22px Arial';
+                ctx.fillText('💖', f.lane * trackWidth + 36, f.y);
+                if(f.y > 210) { fans.splice(i, 1); }
+            }
+
+            ctx.font = '26px Arial';
+            ctx.fillText('😉', playerLane * trackWidth + 34, 185);
+
+            ctx.fillStyle = '#fff'; ctx.font = 'bold 11px Arial';
+            ctx.fillText("⏳ 剩余: " + timeLeft + "s", 10, 18);
+            ctx.fillText("💖 得分: " + score, 210, 18);
+
+            if(!isGameOver) requestAnimationFrame(loop);
+            else {
+                ctx.fillStyle = 'rgba(0,0,0,0.88)'; ctx.fillRect(0, 0, 300, 210);
+                ctx.fillStyle = score >= 4 ? '#00e676' : '#ff5252';
+                ctx.font = 'bold 15px Arial';
+                ctx.fillText(score >= 4 ? "🎉 电眼狙击成功！得分: " + score : "💧 表现平平！得分: " + score, 45, 110);
+            }
         }
     </script></body></html>
     """
-  components.html(html_code, height=315)
+  components.html(html_code, height=275)
 
 
-def render_audition_rap_game():
+def render_outfit_game():
   html_code = """
     <!DOCTYPE html><html><head><style>
-    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; color: #fff; }
-    .box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 12px; width: 300px; text-align: center; position: relative; }
-    .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.96); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
-    .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
-    .light-box { font-size: 40px; margin: 10px 0; background: #211035; border: 2px solid #ab47bc; border-radius: 10px; padding: 6px; }
-    .color-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 6px; }
-    .c-btn { border: none; padding: 10px 0; font-size: 14px; font-weight: bold; border-radius: 8px; cursor: pointer; color: #fff; }
-    .c-btn:active { transform: scale(0.92); }
+    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+    .game-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 14px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); position: relative; overflow: hidden; width: 300px; height: 210px; }
+    canvas { display: block; }
+    .btn-row { display: flex; gap: 8px; margin-top: 8px; width: 300px; }
+    .outfit-btn { background: linear-gradient(135deg, #ff4081, #7b1fa2); color: white; border: 2px solid #ff80ab; padding: 9px 0; font-size: 14px; font-weight: bold; border-radius: 10px; cursor: pointer; flex: 1; text-align: center; }
+    .outfit-btn:active { background: #ff4081; transform: scale(0.92); }
+    .start-overlay { position: absolute; top:0; left:0; width:300px; height:210px; background: rgba(26,15,48,0.92); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; }
+    .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 20px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
     </style></head><body>
-    <div class="box">
+    <div class="game-box">
         <div id="startOverlay" class="start-overlay">
-            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">🔥 甄选项目考核</div>
-            <div style="color:#fff; font-size:11px; margin-bottom:10px;">根据闪烁灯光颜色点击对应按钮（需达7次）！</div>
-            <button class="start-btn" onclick="startGame()">▶️ 开始考核</button>
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">🧺 三轨道下落接战袍</div>
+            <div style="color:#fff; font-size:11px; margin-bottom:10px; text-align:center; padding:0 10px;">12秒内移动篮子接住 🧥 战袍(+1)，避开 🧦 脏袜子(-1)！</div>
+            <button class="start-btn" onclick="startGame()">▶️ 开始接物挑战</button>
         </div>
-        <div style="color: #ffeb3b; font-weight: bold; font-size: 13px;">🔥 节奏色彩考核</div>
-        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 3px;">✨ 匹配成功: <span id="rScore">0</span> / 7 | ⏳ <span id="rTime">12</span>s</div>
-        <div class="light-box" id="targetLight">🔴</div>
-        <div class="color-grid">
-            <button class="c-btn" style="background: #e53935;" onclick="pressColor('red')">🔴 红色</button>
-            <button class="c-btn" style="background: #fbc02d; color:#000;" onclick="pressColor('yellow')">🟡 黄色</button>
-            <button class="c-btn" style="background: #1e88e5;" onclick="pressColor('blue')">🔵 蓝色</button>
-            <button class="c-btn" style="background: #43a047;" onclick="pressColor('green')">🟢 绿色</button>
-        </div>
-        <div id="r-tip" style="color: #fff; font-size: 11px; margin-top: 6px;">看准闪烁灯光颜色迅速按下！</div>
+        <canvas id="outfitCanvas" width="300" height="210"></canvas>
+    </div>
+    <div class="btn-row">
+        <button class="outfit-btn" onclick="moveBasket(-1)">⬅️ 篮子向左</button>
+        <button class="outfit-btn" style="background: linear-gradient(135deg, #ab47bc, #4a148c);" onclick="moveBasket(0)">⏺️ 居中</button>
+        <button class="outfit-btn" onclick="moveBasket(1)">篮子向右 ➡️</button>
     </div>
     <script>
-        let score = 0, timeLeft = 12, isStarted = false, isOver = false, timer;
-        const colors = [
-            { name: 'red', emoji: '🔴' },
-            { name: 'yellow', emoji: '🟡' },
-            { name: 'blue', emoji: '🔵' },
-            { name: 'green', emoji: '🟢' }
-        ];
-        let currentColor = colors[0];
-        const lightEl = document.getElementById('targetLight'), scoreEl = document.getElementById('rScore'), timeEl = document.getElementById('rTime'), tipEl = document.getElementById('r-tip');
+        const canvas = document.getElementById('outfitCanvas'); const ctx = canvas.getContext('2d'); const trackWidth = 100;
+        let basketLane = 1, items = [], score = 0, timeLeft = 12, isStarted = false, isGameOver = false, timer, spawner;
 
         function startGame() {
             document.getElementById('startOverlay').style.display = 'none';
             isStarted = true;
-            nextColor();
-            timer = setInterval(() => {
-                if(timeLeft > 0 && !isOver) { timeLeft--; timeEl.innerText = timeLeft; }
-                else if(!isOver) { endRap(); }
-            }, 1000);
+            timer = setInterval(() => { if(timeLeft > 0 && !isGameOver) timeLeft--; else { isGameOver = true; clearInterval(timer); clearInterval(spawner); } }, 1000);
+            spawner = setInterval(() => {
+                if(!isGameOver && isStarted) {
+                    let type = Math.random() > 0.35 ? '🧥' : '🧦';
+                    items.push({ lane: Math.floor(Math.random()*3), y: -30, type: type });
+                }
+            }, 750);
+            loop();
         }
 
-        function nextColor() {
-            if(isOver) return;
-            currentColor = colors[Math.floor(Math.random() * colors.length)];
-            lightEl.innerText = currentColor.emoji;
+        function moveBasket(dir) {
+            if(!isStarted || isGameOver) return;
+            if(dir === 0) basketLane = 1;
+            else basketLane = Math.max(0, Math.min(2, basketLane + dir));
         }
 
-        function pressColor(cName) {
-            if(!isStarted || isOver) return;
-            if(cName === currentColor.name) {
-                score++; scoreEl.innerText = score;
-                tipEl.innerHTML = "<span style='color:#00e676;'>🎉 节奏完美契合！</span>";
-                if(score >= 7) endRap(true);
-                else nextColor();
-            } else {
-                tipEl.innerHTML = "<span style='color:#ff5252;'>💧 颜色按错，说唱断拍！</span>";
+        function loop() {
+            ctx.clearRect(0, 0, 300, 210); ctx.strokeStyle = '#2d1b4e';
+            for(let i=1; i<3; i++) { ctx.beginPath(); ctx.moveTo(i*trackWidth, 0); ctx.lineTo(i*trackWidth, 210); ctx.stroke(); }
+            
+            for(let i = items.length - 1; i >= 0; i--) {
+                let it = items[i];
+                it.y += 3.5;
+                ctx.font = '22px Arial';
+                ctx.fillText(it.type, it.lane * trackWidth + 36, it.y);
+                
+                if(it.y >= 155 && it.y <= 195 && it.lane === basketLane) {
+                    if(it.type === '🧥') score += 1;
+                    else score = Math.max(0, score - 1);
+                    items.splice(i, 1);
+                } else if(it.y > 210) {
+                    items.splice(i, 1);
+                }
             }
-        }
 
-        function endRap(success = false) {
-            isOver = true; clearInterval(timer);
-            if(success || score >= 6) { tipEl.innerHTML = "<span style='color:#00e676;'>🎉 考核大成功！</span>"; }
-            else { tipEl.innerHTML = "<span style='color:#ff5252;'>💧 节奏偏离，未达标！</span>"; }
+            ctx.font = '26px Arial';
+            ctx.fillText('🧺', basketLane * trackWidth + 34, 185);
+
+            ctx.fillStyle = '#fff'; ctx.font = 'bold 11px Arial';
+            ctx.fillText("⏳ 剩余: " + timeLeft + "s", 10, 18);
+            ctx.fillText("🧥 得分: " + score, 210, 18);
+
+            if(!isGameOver) requestAnimationFrame(loop);
+            else {
+                ctx.fillStyle = 'rgba(0,0,0,0.88)'; ctx.fillRect(0, 0, 300, 210);
+                ctx.fillStyle = score >= 5 ? '#00e676' : '#ff5252';
+                ctx.font = 'bold 15px Arial';
+                ctx.fillText(score >= 5 ? "🎉 接战袍挑战成功！得分: " + score : "💧 漏掉太多战袍！得分: " + score, 40, 110);
+            }
         }
     </script></body></html>
     """
-  components.html(html_code, height=310)
-
-
-def render_audition_variety_game():
-  html_code = """
-    <!DOCTYPE html><html><head><style>
-    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; color: #fff; }
-    .box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 12px; width: 300px; text-align: center; position: relative; }
-    .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.96); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
-    .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
-    .stage-area { background: #211035; border: 2px solid #ab47bc; border-radius: 10px; height: 130px; margin: 10px 0; position: relative; overflow: hidden; }
-    
-    @keyframes swing {
-        0% { transform: translateX(5px); }
-        50% { transform: translateX(235px); }
-        100% { transform: translateX(5px); }
-    }
-    .moving-pancake { position: absolute; top: 8px; left: 0px; font-size: 26px; height: 30px; animation: swing 2.2s ease-in-out infinite alternate; will-change: transform; }
-    
-    .plate { position: absolute; bottom: 8px; left: 110px; width: 80px; height: 12px; background: #e0e0e0; border-radius: 6px; border: 2px solid #bdbdbd; text-align: center; font-size: 9px; color: #333; line-height: 12px; font-weight: bold; }
-    .pancake-stack { position: absolute; bottom: 22px; width: 100%; display: flex; flex-direction: column-reverse; align-items: center; }
-    .pancake-item { font-size: 22px; line-height: 18px; height: 18px; }
-    .drop-btn { background: linear-gradient(135deg, #ff2a75, #ab47bc); color: white; border: none; padding: 10px 24px; font-size: 15px; font-weight: bold; border-radius: 20px; cursor: pointer; margin-top: 5px; }
-    .drop-btn:active { transform: scale(0.92); }
-    </style></head><body>
-    <div class="box">
-        <div id="startOverlay" class="start-overlay">
-            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">🤹 甄选项目考核</div>
-            <div style="color:#fff; font-size:11px; margin-bottom:10px;">星光松饼在顶部平稳左右摆动，看准正下方托盘中央时机落下（成功叠高4层）！</div>
-            <button class="start-btn" onclick="startGame()">▶️ 开始考核</button>
-        </div>
-        <div style="color: #ffeb3b; font-weight: bold; font-size: 13px;">🤹 堆松饼技巧考核</div>
-        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 3px;">🥞 成功叠高: <span id="pScore">0</span> / 4 | ⏳ <span id="pTime">15</span>s</div>
-        
-        <div class="stage-area">
-            <div class="moving-pancake" id="movingPancake">🥞</div>
-            <div class="pancake-stack" id="pancakeStack"></div>
-            <div class="plate">🍽️ 托盘</div>
-        </div>
-
-        <button class="drop-btn" onclick="dropPancake()">🥞 落下松饼！</button>
-        <div id="p-tip" style="color: #fff; font-size: 11px; margin-top: 5px;">看准松饼平移到托盘中央的瞬间按下！</div>
-    </div>
-    <script>
-        let score = 0, timeLeft = 15, isStarted = false, isOver = false, timer;
-        const cakeEl = document.getElementById('movingPancake'), stackEl = document.getElementById('pancakeStack'), scoreEl = document.getElementById('pScore'), timeEl = document.getElementById('pTime'), tipEl = document.getElementById('p-tip');
-
-        function startGame() {
-            document.getElementById('startOverlay').style.display = 'none';
-            isStarted = true;
-            timer = setInterval(() => {
-                if(timeLeft > 0 && !isOver) { timeLeft--; timeEl.innerText = timeLeft; }
-                else if(!isOver) { endPancake(); }
-            }, 1000);
-        }
-
-        function dropPancake() {
-            if(!isStarted || isOver) return;
-            let matrix = window.getComputedStyle(cakeEl).transform;
-            let currentX = 120;
-            if (matrix && matrix !== 'none') {
-                let values = matrix.split(', ');
-                currentX = parseFloat(values[4]);
-            }
-            if(currentX >= 85 && currentX <= 175) {
-                score++;
-                scoreEl.innerText = score;
-                let item = document.createElement('div');
-                item.className = 'pancake-item';
-                item.innerText = '🥞';
-                stackEl.appendChild(item);
-                tipEl.innerHTML = "<span style='color:#00e676;'>🎉 完美的平衡！松饼稳稳落下！</span>";
-                if(score >= 4) endPancake(true);
-            } else {
-                tipEl.innerHTML = "<span style='color:#ff5252;'>💧 偏离中心！松饼滑落倾斜了！</span>";
-            }
-        }
-
-        function endPancake(success = false) {
-            isOver = true; clearInterval(timer);
-            cakeEl.style.animationPlayState = 'paused';
-            if(success || score >= 3) { tipEl.innerHTML = "<span style='color:#00e676;'>🎉 特技考核通关！完美定格！</span>"; }
-            else { tipEl.innerHTML = "<span style='color:#ff5252;'>💧 没叠够层数，松饼塔倒了！</span>"; }
-        }
-    </script></body></html>
-    """
-  components.html(html_code, height=330)
+  components.html(html_code, height=275)
 
 
 # -------------------------------------------------------------------
-# 真正经典的【合成大西瓜】小游戏组件（点击落球、同级碰撞自动合成、系统自动判定胜负）
+# 3大高级外务大作：合成大西瓜、音乐 2048、红毯跨栏跑酷（含自动判定）
 # -------------------------------------------------------------------
 
 
@@ -511,30 +787,26 @@ def render_watermelon_game():
     .box { background: #1a0f30; border: 2px solid #ff2a75; border-radius: 14px; padding: 12px; width: 300px; text-align: center; position: relative; }
     .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.96); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 14px; }
     .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
-    
     .game-container { background: #211035; border: 2px solid #ab47bc; border-radius: 10px; height: 180px; position: relative; overflow: hidden; cursor: pointer; margin-top: 6px; }
     .drop-guide { position: absolute; top: 0; width: 4px; height: 100%; background: rgba(255,255,255,0.3); pointer-events: none; }
-    
     .ball { position: absolute; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 11px; box-shadow: 0 3px 8px rgba(0,0,0,0.4); transform: translate(-50%, -50%); transition: top 0.2s linear, left 0.1s linear; }
     </style></head><body>
     <div class="box">
         <div id="startOverlay" class="start-overlay">
-            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:6px; font-size:13px;">🍉 顶奢综艺外务：合成大西瓜挑战</div>
-            <div style="color:#fff; font-size:11px; margin-bottom:10px; padding: 0 10px;">点击下方箱子任意位置投放徽章，<b>相同等级碰撞自动合成</b>！合成出 <b>Lv.5 终极大西瓜</b> 即系统自动判定胜利！</div>
-            <button class="start-btn" onclick="startGame()">▶️ 开始合成挑战</button>
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:6px; font-size:13px;">🍉 顶奢综艺：合成大西瓜挑战</div>
+            <div style="color:#fff; font-size:11px; margin-bottom:10px; padding: 0 10px;">点击箱子投放徽章，<b>同级碰撞自动合成</b>！合成出 <b>Lv.5 终极大西瓜</b> 即系统自动判定胜利！</div>
+            <button class="start-btn" onclick="startGame()">▶️ 开始挑战</button>
         </div>
-        <div style="color: #ffeb3b; font-weight: bold; font-size: 13px;">🍉 偶像大西瓜合成演播室</div>
+        <div style="color: #ffeb3b; font-weight: bold; font-size: 13px;">🍉 偶像大西瓜演播室</div>
         <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 2px;">✨ 最高合成: <span id="wLevel">Lv.1 萌新徽章</span> | ⏳ <span id="wTime">15</span>s</div>
-        
         <div class="game-container" id="gameBoard" onclick="boardClick(event)">
             <div class="drop-guide" id="guideLine" style="left: 150px;"></div>
         </div>
-        
-        <div id="w-tip" style="color: #fff; font-size: 11px; margin-top: 6px;">点击箱子内部任意处投放徽章！</div>
+        <div id="w-tip" style="color: #fff; font-size: 11px; margin-top: 6px;">点击箱子内部投放徽章！</div>
     </div>
     <script>
         let timeLeft = 15, isStarted = false, isOver = false, timer;
-        let balls = []; // 存储所有小球 {x, y, level}
+        let balls = [];
         const boardEl = document.getElementById('gameBoard'), timeEl = document.getElementById('wTime'), lvlEl = document.getElementById('wLevel'), tipEl = document.getElementById('w-tip'), guideLine = document.getElementById('guideLine');
 
         const levels = [
@@ -551,12 +823,8 @@ def render_watermelon_game():
             document.getElementById('startOverlay').style.display = 'none';
             isStarted = true;
             timer = setInterval(() => {
-                if(timeLeft > 0 && !isOver) { 
-                    timeLeft--; 
-                    timeEl.innerText = timeLeft; 
-                } else if(!isOver) {
-                    endGame(false);
-                }
+                if(timeLeft > 0 && !isOver) { timeLeft--; timeEl.innerText = timeLeft; }
+                else if(!isOver) { endGame(false); }
             }, 1000);
         }
 
@@ -570,29 +838,22 @@ def render_watermelon_game():
             if(!isStarted || isOver) return;
             let rect = boardEl.getBoundingClientRect();
             let x = e.clientX - rect.left;
-            x = Math.max(20, Math.min(280, x)); // 限制边界
+            x = Math.max(20, Math.min(280, x));
             
-            // 投放新球（默认Lv.1或Lv.2）
             let spawnLvl = Math.random() < 0.7 ? 1 : 2;
             let newBall = { x: x, y: 25, level: spawnLvl };
-            
-            // 简单物理下落与碰撞检测
             balls.push(newBall);
             settleBalls();
             renderBalls();
         }
 
         function settleBalls() {
-            // 让球下落到底部或堆叠在其他球上方
             for(let i = 0; i < balls.length; i++) {
                 let b = balls[i];
-                let targetY = 155; // 底部高度
-                
-                // 检查下方是否有其他球
+                let targetY = 155;
                 for(let j = 0; j < balls.length; j++) {
                     if(i === j) continue;
                     let other = balls[j];
-                    // 如果在同一列附近且在下方
                     if(Math.abs(b.x - other.x) < (levels[b.level-1].size/2 + levels[other.level-1].size/2) && other.y > b.y) {
                         let candidateY = other.y - levels[other.level-1].size;
                         if(candidateY < targetY) targetY = candidateY;
@@ -601,23 +862,19 @@ def render_watermelon_game():
                 b.y = targetY;
             }
 
-            // 检查相同等级碰撞自动合成
             for(let i = 0; i < balls.length; i++) {
                 for(let j = i + 1; j < balls.length; j++) {
                     let b1 = balls[i], b2 = balls[j];
                     let dist = Math.hypot(b1.x - b2.x, b1.y - b2.y);
                     if(dist < (levels[b1.level-1].size/2 + levels[b2.level-1].size/2 + 5)) {
                         if(b1.level === b2.level && b1.level < 5) {
-                            // 相同等级合成！升级到下一级
                             b1.level++;
                             if(b1.level > maxAchievedLvl) {
                                 maxAchievedLvl = b1.level;
                                 lvlEl.innerText = levels[maxAchievedLvl-1].name;
                             }
-                            // 移除 b2
                             balls.splice(j, 1);
-                            tipEl.innerHTML = "<span style='color:#00e676;'>🎉 碰撞成功！合成为 " + levels[b1.level-1].name + "！</span>";
-                            
+                            tipEl.innerHTML = "<span style='color:#00e676;'>🎉 合成为 " + levels[b1.level-1].name + "！</span>";
                             if(b1.level >= 5) {
                                 renderBalls();
                                 setTimeout(() => endGame(true), 400);
@@ -631,11 +888,8 @@ def render_watermelon_game():
         }
 
         function renderBalls() {
-            // 清除旧DOM球
             let oldEls = boardEl.querySelectorAll('.ball');
             oldEls.forEach(el => el.remove());
-
-            // 重新渲染
             balls.forEach(b => {
                 let lvlInfo = levels[b.level-1];
                 let el = document.createElement('div');
@@ -654,16 +908,13 @@ def render_watermelon_game():
             if(isOver) return;
             isOver = true;
             clearInterval(timer);
-            
-            // 通过 Streamlit 自定义组件与父页面通信或自动刷新进入判定
             setTimeout(() => {
                 if(success) {
                     alert("🎉 恭喜你成功合成终极大西瓜！外务挑战大获全胜！");
-                    window.location.reload();
                 } else {
-                    alert("💧 时间耗尽，未合成出终极大西瓜，外务挑战失利！");
-                    window.location.reload();
+                    alert("💧 时间耗尽，未合成出终极大西瓜！");
                 }
+                window.location.reload();
             }, 300);
         }
     </script></body></html>
@@ -671,78 +922,148 @@ def render_watermelon_game():
   components.html(html_code, height=350)
 
 
-def render_match_game():
+def render_2048_game():
   html_code = """
     <!DOCTYPE html><html><head><style>
     body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; color: #fff; }
     .box { background: #1a0f30; border: 2px solid #ff2a75; border-radius: 14px; padding: 12px; width: 300px; text-align: center; position: relative; }
     .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.96); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 14px; }
     .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
-    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px auto; width: 220px; }
-    .m-tile { background: linear-gradient(135deg, #ab47bc, #7b1fa2); border: 2px solid #ff80ab; height: 55px; font-size: 22px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-    .m-tile:active { transform: scale(0.92); }
+    .grid-2048 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; background: #211035; border: 2px solid #ab47bc; padding: 6px; border-radius: 10px; margin: 8px auto; width: 200px; height: 200px; }
+    .tile-2048 { background: #31115c; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold; color: #fff; }
+    .controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; width: 160px; margin: 4px auto; }
+    .c-btn { background: #ab47bc; border: none; color: #fff; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+    .c-btn:active { background: #ff2a75; }
     </style></head><body>
     <div class="box">
         <div id="startOverlay" class="start-overlay">
-            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">🧩 音乐消消乐：连线消除大作战</div>
-            <div style="color:#fff; font-size:11px; margin-bottom:10px; padding: 0 10px;">15秒内点击消除 <b>6组同色音符</b> 即可通关！</div>
-            <button class="start-btn" onclick="startGame()">▶️ 开始消除挑战</button>
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:6px; font-size:13px;">🎵 音乐 2048 消除大作战</div>
+            <div style="color:#fff; font-size:11px; margin-bottom:10px; padding: 0 10px;">通过下方按钮合并音符，合成出 <b>2048</b> 即系统自动判定胜利！</div>
+            <button class="start-btn" onclick="startGame()">▶️ 开始挑战</button>
         </div>
-        <div style="color: #ffeb3b; font-weight: bold; font-size: 13px;">🧩 音乐消除祭·连击挑战</div>
-        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 3px;">✨ 已消除组数: <span id="mScore">0</span> / 6 | ⏳ <span id="mTime">15</span>s</div>
-        <div class="grid" id="matchGrid"></div>
-        <div id="m-tip" style="color: #fff; font-size: 11px; margin-top: 4px;">点击相同颜色的偶像音符进行消除！</div>
+        <div style="color: #ffeb3b; font-weight: bold; font-size: 13px;">🎵 音乐 2048 演播室</div>
+        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 2px;">✨ 最高合成: <span id="maxTile">2</span> | ⏳ <span id="tTime">20</span>s</div>
+        <div class="grid-2048" id="board2048"></div>
+        <div class="controls">
+            <div></div><button class="c-btn" onclick="slide('up')">⬆️</button><div></div>
+            <button class="c-btn" onclick="slide('left')">⬅️</button><button class="c-btn" onclick="slide('down')">⬇️</button><button class="c-btn" onclick="slide('right')">➡️</button>
+        </div>
+        <div id="t-tip" style="color: #fff; font-size: 11px; margin-top: 4px;">点击方向按钮合并音符！</div>
     </div>
     <script>
-        let score = 0, timeLeft = 15, isStarted = false, isOver = false, timer;
-        let tiles = ['🎵', '🎶', '🎤', '🎵', '🎶', '🎤', '🌟', '🌟', '🎵'];
-        const gridEl = document.getElementById('matchGrid'), scoreEl = document.getElementById('mScore'), timeEl = document.getElementById('mTime'), tipEl = document.getElementById('m-tip');
+        let timeLeft = 20, isStarted = false, isOver = false, timer;
+        let board = [[2, 0, 2], [0, 4, 0], [2, 0, 0]];
+        let maxVal = 2;
+        const timeEl = document.getElementById('tTime'), maxTileEl = document.getElementById('maxTile'), tipEl = document.getElementById('t-tip'), boardEl = document.getElementById('board2048');
 
         function startGame() {
             document.getElementById('startOverlay').style.display = 'none';
             isStarted = true;
-            renderTiles();
+            renderBoard();
             timer = setInterval(() => {
                 if(timeLeft > 0 && !isOver) { timeLeft--; timeEl.innerText = timeLeft; }
-                else if(!isOver) { endMatch(false); }
+                else if(!isOver) { endGame(false); }
             }, 1000);
         }
 
-        function renderTiles() {
-            tiles.sort(() => Math.random() - 0.5);
-            gridEl.innerHTML = '';
-            tiles.forEach((t, idx) => {
-                let div = document.createElement('div');
-                div.className = 'm-tile';
-                div.innerText = t;
-                div.onclick = () => clickTile(idx);
-                gridEl.appendChild(div);
-            });
+        function renderBoard() {
+            boardEl.innerHTML = '';
+            for(let r=0; r<3; r++) {
+                for(let c=0; c<3; c++) {
+                    let val = board[r][c];
+                    let div = document.createElement('div');
+                    div.className = 'tile-2048';
+                    div.innerText = val === 0 ? '' : val;
+                    if(val > 0) {
+                        let hue = (Math.log2(val) * 45) % 360;
+                        div.style.background = `hsl(${hue}, 70%, 45%)`;
+                    }
+                    boardEl.appendChild(div);
+                }
+            }
+            maxTileEl.innerText = maxVal;
         }
 
-        function clickTile(idx) {
+        function addRandom() {
+            let empty = [];
+            for(let r=0; r<3; r++) for(let c=0; c<3; c++) if(board[r][c] === 0) empty.push({r, c});
+            if(empty.length > 0) {
+                let cell = empty[Math.floor(Math.random() * empty.length)];
+                board[cell.r][cell.c] = Math.random() < 0.8 ? 2 : 4;
+            }
+        }
+
+        function slide(dir) {
             if(!isStarted || isOver) return;
-            score++;
-            scoreEl.innerText = score;
-            tipEl.innerHTML = "<span style='color:#00e676;'>🎉 成功消除一组合拍音符！</span>";
-            if(score >= 6) {
-                endMatch(true);
+            let moved = false;
+            if(dir === 'left' || dir === 'right') {
+                for(let r=0; r<3; r++) {
+                    let row = board[r].filter(v => v !== 0);
+                    if(dir === 'right') row.reverse();
+                    for(let i=0; i<row.length-1; i++) {
+                        if(row[i] === row[i+1]) {
+                            row[i] *= 2;
+                            row[i+1] = 0;
+                            if(row[i] > maxVal) maxVal = row[i];
+                        }
+                    }
+                    row = row.filter(v => v !== 0);
+                    while(row.length < 3) {
+                        if(dir === 'right') row.unshift(0);
+                        else row.push(0);
+                    }
+                    if(dir === 'right') row.reverse();
+                    if(JSON.stringify(board[r]) !== JSON.stringify(row)) moved = true;
+                    board[r] = row;
+                }
             } else {
-                renderTiles();
+                for(let c=0; c<3; c++) {
+                    let col = [board[0][c], board[1][c], board[2][c]].filter(v => v !== 0);
+                    if(dir === 'down') col.reverse();
+                    for(let i=0; i<col.length-1; i++) {
+                        if(col[i] === col[i+1]) {
+                            col[i] *= 2;
+                            col[i+1] = 0;
+                            if(col[i] > maxVal) maxVal = col[i];
+                        }
+                    }
+                    col = col.filter(v => v !== 0);
+                    while(col.length < 3) {
+                        if(dir === 'down') col.unshift(0);
+                        else col.push(0);
+                    }
+                    if(dir === 'down') col.reverse();
+                    for(let r=0; r<3; r++) board[r][c] = col[r];
+                    moved = true;
+                }
+            }
+
+            if(moved) {
+                addRandom();
+                renderBoard();
+                tipEl.innerHTML = "<span style='color:#00e676;'>🎉 合并成功！音符升级！</span>";
+                if(maxVal >= 2048) {
+                    setTimeout(() => endGame(true), 300);
+                }
             }
         }
 
-        function endMatch(success = false) {
-            isOver = true; clearInterval(timer);
-            if(success) {
-                tipEl.innerHTML = "<span style='color:#00e676; font-weight:bold;'>🎉 消除挑战大成功！通告完美拿下！</span>";
-            } else {
-                tipEl.innerHTML = "<span style='color:#ff5252; font-weight:bold;'>💧 时间耗尽，连线消除未达标！</span>";
-            }
+        function endGame(success) {
+            if(isOver) return;
+            isOver = true;
+            clearInterval(timer);
+            setTimeout(() => {
+                if(success) {
+                    alert("🎉 恭喜你成功合成 2048 音乐大奖！外务挑战大获全胜！");
+                } else {
+                    alert("💧 时间耗尽，未合成出 2048！");
+                }
+                window.location.reload();
+            }, 300);
         }
     </script></body></html>
     """
-  components.html(html_code, height=330)
+  components.html(html_code, height=360)
 
 
 def render_parkour_game():
@@ -752,25 +1073,24 @@ def render_parkour_game():
     .box { background: #1a0f30; border: 2px solid #ff2a75; border-radius: 14px; padding: 12px; width: 300px; text-align: center; position: relative; }
     .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.96); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 14px; }
     .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
-    .track { background: #211035; border: 2px solid #ab47bc; border-radius: 10px; height: 110px; position: relative; overflow: hidden; display: flex; align-items: flex-end; padding: 10px; }
+    .track { background: #211035; border: 2px solid #ab47bc; border-radius: 10px; height: 110px; position: relative; overflow: hidden; display: flex; align-items: flex-end; padding: 10px; margin: 6px 0; }
     .runner { font-size: 28px; position: absolute; left: 30px; bottom: 10px; transition: bottom 0.15s; }
-    .jump-btn { background: linear-gradient(135deg, #00e676, #00b0ff); color: #000; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; border-radius: 20px; cursor: pointer; margin-top: 10px; }
+    .jump-btn { background: linear-gradient(135deg, #00e676, #00b0ff); color: #000; border: none; padding: 12px 24px; font-size: 15px; font-weight: bold; border-radius: 20px; cursor: pointer; margin-top: 4px; }
     .jump-btn:active { transform: scale(0.92); }
     </style></head><body>
     <div class="box">
         <div id="startOverlay" class="start-overlay">
             <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">🏃 红毯冲刺：横版跳跃跑酷挑战</div>
-            <div style="color:#fff; font-size:11px; margin-bottom:10px; padding: 0 10px;">15秒内看准障碍物连续点击 <b>⬆️ 跃起跳过</b>（需成功跳过6次）！</div>
+            <div style="color:#fff; font-size:11px; margin-bottom:10px; padding: 0 10px;">15秒内连续点击 <b>⬆️ 跃起跳过障碍</b>（成功跳过6次系统自动判定胜利）！</div>
             <button class="start-btn" onclick="startGame()">▶️ 开始跑酷挑战</button>
         </div>
-        <div style="color: #ffeb3b; font-weight: bold; font-size: 13px;">🏃 颁奖典礼红毯·极限跳跃</div>
+        <div style="color: #ffeb3b; font-weight: bold; font-size: 13px;">🏃 颁奖红毯·横跳跨栏挑战</div>
         <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 3px;">✨ 成功跳过: <span id="pScore">0</span> / 6 | ⏳ <span id="pTime">15</span>s</div>
-        <div class="track" id="trackArea">
+        <div class="track">
             <div class="runner" id="runnerEl">🏃‍♂️</div>
-            <div id="obstacle" style="position: absolute; right: -20px; bottom: 10px; font-size: 24px;">🚧</div>
         </div>
         <button class="jump-btn" onclick="jumpAction()">⬆️ 跃起跳过障碍！</button>
-        <div id="p-tip" style="color: #fff; font-size: 11px; margin-top: 4px;">看准时机点击按钮跳过狗仔与路障！</div>
+        <div id="p-tip" style="color: #fff; font-size: 11px; margin-top: 4px;">点击按钮跳过狗仔与路障！</div>
     </div>
     <script>
         let score = 0, timeLeft = 15, isStarted = false, isOver = false, timer, isJumping = false;
@@ -781,7 +1101,7 @@ def render_parkour_game():
             isStarted = true;
             timer = setInterval(() => {
                 if(timeLeft > 0 && !isOver) { timeLeft--; timeEl.innerText = timeLeft; }
-                else if(!isOver) { endParkour(false); }
+                else if(!isOver) { endGame(false); }
             }, 1000);
         }
 
@@ -799,17 +1119,22 @@ def render_parkour_game():
             }, 350);
 
             if(score >= 6) {
-                endParkour(true);
+                endGame(true);
             }
         }
 
-        function endParkour(success = false) {
-            isOver = true; clearInterval(timer);
-            if(success) {
-                tipEl.innerHTML = "<span style='color:#00e676; font-weight:bold;'>🎉 红毯突围成功！聚光灯全聚焦于你！</span>";
-            } else {
-                tipEl.innerHTML = "<span style='color:#ff5252; font-weight:bold;'>💧 时间耗尽，红毯表现狼狈错失奖项！</span>";
-            }
+        function endGame(success) {
+            if(isOver) return;
+            isOver = true;
+            clearInterval(timer);
+            setTimeout(() => {
+                if(success) {
+                    alert("🎉 红毯突围成功！跑酷挑战大获全胜！");
+                } else {
+                    alert("💧 时间耗尽，红毯跑酷未达标！");
+                }
+                window.location.reload();
+            }, 300);
         }
     </script></body></html>
     """
@@ -905,13 +1230,13 @@ elif not st.session_state.passed_audition:
   )
 
   if st.session_state.audition_track == "vocal":
-    render_audition_vocal_game()
+    render_piano_tiles_game()
   elif st.session_state.audition_track == "dance":
-    render_audition_dance_game()
+    render_dodge_game()
   elif st.session_state.audition_track == "rap":
-    render_audition_rap_game()
+    render_shout_game()
   else:
-    render_audition_variety_game()
+    render_outfit_game()
 
   st.markdown("---")
   if st.button(
@@ -978,7 +1303,7 @@ else:
         st.session_state.stage += 1
         st.rerun()
 
-  # 特殊高张力外务危机 1：🍉 Stage 15 顶奢综艺【合成大西瓜】挑战
+  # 特殊高张力外务危机 1：🍉 Stage 15 合成大西瓜挑战
   elif curr_stage == 15:
     st.subheader(
         "📍 Stage 15：【高风险外务】国民顶奢黄金档综艺独家通告邀请"
@@ -986,55 +1311,63 @@ else:
     st.markdown(
         """
         <div class="event-card">
-            <b>🍉 【合成大西瓜外务说明】</b><br>
-            你迎来了国民级黄金档综艺的唯一宝贵通告机会！<br>
-            请在下方演播室中进行<b>合成大西瓜</b>挑战：通过点击投放徽章，让同等级徽章碰撞合成，<b>只要成功合成出 Lv.5 终极大西瓜，系统将自动为你判定胜利并通关！</b>
+            <b>🍉 【合成大西瓜外务挑战】</b><br>
+            你迎来了国民级黄金档综艺的唯一宝贵通告机会！请在下方演播室中进行合成大西瓜挑战，达到 Lv.5 自动通关！
         </div>
         """,
         unsafe_allow_html=True,
     )
     render_watermelon_game()
 
-  # 特殊高张力外务危机 2：🧩 Stage 20 大型音乐节连线消除挑战
+  # 特殊高张力外务危机 2：🎵 Stage 20 音乐 2048 消除大作战
   elif curr_stage == 20:
     st.subheader("📍 Stage 20：【高风险外务】全亚洲跨年音乐祭核心表演位")
     st.markdown(
         """
         <div class="event-card">
-            <b>🧩 【特殊危机挑战说明】</b><br>
-            全亚洲跨年音乐祭总导演临时点将，要求你在直播前完成极高难度的盲验考核！
+            <b>🎵 【音乐 2048 消除挑战】</b><br>
+            总导演临时点将，要求你在直播前完成 2048 音乐合成考核，合成出 2048 即自动通关！
         </div>
         """,
         unsafe_allow_html=True,
     )
-    render_match_game()
+    render_2048_game()
 
-  # 特殊高张力外务危机 3：🏃 Stage 24 日本金唱片大赏红毯跳跃跑酷挑战
+  # 特殊高张力外务危机 3：🏃 Stage 24 红毯横跳跨栏跑酷
   elif curr_stage == 24:
     st.subheader("📍 Stage 24：【高风险外务】日本金唱片大赏红毯极限突围")
     st.markdown(
         """
         <div class="event-card">
-            <b>🏃 【特殊危机挑战说明】</b><br>
-            金唱片大赏红毯现场突发狗仔围堵与直播事故！你必须在镜头前完成极限红毯跳跃突围！
+            <b>🏃 【红毯横跳跨栏挑战】</b><br>
+            红毯现场突发状况！请在下方完成横跳跨栏跑酷，成功跳过6个障碍即自动通关！
         </div>
         """,
         unsafe_allow_html=True,
     )
     render_parkour_game()
 
-  # 📖 9大日常修炼游戏与常规剧情
+  # 📖 完整 9 大日常互动游戏与常规剧情
   elif curr_stage < 30:
     st.subheader(f"📍 Stage {curr_stage} / 30")
 
-    if curr_stage in [1, 6, 11]:
-      render_audition_dance_game()
-    elif curr_stage in [2, 7, 12]:
-      render_audition_vocal_game()
-    elif curr_stage in [3, 8, 14]:
-      render_audition_rap_game()
-    elif curr_stage in [5, 10, 22]:
-      render_audition_variety_game()
+    # 完整映射原本的 9 大日常游戏
+    if curr_stage in [1, 10]:
+      render_piano_tiles_game()
+    elif curr_stage in [2, 11]:
+      render_shout_game()
+    elif curr_stage in [3, 12]:
+      render_dodge_game()
+    elif curr_stage in [5, 14]:
+      render_dig_game()
+    elif curr_stage in [6, 17]:
+      render_whack_mole_game()
+    elif curr_stage in [7, 18]:
+      render_snapshot_game()
+    elif curr_stage in [8, 21]:
+      render_wink_game()
+    elif curr_stage in [9, 22]:
+      render_outfit_game()
 
     s_db = {
         1: {
