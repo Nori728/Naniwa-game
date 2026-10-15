@@ -189,7 +189,7 @@ def get_rand_member():
 
 
 # -------------------------------------------------------------------
-# 甄选全新修改游戏（舞蹈：箭头高亮闪烁 / 特技：左右移动摆动堆松饼）
+# 甄选专属互动小游戏（Vocal / 舞蹈 / Rap / 特技堆高）
 # -------------------------------------------------------------------
 
 
@@ -240,7 +240,8 @@ def render_audition_vocal_game():
         function hitVocal() {
             if(!isStarted || isOver) return;
             if(cursorX >= 115 && cursorX <= 185) {
-                score++; scoreEl.innerText = score;
+                score++;
+                scoreEl.innerText = score;
                 tipEl.innerHTML = "<span style='color:#00e676;'>🎉 完美高音震撼全场！</span>";
                 if(score >= 4) endAudition(true);
             } else {
@@ -259,80 +260,77 @@ def render_audition_vocal_game():
 
 
 def render_audition_dance_game():
-  # 改版：4个霓虹箭头，随机高亮发光闪烁，点击发光的那个箭头才得分
   html_code = """
     <!DOCTYPE html><html><head><style>
     body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; color: #fff; }
     .box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 12px; width: 300px; text-align: center; position: relative; }
     .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.96); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
     .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
-    .arrow-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 12px 0; }
-    .arrow-node { background: #211035; border: 2px solid #553377; border-radius: 12px; padding: 12px 0; font-size: 26px; font-weight: bold; cursor: pointer; transition: all 0.2s; color: #666; }
-    .arrow-node.active { background: linear-gradient(135deg, #00e676, #00b0ff); color: #fff; border: 2px solid #fff; box-shadow: 0 0 20px #00e676, 0 0 30px #00b0ff; transform: scale(1.05); }
-    .arrow-node:active { transform: scale(0.92); }
+    .arrow-display { font-size: 36px; margin: 10px 0; background: #211035; border: 2px solid #ab47bc; border-radius: 10px; padding: 8px; }
+    .dir-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 6px; }
+    .dir-btn { background: linear-gradient(135deg, #ff4081, #7b1fa2); color: white; border: none; padding: 10px 0; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; }
+    .dir-btn:active { background: #00e676; transform: scale(0.92); }
     </style></head><body>
     <div class="box">
         <div id="startOverlay" class="start-overlay">
-            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">💃 Dance 甄选：霓虹箭头高亮卡点</div>
-            <div style="color:#fff; font-size:11px; margin-bottom:10px;">看准哪个箭头发光高亮，迅速按下发光的箭头！</div>
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">💃 甄选项目：Dance 方向键闪烁卡点</div>
+            <div style="color:#fff; font-size:11px; margin-bottom:10px;">12秒内精准点击对应的方向键（需达8次）！</div>
             <button class="start-btn" onclick="startGame()">▶️ 开始 Dance 考核</button>
         </div>
-        <div style="color: #ffeb3b; font-weight: bold; font-size: 13px;">💃 Dance 舞步：霓虹高亮卡点</div>
-        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 3px;">✨ 精准击中: <span id="dScore">0</span> / 7 | ⏳ <span id="dTime">12</span>s</div>
-        
-        <div class="arrow-container">
-            <div class="arrow-node" id="btn-up" onclick="pressArrow('up')">⬆️ 上</div>
-            <div class="arrow-node" id="btn-down" onclick="pressArrow('down')">⬇️ 下</div>
-            <div class="arrow-node" id="btn-left" onclick="pressArrow('left')">⬅️ 左</div>
-            <div class="arrow-node" id="btn-right" onclick="pressArrow('right')">➡️ 右</div>
+        <div style="color: #ffeb3b; font-weight: bold; font-size: 13px;">💃 Dance 甄选：方向键卡点</div>
+        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 3px;">✨ 正确卡点: <span id="dScore">0</span> / 8 | ⏳ <span id="dTime">12</span>s</div>
+        <div class="arrow-display" id="targetArrow">⬆️</div>
+        <div class="dir-grid">
+            <button class="dir-btn" onclick="pressArrow('⬆️')">⬆️ 上</button>
+            <button class="dir-btn" onclick="pressArrow('⬇️')">⬇️ 下</button>
+            <button class="dir-btn" onclick="pressArrow('⬅️')">⬅️ 左</button>
+            <button class="dir-btn" onclick="pressArrow('➡️')">➡️ 右</button>
         </div>
-        
-        <div id="d-tip" style="color: #fff; font-size: 11px;">看准亮起来的箭头迅速点击！</div>
+        <div id="d-tip" style="color: #fff; font-size: 11px; margin-top: 6px;">看准当前箭头按下对应方向！</div>
     </div>
     <script>
-        let score = 0, timeLeft = 12, isStarted = false, isOver = false, timer, currentActive = '';
-        const dirs = ['up', 'down', 'left', 'right'];
-        const scoreEl = document.getElementById('dScore'), timeEl = document.getElementById('dTime'), tipEl = document.getElementById('d-tip');
+        let score = 0, timeLeft = 12, isStarted = false, isOver = false, timer;
+        const arrows = ['⬆️', '⬇️', '⬅️', '➡️'];
+        let currentArrow = '⬆️';
+        const targetEl = document.getElementById('targetArrow'), scoreEl = document.getElementById('dScore'), timeEl = document.getElementById('dTime'), tipEl = document.getElementById('d-tip');
 
         function startGame() {
             document.getElementById('startOverlay').style.display = 'none';
             isStarted = true;
-            nextHighlight();
+            nextArrow();
             timer = setInterval(() => {
                 if(timeLeft > 0 && !isOver) { timeLeft--; timeEl.innerText = timeLeft; }
                 else if(!isOver) { endDance(); }
             }, 1000);
         }
 
-        function nextHighlight() {
+        function nextArrow() {
             if(isOver) return;
-            dirs.forEach(d => document.getElementById('btn-' + d).classList.remove('active'));
-            currentActive = dirs[Math.floor(Math.random() * dirs.length)];
-            document.getElementById('btn-' + currentActive).classList.add('active');
+            currentArrow = arrows[Math.floor(Math.random() * arrows.length)];
+            targetEl.innerText = currentArrow;
         }
 
         function pressArrow(dir) {
             if(!isStarted || isOver) return;
-            if(dir === currentActive) {
+            if(dir === currentArrow) {
                 score++;
                 scoreEl.innerText = score;
-                tipEl.innerHTML = "<span style='color:#00e676;'>🎉 完美踩中发光节点！</span>";
-                if(score >= 7) endDance(true);
-                else nextHighlight();
+                tipEl.innerHTML = "<span style='color:#00e676;'>🎉 完美卡点！动作标准！</span>";
+                if(score >= 8) endDance(true);
+                else nextArrow();
             } else {
-                tipEl.innerHTML = "<span style='color:#ff5252;'>💧 没按中发光的箭头！拍子错了！</span>";
+                tipEl.innerHTML = "<span style='color:#ff5252;'>💧 方向踩错，拍子乱了！</span>";
             }
         }
 
         function endDance(success = false) {
             isOver = true; clearInterval(timer);
-            dirs.forEach(d => document.getElementById('btn-' + d).classList.remove('active'));
-            if(success || score >= 6) { tipEl.innerHTML = "<span style='color:#00e676;'>🎉 霓虹舞步考核大成功！</span>"; }
-            else { tipEl.innerHTML = "<span style='color:#ff5252;'>💧 节奏跟不上发光节点！未达标！</span>"; }
+            if(success || score >= 7) { tipEl.innerHTML = "<span style='color:#00e676;'>🎉 舞步考核大成功！</span>"; }
+            else { tipEl.innerHTML = "<span style='color:#ff5252;'>💧 考核未达标，动作稍显生疏！</span>"; }
         }
     </script></body></html>
     """
-  components.html(html_code, height=315)
+  components.html(html_code, height=310)
 
 
 def render_audition_rap_game():
@@ -394,7 +392,8 @@ def render_audition_rap_game():
         function pressColor(cName) {
             if(!isStarted || isOver) return;
             if(cName === currentColor.name) {
-                score++; scoreEl.innerText = score;
+                score++;
+                scoreEl.innerText = score;
                 tipEl.innerHTML = "<span style='color:#00e676;'>🎉 节奏完美契合！</span>";
                 if(score >= 7) endRap(true);
                 else nextColor();
@@ -414,91 +413,80 @@ def render_audition_rap_game():
 
 
 def render_audition_variety_game():
-  # 改版：动态左右平滑摆动松饼塔，看准时机按下落下叠高松饼
   html_code = """
     <!DOCTYPE html><html><head><style>
     body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; color: #fff; }
     .box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 12px; width: 300px; text-align: center; position: relative; }
     .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.96); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
     .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
-    .stage-area { background: #211035; border: 2px solid #ab47bc; border-radius: 10px; height: 130px; margin: 10px 0; position: relative; overflow: hidden; }
-    .moving-pancake { position: absolute; top: 8px; font-size: 26px; height: 30px; transition: left 0.02s linear; }
-    .plate { position: absolute; bottom: 8px; left: 110px; width: 80px; height: 12px; background: #e0e0e0; border-radius: 6px; border: 2px solid #bdbdbd; text-align: center; font-size: 9px; color: #333; line-height: 12px; font-weight: bold; }
-    .pancake-stack { position: absolute; bottom: 22px; width: 100%; display: flex; flex-direction: column-reverse; align-items: center; }
-    .pancake-item { font-size: 22px; line-height: 18px; height: 18px; }
-    .drop-btn { background: linear-gradient(135deg, #ff2a75, #ab47bc); color: white; border: none; padding: 10px 24px; font-size: 15px; font-weight: bold; border-radius: 20px; cursor: pointer; margin-top: 5px; }
+    .stack-area { background: #211035; border: 2px solid #ab47bc; border-radius: 8px; height: 110px; margin: 10px 0; position: relative; overflow: hidden; display: flex; flex-direction: column-reverse; align-items: center; padding-bottom: 5px; }
+    .stack-block { background: linear-gradient(135deg, #ff4081, #ab47bc); color: white; font-weight: bold; border-radius: 6px; height: 20px; font-size: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 2px; }
+    .drop-btn { background: linear-gradient(135deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 20px; font-size: 15px; font-weight: bold; border-radius: 20px; cursor: pointer; margin-top: 5px; }
     .drop-btn:active { transform: scale(0.92); }
     </style></head><body>
     <div class="box">
         <div id="startOverlay" class="start-overlay">
-            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">🤹 特技杂耍：左右平移堆星光松饼塔</div>
-            <div style="color:#fff; font-size:11px; margin-bottom:10px;">松饼会在顶部左右摆动，看准正上方时机落下（成功叠高4层）！</div>
-            <button class="start-btn" onclick="startGame()">▶️ 开始堆松饼考核</button>
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">🤹 甄选项目：特技杂耍物品堆高挑战</div>
+            <div style="color:#fff; font-size:11px; margin-bottom:10px;">看准时机叠高物品（需达5层不倒）！</div>
+            <button class="start-btn" onclick="startGame()">▶️ 开始杂耍考核</button>
         </div>
-        <div style="color: #ffeb3b; font-weight: bold; font-size: 13px;">🤹 特技表演：偶像松饼叠叠乐</div>
-        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 3px;">🥞 成功叠高: <span id="pScore">0</span> / 4 | ⏳ <span id="pTime">15</span>s</div>
-        
-        <div class="stage-area">
-            <div class="moving-pancake" id="movingPancake">🥞</div>
-            <div class="pancake-stack" id="pancakeStack"></div>
-            <div class="plate">🍽️ 托盘</div>
+        <div style="color: #ffeb3b; font-weight: bold; font-size: 13px;">🤹 特技杂耍：稳稳叠高塔</div>
+        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 3px;">✨ 堆高层数: <span id="stackScore">0</span> / 5 | ⏳ <span id="stackTime">12</span>s</div>
+        <div class="stack-area" id="stackArea">
+            <div style="color: #8e8e93; font-size: 11px; margin-bottom: 35px;">👇 物品堆叠区</div>
         </div>
-
-        <button class="drop-btn" onclick="dropPancake()">🥞 落下松饼！</button>
-        <div id="p-tip" style="color: #fff; font-size: 11px; margin-top: 5px;">看准松饼平移到托盘中央的瞬间按下！</div>
+        <button class="drop-btn" onclick="dropItem()">📦 稳稳放下物品！</button>
+        <div id="stack-tip" style="color: #fff; font-size: 11px; margin-top: 5px;">看准时机叠放，不要倒塌！</div>
     </div>
     <script>
-        let score = 0, timeLeft = 15, isStarted = false, isOver = false, posX = 0, dir = 3, timer, anim;
-        const cakeEl = document.getElementById('movingPancake'), stackEl = document.getElementById('pancakeStack'), scoreEl = document.getElementById('pScore'), timeEl = document.getElementById('pTime'), tipEl = document.getElementById('p-tip');
+        let score = 0, timeLeft = 12, isStarted = false, isOver = false, timer;
+        const areaEl = document.getElementById('stackArea'), scoreEl = document.getElementById('stackScore'), timeEl = document.getElementById('stackTime'), tipEl = document.getElementById('stack-tip');
 
         function startGame() {
             document.getElementById('startOverlay').style.display = 'none';
             isStarted = true;
             timer = setInterval(() => {
                 if(timeLeft > 0 && !isOver) { timeLeft--; timeEl.innerText = timeLeft; }
-                else if(!isOver) { endPancake(); }
+                else if(!isOver) { endStack(); }
             }, 1000);
-            anim = setInterval(() => {
-                if(isOver || !isStarted) return;
-                posX += dir;
-                if(posX <= 10 || posX >= 260) dir *= -1;
-                cakeEl.style.left = posX + 'px';
-            }, 20);
         }
 
-        function dropPancake() {
+        function dropItem() {
             if(!isStarted || isOver) return;
-            // 判定区：100px - 160px 为稳稳落入托盘范围
-            if(posX >= 95 && posX <= 165) {
-                score++;
-                scoreEl.innerText = score;
-                let item = document.createElement('div');
-                item.className = 'pancake-item';
-                item.innerText = '🥞';
-                stackEl.appendChild(item);
-                tipEl.innerHTML = "<span style='color:#00e676;'>🎉 完美的平衡！松饼稳稳落下！</span>";
-                if(score >= 4) endPancake(true);
-            } else {
-                tipEl.innerHTML = "<span style='color:#ff5252;'>💧 偏得太远！松饼滑落滑塌了！</span>";
+            score++;
+            scoreEl.innerText = score;
+            let block = document.createElement('div');
+            block.className = 'stack-block';
+            let widths = ['140px', '120px', '100px', '90px', '80px'];
+            block.style.width = widths[Math.min(score-1, 4)];
+            block.innerText = '📦 杂耍物 ' + score;
+            areaEl.appendChild(block);
+            tipEl.innerHTML = "<span style='color:#00e676;'>🎉 成功叠起一层！保持平衡！</span>";
+            if(score >= 5) {
+                endStack(true);
             }
         }
 
-        function endPancake(success = false) {
-            isOver = true; clearInterval(timer); clearInterval(anim);
-            if(success || score >= 3) { tipEl.innerHTML = "<span style='color:#00e676;'>🎉 杂耍特技堆松饼通关！完美定格！</span>"; }
-            else { tipEl.innerHTML = "<span style='color:#ff5252;'>💧 没叠够层数，松饼塔倒了！</span>"; }
+        function endStack(success = false) {
+            isOver = true; clearInterval(timer);
+            if(success || score >= 4) {
+                tipEl.innerHTML = "<span style='color:#00e676;'>🎉 杂耍特技完美通关！</span>";
+            } else {
+                tipEl.innerHTML = "<span style='color:#ff5252;'>💧 堆叠高度未达标！</span>";
+            }
         }
     </script></body></html>
     """
-  components.html(html_code, height=330)
+  components.html(html_code, height=325)
 
 
 # -------------------------------------------------------------------
-# 三大特殊突发外务小游戏组件（合成大西瓜、连线消除、横版跳跃跑酷）
+# 三大全新特殊突发外务小游戏组件（合成大西瓜、连线消除、横版跳跃跑酷）
 # -------------------------------------------------------------------
 
 
 def render_watermelon_game():
+  # 合成大西瓜简化网页版（通过点击发射不断合成更大的偶像徽章）
   html_code = """
     <!DOCTYPE html><html><head><style>
     body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; color: #fff; }
@@ -575,6 +563,7 @@ def render_watermelon_game():
 
 
 def render_match_game():
+  # 三消/连线消除挑战
   html_code = """
     <!DOCTYPE html><html><head><style>
     body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; color: #fff; }
@@ -649,6 +638,7 @@ def render_match_game():
 
 
 def render_parkour_game():
+  # 横版跳跃跑酷挑战
   html_code = """
     <!DOCTYPE html><html><head><style>
     body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; color: #fff; }
@@ -765,10 +755,10 @@ if not st.session_state.game_started:
   audition_selection = st.radio(
       "请选择你最擅长、并在甄选大舞台上展示的项目：",
       [
-          "1. 🎤 Vocal（声乐高音长音抓准）",
-          "2. 💃 Dance（霓虹箭头高亮卡点）",
-          "3. 🔥 Rap（灯光颜色闪烁匹配）",
-          "4. 🤹 特技杂耍（平移堆高星光松饼）",
+          "1. 🎤 Vocal（声乐高音长音挑战）",
+          "2. 💃 Dance（方向键闪烁卡点挑战）",
+          "3. 🔥 Rap（灯光颜色闪烁匹配挑战）",
+          "4. 🤹 特技杂耍（物品稳稳叠高塔挑战）",
       ],
   )
 
@@ -837,7 +827,7 @@ elif not st.session_state.passed_audition:
     st.rerun()
 
 # -------------------------------------------------------------------
-# 游戏主流程
+# 游戏主流程（Jr 时期、常规剧情、黑暗面波折与三大特殊外务危机挑战）
 # -------------------------------------------------------------------
 else:
   curr_stage = st.session_state.stage
@@ -952,7 +942,9 @@ else:
       st.session_state.stage = 13
       st.rerun()
 
-  # 🍉 Stage 15 顶奢综艺合成大西瓜挑战
+  # -------------------------------------------------------------------
+  # 特殊高张力外务危机挑战 1：🍉 Stage 15 顶奢综艺合成大西瓜挑战
+  # -------------------------------------------------------------------
   elif curr_stage == 15:
     st.subheader(
         "📍 Stage 15：【高风险外务】国民顶奢黄金档综艺独家通告邀请"
@@ -1006,7 +998,9 @@ else:
         st.session_state.stage = 16
         st.rerun()
 
-  # 🧩 Stage 20 大型音乐节连线消除挑战
+  # -------------------------------------------------------------------
+  # 特殊高张力外务危机挑战 2：🧩 Stage 20 大型音乐节连线消除挑战
+  # -------------------------------------------------------------------
   elif curr_stage == 20:
     st.subheader("📍 Stage 20：【高风险外务】全亚洲跨年音乐祭核心表演位")
     st.markdown(
@@ -1056,7 +1050,9 @@ else:
         st.session_state.stage = 21
         st.rerun()
 
-  # 🏃 Stage 24 日本金唱片大赏红毯跳跃跑酷挑战
+  # -------------------------------------------------------------------
+  # 特殊高张力外务危机挑战 3：🏃 Stage 24 日本金唱片大赏红毯跳跃跑酷挑战
+  # -------------------------------------------------------------------
   elif curr_stage == 24:
     st.subheader("📍 Stage 24：【高风险外务】日本金唱片大赏红毯极限突围")
     st.markdown(
