@@ -1035,7 +1035,7 @@ def render_watermelon_game():
         <div id="w-tip" style="color: #fff; font-size: 11px; margin-top: 5px;">点击箱子内部投放萌物！</div>
     </div>
     <script>
-        let timeLeft = 15, isStarted = false, isOver = false, timer, balls = [];
+        let timeLeft = 40, isStarted = false, isOver = false, timer, balls = [];
         const boardEl = document.getElementById('gameBoard'), timeEl = document.getElementById('wTime'), lvlEl = document.getElementById('wLevel'), tipEl = document.getElementById('w-tip'), guideLine = document.getElementById('guideLine'), nextPreview = document.getElementById('nextPreview');
         
         const items = [
@@ -1398,7 +1398,7 @@ if not st.session_state.game_started:
   )
 
   name_input = st.text_input(
-      "✏️ 你的练习生名字 / 昵称：", placeholder="例如：酱酱 / 小夏"
+      "✏️ 你的练习生名字 / 昵称：", placeholder="例如：小夏"
   )
   selected_group = st.selectbox(
       "🎶 选择你想并肩作战的出道组合（按年龄排序）：", list(IDOL_GROUPS.keys())
