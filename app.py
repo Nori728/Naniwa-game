@@ -1020,7 +1020,7 @@ def render_watermelon_game():
     </head><body>
     <div class="box">
         <div id="startOverlay" class="start-overlay">
-            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:6px; font-size:13px;">🏆 偶像闪亮奖杯</div>
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:6px; font-size:13px;">🏆 偶像物理大西瓜</div>
             <div style="color:#fff; font-size:11px; margin-bottom:10px;">点击箱子上方投掷萌物！<b>真实重力碰撞与挤压</b>，合成出 <b>🏆 闪亮奖杯</b> 胜利！</div>
             <button class="start-btn" onclick="startGame()">▶️ 开始真实物理挑战</button>
         </div>
@@ -1035,7 +1035,6 @@ def render_watermelon_game():
         let timeLeft = 40, isStarted = false, isOver = false, timer;
         const timeEl = document.getElementById('wTime'), lvlEl = document.getElementById('wLevel'), tipEl = document.getElementById('w-tip'), nextPreview = document.getElementById('nextPreview');
         
-        // 极致简化的萌物配置 (半径、图标、分值)
         const ITEMS = [
             { radius: 14, emoji: '🍙', name: '🍙' },
             { radius: 20, emoji: '🧢', name: '🧢' },
@@ -1053,7 +1052,6 @@ def render_watermelon_game():
             document.getElementById('startOverlay').style.display = 'none';
             isStarted = true; nextIdx = getRandomSpawnIdx(); updatePreview();
             
-            // 初始化 Matter.js 物理世界
             const { Engine, Render, Runner, Bodies, Composite, Events } = Matter;
 
             engine = Engine.create();
@@ -1072,14 +1070,12 @@ def render_watermelon_game():
             runner = Runner.create();
             Runner.run(runner, engine);
 
-            // 创建箱子边界 (底、左、右)
             const wallOpts = { isStatic: true, render: { fillStyle: '#31115c' } };
             const ground = Bodies.rectangle(width / 2, height + 15, width, 40, wallOpts);
             const leftWall = Bodies.rectangle(-15, height / 2, 40, height, wallOpts);
             const rightWall = Bodies.rectangle(width + 15, height / 2, 40, height, wallOpts);
             Composite.add(world, [ground, leftWall, rightWall]);
 
-            // 监听碰撞合成事件
             Events.on(engine, 'collisionStart', (event) => {
                 let pairs = event.pairs;
                 for (let i = 0; i < pairs.length; i++) {
@@ -1108,7 +1104,6 @@ def render_watermelon_game():
                 }
             });
 
-            // 自定义渲染器：在每个物理圆上绘制 Emoji 表情
             Events.on(render, 'afterRender', () => {
                 let context = render.context;
                 let bodies = Composite.allBodies(world);
@@ -1163,7 +1158,7 @@ def render_watermelon_game():
         }
     </script></body></html>
     """
-  # 使用 st.session_state.stage 彻底解决作用域 NameError 问题
+  # 使用 st.session_state.stage 作为唯一的安全 key
   res = render_safe_game_component(
       html_code,
       height=340,
@@ -1173,6 +1168,7 @@ def render_watermelon_game():
     apply_game_result(True)
   elif res == "fail":
     apply_game_result(False)
+
 
 def render_2048_game():
   html_code = """
@@ -1439,7 +1435,7 @@ if not st.session_state.game_started:
   )
 
   name_input = st.text_input(
-      "✏️ 你的练习生名字 / 昵称：", placeholder="例如：小夏"
+      "✏️ 你的练习生名字 / 昵称：", placeholder="例如：酱酱 / 小夏"
   )
   selected_group = st.selectbox(
       "🎶 选择你想并肩作战的出道组合（按年龄排序）：", list(IDOL_GROUPS.keys())
