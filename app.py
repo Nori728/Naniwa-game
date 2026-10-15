@@ -947,7 +947,7 @@ def render_watermelon_game():
         <div id="w-tip" style="color: #fff; font-size: 11px; margin-top: 5px;">跟随黄线，点击投放萌物！</div>
     </div>
     <script>
-        let timeLeft = 40, isStarted = false, isOver = false, timer, balls = [];
+        let timeLeft = 15, isStarted = false, isOver = false, timer, balls = [];
         const boardEl = document.getElementById('gameBoard'), timeEl = document.getElementById('wTime'), lvlEl = document.getElementById('wLevel'), tipEl = document.getElementById('w-tip'), guideLine = document.getElementById('guideLine'), nextPreview = document.getElementById('nextPreview');
         
         const items = [
