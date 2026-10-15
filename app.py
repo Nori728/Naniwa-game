@@ -178,6 +178,26 @@ def get_rand_member():
   return random.choice(members)
 
 
+def apply_game_result(success):
+  if success:
+    st.session_state.dance += 15
+    st.session_state.vocal += 15
+    st.session_state.fans += 500
+    st.success("🎉 游戏挑战成功！实力分与粉丝数大幅提升！")
+  else:
+    st.session_state.dance = max(0, st.session_state.dance - 8)
+    st.session_state.vocal = max(0, st.session_state.vocal - 8)
+    st.session_state.rap = max(0, st.session_state.rap - 5)
+    st.session_state.variety = max(0, st.session_state.variety - 5)
+    st.session_state.stress += 15
+    st.error(
+        "❌ 游戏失败！系统已自动扣除全项实力分，心智受损！请继续努力争取CD出道机会！"
+    )
+  st.session_state.stage += 1
+  time.sleep(1.5)
+  st.rerun()
+
+
 # -------------------------------------------------------------------
 # 初次甄选考核组件
 # -------------------------------------------------------------------
@@ -237,241 +257,33 @@ def render_audition_vocal_game():
             if(isOver) return; isOver = true; clearInterval(timer); clearInterval(animator);
             if(success) {
                 tipEl.innerHTML = "<span style='color:#00e676;'>🎉 考核大成功！</span>";
+                setTimeout(() => window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'success'}, '*'), 1000);
             } else {
-                tipEl.innerHTML = "<span style='color:#ff5252;'>❌ 游戏失败！实力分与心智受损，请继续努力争取CD出道机会！</span>";
+                tipEl.innerHTML = "<span style='color:#ff5252;'>❌ 游戏失败！系统自动扣除实力分与心智！</span>";
+                setTimeout(() => window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'fail'}, '*'), 1200);
             }
         }
     </script></body></html>
     """
-  components.html(html_code, height=275)
-
-
-def render_audition_dance_game():
-  html_code = """
-    <!DOCTYPE html><html><head><style>
-    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; color: #fff; }
-    .box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 12px; width: 300px; text-align: center; position: relative; }
-    .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.96); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
-    .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
-    .arrow-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 12px 0; }
-    .arrow-node { background: #211035; border: 2px solid #553377; border-radius: 12px; padding: 12px 0; font-size: 26px; font-weight: bold; cursor: pointer; color: #666; }
-    .arrow-node.active { background: linear-gradient(135deg, #00e676, #00b0ff); color: #fff; border: 2px solid #fff; box-shadow: 0 0 20px #00e676; transform: scale(1.06); }
-    </style></head><body>
-    <div class="box">
-        <div id="startOverlay" class="start-overlay">
-            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">💃 甄选项目：Dance 卡点考核</div>
-            <div style="color:#fff; font-size:11px; margin-bottom:10px;">看准哪个箭头发光高亮，迅速按下对应的发光箭头！</div>
-            <button class="start-btn" onclick="startGame()">▶️ 开始考核</button>
-        </div>
-        <div style="color: #ffeb3b; font-weight: bold; font-size: 13px;">💃 霓虹卡点考核</div>
-        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 3px;">✨ 精准击中: <span id="dScore">0</span> / 7 | ⏳ <span id="dTime">12</span>s</div>
-        <div class="arrow-container">
-            <div class="arrow-node" id="btn-up" onclick="pressArrow('up')">⬆️ 上</div>
-            <div class="arrow-node" id="btn-down" onclick="pressArrow('down')">⬇️ 下</div>
-            <div class="arrow-node" id="btn-left" onclick="pressArrow('left')">⬅️ 左</div>
-            <div class="arrow-node" id="btn-right" onclick="pressArrow('right')">➡️ 右</div>
-        </div>
-        <div id="d-tip" style="color: #fff; font-size: 11px;">看准发光箭头迅速点击！</div>
-    </div>
-    <script>
-        let score = 0, timeLeft = 12, isStarted = false, isOver = false, timer, currentActive = '';
-        const dirs = ['up', 'down', 'left', 'right'];
-        const scoreEl = document.getElementById('dScore'), timeEl = document.getElementById('dTime'), tipEl = document.getElementById('d-tip');
-
-        function startGame() {
-            document.getElementById('startOverlay').style.display = 'none';
-            isStarted = true; nextHighlight();
-            timer = setInterval(() => {
-                if(timeLeft > 0 && !isOver) { timeLeft--; timeEl.innerText = timeLeft; }
-                else if(!isOver) { endDance(false); }
-            }, 1000);
-        }
-
-        function nextHighlight() {
-            if(isOver) return;
-            dirs.forEach(d => document.getElementById('btn-' + d).classList.remove('active'));
-            currentActive = dirs[Math.floor(Math.random() * dirs.length)];
-            document.getElementById('btn-' + currentActive).classList.add('active');
-        }
-
-        function pressArrow(dir) {
-            if(!isStarted || isOver) return;
-            if(dir === currentActive) {
-                score++; scoreEl.innerText = score;
-                tipEl.innerHTML = "<span style='color:#00e676;'>🎉 完美踩中发光节点！</span>";
-                if(score >= 7) endDance(true); else nextHighlight();
-            } else { tipEl.innerHTML = "<span style='color:#ff5252;'>💧 没按中发光的箭头！</span>"; }
-        }
-
-        function endDance(success) {
-            if(isOver) return; isOver = true; clearInterval(timer);
-            dirs.forEach(d => document.getElementById('btn-' + d).classList.remove('active'));
-            if(success) {
-                tipEl.innerHTML = "<span style='color:#00e676;'>🎉 考核大成功！</span>";
-            } else {
-                tipEl.innerHTML = "<span style='color:#ff5252;'>❌ 游戏失败！实力分与心智受损，请继续努力争取CD出道机会！</span>";
-            }
-        }
-    </script></body></html>
-    """
-  components.html(html_code, height=315)
-
-
-def render_audition_rap_game():
-  html_code = """
-    <!DOCTYPE html><html><head><style>
-    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; color: #fff; }
-    .box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 12px; width: 300px; text-align: center; position: relative; }
-    .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.96); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
-    .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
-    .light-box { font-size: 40px; margin: 10px 0; background: #211035; border: 2px solid #ab47bc; border-radius: 10px; padding: 6px; }
-    .color-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 6px; }
-    .c-btn { border: none; padding: 10px 0; font-size: 14px; font-weight: bold; border-radius: 8px; cursor: pointer; color: #fff; }
-    </style></head><body>
-    <div class="box">
-        <div id="startOverlay" class="start-overlay">
-            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">🔥 甄选项目：Rap 色彩考核</div>
-            <div style="color:#fff; font-size:11px; margin-bottom:10px;">根据闪烁灯光颜色点击对应按钮（需达7次）！</div>
-            <button class="start-btn" onclick="startGame()">▶️ 开始考核</button>
-        </div>
-        <div style="color: #ffeb3b; font-weight: bold; font-size: 13px;">🔥 节奏色彩考核</div>
-        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 3px;">✨ 匹配成功: <span id="rScore">0</span> / 7 | ⏳ <span id="rTime">12</span>s</div>
-        <div class="light-box" id="targetLight">🔴</div>
-        <div class="color-grid">
-            <button class="c-btn" style="background: #e53935;" onclick="pressColor('red')">🔴 红色</button>
-            <button class="c-btn" style="background: #fbc02d; color:#000;" onclick="pressColor('yellow')">🟡 黄色</button>
-            <button class="c-btn" style="background: #1e88e5;" onclick="pressColor('blue')">🔵 蓝色</button>
-            <button class="c-btn" style="background: #43a047;" onclick="pressColor('green')">🟢 绿色</button>
-        </div>
-        <div id="r-tip" style="color: #fff; font-size: 11px; margin-top: 6px;">看准闪烁灯光颜色迅速按下！</div>
-    </div>
-    <script>
-        let score = 0, timeLeft = 12, isStarted = false, isOver = false, timer;
-        const colors = [{ name: 'red', emoji: '🔴' }, { name: 'yellow', emoji: '🟡' }, { name: 'blue', emoji: '🔵' }, { name: 'green', emoji: '🟢' }];
-        let currentColor = colors[0];
-        const lightEl = document.getElementById('targetLight'), scoreEl = document.getElementById('rScore'), timeEl = document.getElementById('rTime'), tipEl = document.getElementById('r-tip');
-
-        function startGame() {
-            document.getElementById('startOverlay').style.display = 'none';
-            isStarted = true; nextColor();
-            timer = setInterval(() => {
-                if(timeLeft > 0 && !isOver) { timeLeft--; timeEl.innerText = timeLeft; }
-                else if(!isOver) { endRap(false); }
-            }, 1000);
-        }
-
-        function nextColor() {
-            if(isOver) return;
-            currentColor = colors[Math.floor(Math.random() * colors.length)];
-            lightEl.innerText = currentColor.emoji;
-        }
-
-        function pressColor(cName) {
-            if(!isStarted || isOver) return;
-            if(cName === currentColor.name) {
-                score++; scoreEl.innerText = score;
-                tipEl.innerHTML = "<span style='color:#00e676;'>🎉 节奏完美契合！</span>";
-                if(score >= 7) endRap(true); else nextColor();
-            } else { tipEl.innerHTML = "<span style='color:#ff5252;'>💧 颜色按错！</span>"; }
-        }
-
-        function endRap(success) {
-            if(isOver) return; isOver = true; clearInterval(timer);
-            if(success) {
-                tipEl.innerHTML = "<span style='color:#00e676;'>🎉 考核大成功！</span>";
-            } else {
-                tipEl.innerHTML = "<span style='color:#ff5252;'>❌ 游戏失败！实力分与心智受损，请继续努力争取CD出道机会！</span>";
-            }
-        }
-    </script></body></html>
-    """
-  components.html(html_code, height=310)
-
-
-def render_audition_variety_game():
-  html_code = """
-    <!DOCTYPE html><html><head><style>
-    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; color: #fff; }
-    .box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 12px; width: 300px; text-align: center; position: relative; }
-    .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.96); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
-    .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
-    .stage-area { background: #211035; border: 2px solid #ab47bc; border-radius: 10px; height: 130px; margin: 10px 0; position: relative; overflow: hidden; }
-    
-    @keyframes swing {
-        0% { transform: translateX(5px); }
-        50% { transform: translateX(235px); }
-        100% { transform: translateX(5px); }
-    }
-    .moving-pancake { position: absolute; top: 8px; left: 0px; font-size: 26px; height: 30px; animation: swing 2.2s ease-in-out infinite alternate; will-change: transform; }
-    .plate { position: absolute; bottom: 8px; left: 110px; width: 80px; height: 12px; background: #e0e0e0; border-radius: 6px; border: 2px solid #bdbdbd; text-align: center; font-size: 9px; color: #333; line-height: 12px; font-weight: bold; }
-    .pancake-stack { position: absolute; bottom: 22px; width: 100%; display: flex; flex-direction: column-reverse; align-items: center; }
-    .pancake-item { font-size: 22px; line-height: 18px; height: 18px; }
-    .drop-btn { background: linear-gradient(135deg, #ff2a75, #ab47bc); color: white; border: none; padding: 10px 24px; font-size: 15px; font-weight: bold; border-radius: 20px; cursor: pointer; margin-top: 5px; }
-    </style></head><body>
-    <div class="box">
-        <div id="startOverlay" class="start-overlay">
-            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">🤹 甄选项目：松饼杂耍平衡考核</div>
-            <div style="color:#fff; font-size:11px; margin-bottom:10px;">星光松饼左右摆动，看准正下方托盘中央时机落下（成功叠高4层）！</div>
-            <button class="start-btn" onclick="startGame()">▶️ 开始考核</button>
-        </div>
-        <div style="color: #ffeb3b; font-weight: bold; font-size: 13px;">🤹 堆松饼技巧考核</div>
-        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 3px;">🥞 成功叠高: <span id="pScore">0</span> / 4 | ⏳ <span id="pTime">15</span>s</div>
-        <div class="stage-area">
-            <div class="moving-pancake" id="movingPancake">🥞</div>
-            <div class="pancake-stack" id="pancakeStack"></div>
-            <div class="plate">🍽️ 托盘</div>
-        </div>
-        <button class="drop-btn" onclick="dropPancake()">🥞 落下松饼！</button>
-        <div id="p-tip" style="color: #fff; font-size: 11px; margin-top: 5px;">看准松饼平移到托盘中央瞬间按下！</div>
-    </div>
-    <script>
-        let score = 0, timeLeft = 15, isStarted = false, isOver = false, timer;
-        const cakeEl = document.getElementById('movingPancake'), stackEl = document.getElementById('pancakeStack'), scoreEl = document.getElementById('pScore'), timeEl = document.getElementById('pTime'), tipEl = document.getElementById('p-tip');
-
-        function startGame() {
-            document.getElementById('startOverlay').style.display = 'none';
-            isStarted = true;
-            timer = setInterval(() => {
-                if(timeLeft > 0 && !isOver) { timeLeft--; timeEl.innerText = timeLeft; }
-                else if(!isOver) { endPancake(false); }
-            }, 1000);
-        }
-
-        function dropPancake() {
-            if(!isStarted || isOver) return;
-            let matrix = window.getComputedStyle(cakeEl).transform;
-            let currentX = 120;
-            if (matrix && matrix !== 'none') {
-                let values = matrix.split(', ');
-                currentX = parseFloat(values[4]);
-            }
-            if(currentX >= 85 && currentX <= 175) {
-                score++; scoreEl.innerText = score;
-                let item = document.createElement('div');
-                item.className = 'pancake-item';
-                item.innerText = '🥞';
-                stackEl.appendChild(item);
-                tipEl.innerHTML = "<span style='color:#00e676;'>🎉 完美的平衡！松饼稳稳落下！</span>";
-                if(score >= 4) endPancake(true);
-            } else { tipEl.innerHTML = "<span style='color:#ff5252;'>💧 偏离中心！</span>"; }
-        }
-
-        function endPancake(success) {
-            if(isOver) return; isOver = true; clearInterval(timer);
-            cakeEl.style.animationPlayState = 'paused';
-            if(success) {
-                tipEl.innerHTML = "<span style='color:#00e676;'>🎉 特技考核通关！</span>";
-            } else {
-                tipEl.innerHTML = "<span style='color:#ff5252;'>❌ 游戏失败！实力分与心智受损，请继续努力争取CD出道机会！</span>";
-            }
-        }
-    </script></body></html>
-    """
-  components.html(html_code, height=330)
+  res = components.html(html_code, height=275, key="audition_game")
+  if res == "success":
+    st.session_state.vocal += 30
+    st.session_state.passed_audition = True
+    st.success("🎉 甄选大成功！正式签约成为练习生！")
+    time.sleep(1)
+    st.rerun()
+  elif res == "fail":
+    st.session_state.vocal = max(0, st.session_state.vocal - 10)
+    st.session_state.dance = max(0, st.session_state.dance - 10)
+    st.session_state.stress += 25
+    st.session_state.passed_audition = True
+    st.warning("⚠️ 甄选考核失利，全项实力分扣除 10 pt！已勉强编入预备营。")
+    time.sleep(1.2)
+    st.rerun()
 
 
 # -------------------------------------------------------------------
-# 9 大日常互动实机游戏组件
+# 9 大日常互动实机游戏组件 (自动化判定失败)
 # -------------------------------------------------------------------
 def render_piano_tiles_game():
   html_code = """
@@ -503,7 +315,7 @@ def render_piano_tiles_game():
         let tiles = [], score = 0, combo = 0, timeLeft = 12, isStarted = false, isGameOver = false, timer, spawner;
         function startGame() {
             document.getElementById('startOverlay').style.display = 'none'; isStarted = true;
-            timer = setInterval(() => { if(timeLeft > 0 && !isGameOver) timeLeft--; else { isGameOver = true; clearInterval(timer); clearInterval(spawner); } }, 1000);
+            timer = setInterval(() => { if(timeLeft > 0 && !isGameOver) timeLeft--; else { isGameOver = true; clearInterval(timer); clearInterval(spawner); checkResult(); } }, 1000);
             spawner = setInterval(() => { if(!isGameOver && isStarted) tiles.push({ track: Math.floor(Math.random()*4), y: -35, h: 35, hit: false }); }, 500);
             loop();
         }
@@ -511,6 +323,19 @@ def render_piano_tiles_game():
             if(!isStarted || isGameOver) return; let ok = false;
             for(let t of tiles) { if(t.track === idx && !t.hit && t.y >= 100 && t.y <= 200) { t.hit = true; ok = true; score += 100; combo++; break; } }
             if(!ok) combo = 0;
+        }
+        function checkResult() {
+            ctx.fillStyle = 'rgba(0,0,0,0.88)'; ctx.fillRect(0,0,300,210); 
+            ctx.fillStyle = score >= 800 ? '#00e676' : '#ff5252'; ctx.font = 'bold 13px Arial';
+            if(score >= 800) {
+                ctx.fillText("🎉 打歌成功！得分: " + score, 40, 110);
+                setTimeout(() => window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'success'}, '*'), 1000);
+            } else {
+                ctx.fillText("❌ 游戏失败，实力分扣除！", 50, 95);
+                ctx.font = '11px Arial';
+                ctx.fillText("请继续努力争取CD出道机会！", 55, 125);
+                setTimeout(() => window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'fail'}, '*'), 1200);
+            }
         }
         function loop() {
             ctx.clearRect(0, 0, 300, 210); ctx.strokeStyle = '#2d1b4e';
@@ -526,24 +351,15 @@ def render_piano_tiles_game():
                 } else { tiles.splice(i, 1); }
             }
             ctx.fillStyle = '#fff'; ctx.font = 'bold 11px Arial'; ctx.fillText("⏳ 剩余: " + timeLeft + "s", 10, 18); ctx.fillText("🔥 分数: " + score, 120, 18); ctx.fillText("⚡ Combo: " + combo, 210, 18);
-            if(!isGameOver) {
-                requestAnimationFrame(loop);
-            } else { 
-                ctx.fillStyle = 'rgba(0,0,0,0.88)'; ctx.fillRect(0,0,300,210); 
-                if(score >= 800) {
-                    ctx.fillStyle = '#00e676'; ctx.font = 'bold 13px Arial';
-                    ctx.fillText("🎉 打歌成功！得分: " + score, 40, 110);
-                } else {
-                    ctx.fillStyle = '#ff5252'; ctx.font = 'bold 13px Arial';
-                    ctx.fillText("❌ 游戏失败，实力分扣除！", 50, 95);
-                    ctx.font = '11px Arial';
-                    ctx.fillText("请继续努力争取CD出道机会！", 55, 125);
-                }
-            }
+            if(!isGameOver) requestAnimationFrame(loop);
         }
     </script></body></html>
     """
-  components.html(html_code, height=275)
+  res = components.html(html_code, height=275, key=f"stage_{curr_stage}")
+  if res == "success":
+    apply_game_result(True)
+  elif res == "fail":
+    apply_game_result(False)
 
 
 def render_shout_game():
@@ -557,7 +373,7 @@ def render_shout_game():
     </style></head><body>
     <div class="shout-box">
         <div id="startOverlay" class="start-overlay">
-            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:10px; font-size:13px;">📣 声量呐喊连击大作战</div>
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:10px; font-size:13px;">📣 声量呐喊大作战</div>
             <button class="start-btn" onclick="startGame()">▶️ 开始呐喊</button>
         </div>
         <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">📣 街头突击应援声量对决</div>
@@ -577,8 +393,10 @@ def render_shout_game():
                     isOver = true; clearInterval(timer);
                     if(count >= 80) {
                         tipEl.innerHTML = "<span style='color:#00e676;'>🎉 声量爆表！应援大获全胜！</span>";
+                        setTimeout(() => window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'success'}, '*'), 1000);
                     } else {
                         tipEl.innerHTML = "<span style='color:#ff5252; font-size:10px;'>❌ 游戏失败，实力分扣除！请继续努力争取CD出道机会！</span>";
+                        setTimeout(() => window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'fail'}, '*'), 1200);
                     }
                 }
             }, 1000);
@@ -590,7 +408,11 @@ def render_shout_game():
         }
     </script></body></html>
     """
-  components.html(html_code, height=255)
+  res = components.html(html_code, height=255, key=f"stage_{curr_stage}")
+  if res == "success":
+    apply_game_result(True)
+  elif res == "fail":
+    apply_game_result(False)
 
 
 def render_dodge_game():
@@ -622,7 +444,7 @@ def render_dodge_game():
 
         function startGame() {
             document.getElementById('startOverlay').style.display = 'none'; isStarted = true;
-            timer = setInterval(() => { if(timeLeft > 0 && !isGameOver) timeLeft--; else { isGameOver = true; clearInterval(timer); clearInterval(spawner); } }, 1000);
+            timer = setInterval(() => { if(timeLeft > 0 && !isGameOver) timeLeft--; else { isGameOver = true; clearInterval(timer); clearInterval(spawner); checkResult(); } }, 1000);
             spawner = setInterval(() => { if(!isGameOver && isStarted) obstacles.push({ lane: Math.floor(Math.random()*3), y: -30 }); }, 700);
             loop();
         }
@@ -630,6 +452,21 @@ def render_dodge_game():
         function movePlayer(dir) {
             if(!isStarted || isGameOver) return;
             if(dir === 0) playerLane = 1; else playerLane = Math.max(0, Math.min(2, playerLane + dir));
+        }
+
+        function checkResult() {
+            ctx.fillStyle = 'rgba(0,0,0,0.88)'; ctx.fillRect(0, 0, 300, 210);
+            if(score >= 5) {
+                ctx.fillStyle = '#00e676'; ctx.font = 'bold 15px Arial';
+                ctx.fillText("🎉 闪避成功！得分: " + score, 45, 110);
+                setTimeout(() => window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'success'}, '*'), 1000);
+            } else {
+                ctx.fillStyle = '#ff5252'; ctx.font = 'bold 13px Arial';
+                ctx.fillText("❌ 游戏失败，实力分扣除！", 50, 95);
+                ctx.font = '11px Arial';
+                ctx.fillText("请继续努力争取CD出道机会！", 55, 125);
+                setTimeout(() => window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'fail'}, '*'), 1200);
+            }
         }
 
         function loop() {
@@ -642,24 +479,15 @@ def render_dodge_game():
             }
             ctx.font = '26px Arial'; ctx.fillText('🧍‍♂️', playerLane * trackWidth + 34, 185);
             ctx.fillStyle = '#fff'; ctx.font = 'bold 11px Arial'; ctx.fillText("⏳ 剩余: " + timeLeft + "s", 10, 18); ctx.fillText("🛡️ 得分: " + score, 210, 18);
-            if(!isGameOver) {
-                requestAnimationFrame(loop);
-            } else {
-                ctx.fillStyle = 'rgba(0,0,0,0.88)'; ctx.fillRect(0, 0, 300, 210);
-                if(score >= 5) {
-                    ctx.fillStyle = '#00e676'; ctx.font = 'bold 15px Arial';
-                    ctx.fillText("🎉 闪避成功！得分: " + score, 45, 110);
-                } else {
-                    ctx.fillStyle = '#ff5252'; ctx.font = 'bold 13px Arial';
-                    ctx.fillText("❌ 游戏失败，实力分扣除！", 50, 95);
-                    ctx.font = '11px Arial';
-                    ctx.fillText("请继续努力争取CD出道机会！", 55, 125);
-                }
-            }
+            if(!isGameOver) requestAnimationFrame(loop);
         }
     </script></body></html>
     """
-  components.html(html_code, height=270)
+  res = components.html(html_code, height=270, key=f"stage_{curr_stage}")
+  if res == "success":
+    apply_game_result(True)
+  elif res == "fail":
+    apply_game_result(False)
 
 
 def render_dig_game():
@@ -700,18 +528,26 @@ def render_dig_game():
             if(items[idx] !== '🧱') {
                 foundCount++; document.getElementById('digScore').innerText = foundCount;
                 tipEl.innerHTML = "<span style='color:#00e676;'>🎉 挖到宝物 (" + items[idx] + ")！</span>";
-                if(foundCount >= 3) { isOver = true; tipEl.innerHTML = "<span style='color:#00e676;'>🎉 3个宝物全找齐！</span>"; }
+                if(foundCount >= 3) { 
+                    isOver = true; tipEl.innerHTML = "<span style='color:#00e676;'>🎉 3个宝物全找齐！</span>";
+                    setTimeout(() => window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'success'}, '*'), 1000);
+                }
             } else { tipEl.innerHTML = "<span style='color:#ff5252;'>🧱 挖到了普通泥土...</span>"; }
             if(digLeft === 0 && foundCount < 3) {
                 isOver = true;
                 tipEl.innerHTML = "<span style='color:#ff5252; font-size:10px;'>❌ 游戏失败，实力分扣除！请继续努力争取CD出道机会！</span>";
+                setTimeout(() => window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'fail'}, '*'), 1200);
             }
             renderGrid();
         }
         renderGrid();
     </script></body></html>
     """
-  components.html(html_code, height=255)
+  res = components.html(html_code, height=255, key=f"stage_{curr_stage}")
+  if res == "success":
+    apply_game_result(True)
+  elif res == "fail":
+    apply_game_result(False)
 
 
 def render_whack_mole_game():
@@ -752,8 +588,10 @@ def render_whack_mole_game():
                     isOver = true; clearInterval(timer); clearInterval(spawner); activeIdx = -1; renderHoles();
                     if(score >= 8) {
                         tipEl.innerHTML = "<span style='color:#00e676;'>🎉 成功击退所有狗仔！</span>";
+                        setTimeout(() => window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'success'}, '*'), 1000);
                     } else {
                         tipEl.innerHTML = "<span style='color:#ff5252; font-size:10px;'>❌ 游戏失败，实力分扣除！请继续努力争取CD出道机会！</span>";
+                        setTimeout(() => window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'fail'}, '*'), 1200);
                     }
                 }
             }, 1000);
@@ -775,13 +613,21 @@ def render_whack_mole_game():
             if(activeType === 'paparazzi') {
                 score++; document.getElementById('mScore').innerText = score;
                 activeIdx = -1; renderHoles();
-                if(score >= 8) { isOver = true; clearInterval(timer); clearInterval(spawner); tipEl.innerHTML = "<span style='color:#00e676;'>🎉 成功击退所有狗仔！</span>"; }
+                if(score >= 8) { 
+                    isOver = true; clearInterval(timer); clearInterval(spawner); 
+                    tipEl.innerHTML = "<span style='color:#00e676;'>🎉 成功击退所有狗仔！</span>";
+                    setTimeout(() => window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'success'}, '*'), 1000);
+                }
             } else { score = Math.max(0, score - 2); document.getElementById('mScore').innerText = score; activeIdx = -1; renderHoles(); }
         }
         renderHoles();
     </script></body></html>
     """
-  components.html(html_code, height=260)
+  res = components.html(html_code, height=260, key=f"stage_{curr_stage}")
+  if res == "success":
+    apply_game_result(True)
+  elif res == "fail":
+    apply_game_result(False)
 
 
 def render_snapshot_game():
@@ -837,13 +683,19 @@ def render_snapshot_game():
             if(isOver) return; isOver = true; clearInterval(timer); clearInterval(animator);
             if(success) {
                 tipEl.innerHTML = "<span style='color:#00e676;'>🎉 杂志大片大成功！</span>";
+                setTimeout(() => window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'success'}, '*'), 1000);
             } else {
                 tipEl.innerHTML = "<span style='color:#ff5252; font-size:10px;'>❌ 游戏失败，实力分扣除！请继续努力争取CD出道机会！</span>";
+                setTimeout(() => window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'fail'}, '*'), 1200);
             }
         }
     </script></body></html>
     """
-  components.html(html_code, height=265)
+  res = components.html(html_code, height=265, key=f"stage_{curr_stage}")
+  if res == "success":
+    apply_game_result(True)
+  elif res == "fail":
+    apply_game_result(False)
 
 
 def render_wink_game():
@@ -880,7 +732,7 @@ def render_wink_game():
                 if(timeLeft > 0 && !isGameOver) {
                     timeLeft--;
                 } else if(!isGameOver) {
-                    isGameOver = true; clearInterval(timer); clearInterval(spawner);
+                    isGameOver = true; clearInterval(timer); clearInterval(spawner); checkResult();
                 }
             }, 1000);
             spawner = setInterval(() => {
@@ -900,6 +752,21 @@ def render_wink_game():
         function winkAction() {
             if(!isStarted || isGameOver) return;
             bullets.push({ lane: playerLane, y: 175 });
+        }
+
+        function checkResult() {
+            ctx.fillStyle = 'rgba(0,0,0,0.88)'; ctx.fillRect(0, 0, 300, 210);
+            if(score >= 5) {
+                ctx.fillStyle = '#00e676'; ctx.font = 'bold 15px Arial';
+                ctx.fillText("🎉 电眼狙击成功！得分: " + score, 40, 110);
+                setTimeout(() => window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'success'}, '*'), 1000);
+            } else {
+                ctx.fillStyle = '#ff5252'; ctx.font = 'bold 13px Arial';
+                ctx.fillText("❌ 游戏失败，实力分扣除！", 50, 95);
+                ctx.font = '11px Arial';
+                ctx.fillText("请继续努力争取CD出道机会！", 55, 125);
+                setTimeout(() => window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'fail'}, '*'), 1200);
+            }
         }
 
         function loop() {
@@ -952,24 +819,15 @@ def render_wink_game():
             ctx.fillText("⏳ 剩余: " + timeLeft + "s", 10, 18);
             ctx.fillText("💖 狙击得分: " + score, 160, 18);
 
-            if(!isGameOver) {
-                requestAnimationFrame(loop);
-            } else {
-                ctx.fillStyle = 'rgba(0,0,0,0.88)'; ctx.fillRect(0, 0, 300, 210);
-                if(score >= 5) {
-                    ctx.fillStyle = '#00e676'; ctx.font = 'bold 15px Arial';
-                    ctx.fillText("🎉 电眼狙击成功！得分: " + score, 40, 110);
-                } else {
-                    ctx.fillStyle = '#ff5252'; ctx.font = 'bold 13px Arial';
-                    ctx.fillText("❌ 游戏失败，实力分扣除！", 50, 95);
-                    ctx.font = '11px Arial';
-                    ctx.fillText("请继续努力争取CD出道机会！", 55, 125);
-                }
-            }
+            if(!isGameOver) requestAnimationFrame(loop);
         }
     </script></body></html>
     """
-  components.html(html_code, height=270)
+  res = components.html(html_code, height=270, key=f"stage_{curr_stage}")
+  if res == "success":
+    apply_game_result(True)
+  elif res == "fail":
+    apply_game_result(False)
 
 
 def render_outfit_game():
@@ -1005,7 +863,7 @@ def render_outfit_game():
                 if(timeLeft > 0 && !isGameOver) {
                     timeLeft--;
                 } else if(!isGameOver) {
-                    isGameOver = true; clearInterval(timer); clearInterval(spawner);
+                    isGameOver = true; clearInterval(timer); clearInterval(spawner); checkResult();
                 }
             }, 1000);
             spawner = setInterval(() => {
@@ -1022,6 +880,21 @@ def render_outfit_game():
             if(dir === 0) basketLane = 1; else basketLane = Math.max(0, Math.min(2, basketLane + dir));
         }
 
+        function checkResult() {
+            ctx.fillStyle = 'rgba(0,0,0,0.88)'; ctx.fillRect(0, 0, 300, 210);
+            if(score >= 5) {
+                ctx.fillStyle = '#00e676'; ctx.font = 'bold 15px Arial';
+                ctx.fillText("🎉 接战袍成功！得分: " + score, 40, 110);
+                setTimeout(() => window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'success'}, '*'), 1000);
+            } else {
+                ctx.fillStyle = '#ff5252'; ctx.font = 'bold 13px Arial';
+                ctx.fillText("❌ 游戏失败，实力分扣除！", 50, 95);
+                ctx.font = '11px Arial';
+                ctx.fillText("请继续努力争取CD出道机会！", 55, 125);
+                setTimeout(() => window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'fail'}, '*'), 1200);
+            }
+        }
+
         function loop() {
             ctx.clearRect(0, 0, 300, 210); ctx.strokeStyle = '#2d1b4e';
             for(let i=1; i<3; i++) { ctx.beginPath(); ctx.moveTo(i*trackWidth, 0); ctx.lineTo(i*trackWidth, 210); ctx.stroke(); }
@@ -1034,24 +907,15 @@ def render_outfit_game():
             }
             ctx.font = '26px Arial'; ctx.fillText('🧺', basketLane * trackWidth + 34, 185);
             ctx.fillStyle = '#fff'; ctx.font = 'bold 11px Arial'; ctx.fillText("⏳ 剩余: " + timeLeft + "s", 10, 18); ctx.fillText("🧥 得分: " + score, 210, 18);
-            if(!isGameOver) {
-                requestAnimationFrame(loop);
-            } else {
-                ctx.fillStyle = 'rgba(0,0,0,0.88)'; ctx.fillRect(0, 0, 300, 210);
-                if(score >= 5) {
-                    ctx.fillStyle = '#00e676'; ctx.font = 'bold 15px Arial';
-                    ctx.fillText("🎉 接战袍成功！得分: " + score, 40, 110);
-                } else {
-                    ctx.fillStyle = '#ff5252'; ctx.font = 'bold 13px Arial';
-                    ctx.fillText("❌ 游戏失败，实力分扣除！", 50, 95);
-                    ctx.font = '11px Arial';
-                    ctx.fillText("请继续努力争取CD出道机会！", 55, 125);
-                }
-            }
+            if(!isGameOver) requestAnimationFrame(loop);
         }
     </script></body></html>
     """
-  components.html(html_code, height=270)
+  res = components.html(html_code, height=270, key=f"stage_{curr_stage}")
+  if res == "success":
+    apply_game_result(True)
+  elif res == "fail":
+    apply_game_result(False)
 
 
 def render_watermelon_game():
@@ -1070,7 +934,7 @@ def render_watermelon_game():
     <div class="box">
         <div id="startOverlay" class="start-overlay">
             <div style="color:#ffeb3b; font-weight:bold; margin-bottom:6px; font-size:13px;">🍉 偶像萌物合成大西瓜</div>
-            <div style="color:#fff; font-size:11px; margin-bottom:10px;">看准顶部黄色瞄准线，<b>点击箱子内部任意位置</b>即可精准从该处垂直下落萌物！</div>
+            <div style="color:#fff; font-size:11px; margin-bottom:10px;">看准顶部黄色瞄准线，点击箱子内部垂直下落萌物！合成出西瓜蛋糕胜利！</div>
             <button class="start-btn" onclick="startGame()">▶️ 开始挑战</button>
         </div>
         <div class="top-panel">
@@ -1097,9 +961,7 @@ def render_watermelon_game():
 
         let nextIdx = 0, maxAchievedIdx = 0;
 
-        function getRandomSpawnIdx() {
-            return Math.random() < 0.7 ? 0 : 1;
-        }
+        function getRandomSpawnIdx() { return Math.random() < 0.7 ? 0 : 1; }
 
         function startGame() {
             document.getElementById('startOverlay').style.display = 'none';
@@ -1113,9 +975,7 @@ def render_watermelon_game():
             }, 1000);
         }
 
-        function updatePreview() {
-            nextPreview.innerText = items[nextIdx].emoji;
-        }
+        function updatePreview() { nextPreview.innerText = items[nextIdx].emoji; }
 
         boardEl.onmousemove = (e) => {
             let rect = boardEl.getBoundingClientRect();
@@ -1127,7 +987,6 @@ def render_watermelon_game():
             if(!isStarted || isOver) return;
             let rect = boardEl.getBoundingClientRect();
             let clickX = Math.max(25, Math.min(275, e.clientX - rect.left));
-            
             balls.push({ x: clickX, y: 25, level: nextIdx });
             nextIdx = getRandomSpawnIdx(); updatePreview();
             settleBalls(); renderBalls();
@@ -1155,7 +1014,12 @@ def render_watermelon_game():
                             if(b1.level > maxAchievedIdx) { maxAchievedIdx = b1.level; lvlEl.innerText = items[maxAchievedIdx].name; }
                             balls.splice(j, 1);
                             tipEl.innerHTML = "<span style='color:#00e676;'>🎉 进化为 " + items[b1.level].name + "！</span>";
-                            if(b1.level >= items.length - 1) { renderBalls(); setTimeout(() => endGame(true), 400); return; }
+                            if(b1.level >= items.length - 1) { 
+                                renderBalls(); 
+                                isOver = true; clearInterval(timer);
+                                setTimeout(() => window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'success'}, '*'), 1000);
+                                return; 
+                            }
                             break;
                         }
                     }
@@ -1177,14 +1041,19 @@ def render_watermelon_game():
         function endGame(success) {
             if(isOver) return; isOver = true; clearInterval(timer);
             if(success) {
-                alert("🎉 恭喜你成功合成终极大西瓜蛋糕！外务挑战大胜利！");
+                setTimeout(() => window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'success'}, '*'), 500);
             } else {
-                alert("❌ 游戏失败，实力分扣除！请继续努力争取CD出道机会！");
+                tipEl.innerHTML = "<span style='color:#ff5252;'>❌ 游戏失败，实力分扣除！</span>";
+                setTimeout(() => window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'fail'}, '*'), 1200);
             }
         }
     </script></body></html>
     """
-  components.html(html_code, height=340)
+  res = components.html(html_code, height=340, key=f"stage_{curr_stage}")
+  if res == "success":
+    apply_game_result(True)
+  elif res == "fail":
+    apply_game_result(False)
 
 
 def render_2048_game():
@@ -1272,21 +1141,29 @@ def render_2048_game():
             if(moved) {
                 addRandom(); renderBoard();
                 tipEl.innerHTML = "<span style='color:#00e676;'>🎉 合并成功！</span>";
-                if(maxVal >= 32) setTimeout(() => endGame(true), 300);
+                if(maxVal >= 32) {
+                    isOver = true; clearInterval(timer);
+                    setTimeout(() => window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'success'}, '*'), 500);
+                }
             }
         }
 
         function endGame(success) {
             if(isOver) return; isOver = true; clearInterval(timer);
             if(success) {
-                alert("🎉 成功合成 32！外务挑战胜利！");
+                setTimeout(() => window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'success'}, '*'), 500);
             } else {
-                alert("❌ 游戏失败，实力分扣除！请继续努力争取CD出道机会！");
+                tipEl.innerHTML = "<span style='color:#ff5252;'>❌ 游戏失败，实力分扣除！</span>";
+                setTimeout(() => window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'fail'}, '*'), 1200);
             }
         }
     </script></body></html>
     """
-  components.html(html_code, height=360)
+  res = components.html(html_code, height=360, key=f"stage_{curr_stage}")
+  if res == "success":
+    apply_game_result(True)
+  elif res == "fail":
+    apply_game_result(False)
 
 
 def render_parkour_game():
@@ -1303,7 +1180,7 @@ def render_parkour_game():
     <div class="box">
         <div id="startOverlay" class="start-overlay">
             <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">🏃 红毯冲刺：真实滚动跑酷挑战</div>
-            <div style="color:#fff; font-size:11px; margin-bottom:10px;">障碍物会从右向左滚动袭来！点击按钮 <b>⬆️ 跃起跳过障碍</b>（成功跳过6次胜利）！</div>
+            <div style="color:#fff; font-size:11px; margin-bottom:10px;">障碍物会从右向左滚动袭来！点击按钮 <b>⬆️ 跃起跳过障碍</b>（跳过6次胜利）！</div>
             <button class="start-btn" onclick="startGame()">▶️ 开始跑酷</button>
         </div>
         <div style="color: #ffeb3b; font-weight: bold; font-size: 13px;">🏃 颁奖红毯·横板滚动跑酷</div>
@@ -1343,6 +1220,22 @@ def render_parkour_game():
             player.isJumping = true; player.vy = -8.5;
         }
 
+        function endGame(success) {
+            if(isOver) return; isOver = true; clearInterval(timer); clearInterval(spawner);
+            ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(0, 0, 276, 120);
+            if(success) {
+                ctx.fillStyle = '#00e676'; ctx.font = 'bold 15px Arial';
+                ctx.fillText("🎉 红毯跑酷大胜利！", 65, 65);
+                setTimeout(() => window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'success'}, '*'), 1000);
+            } else {
+                ctx.fillStyle = '#ff5252'; ctx.font = 'bold 13px Arial';
+                ctx.fillText("❌ 游戏失败，实力分扣除！", 50, 50);
+                ctx.font = '11px Arial';
+                ctx.fillText("请继续努力争取CD出道机会！", 55, 75);
+                setTimeout(() => window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'fail'}, '*'), 1200);
+            }
+        }
+
         function loop() {
             ctx.clearRect(0, 0, 276, 120);
 
@@ -1379,32 +1272,15 @@ def render_parkour_game():
                 }
             }
 
-            if(!isOver) {
-                requestAnimationFrame(loop);
-            } else {
-                ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(0, 0, 276, 120);
-                if(score >= 6) {
-                    ctx.fillStyle = '#00e676'; ctx.font = 'bold 15px Arial';
-                    ctx.fillText("🎉 红毯跑酷大胜利！", 65, 65);
-                } else {
-                    ctx.fillStyle = '#ff5252'; ctx.font = 'bold 13px Arial';
-                    ctx.fillText("❌ 游戏失败，实力分扣除！", 50, 50);
-                    ctx.font = '11px Arial';
-                    ctx.fillText("请继续努力争取CD出道机会！", 55, 75);
-                }
-            }
-        }
-
-        function endGame(success) {
-            if(isOver) return; isOver = true; clearInterval(timer); clearInterval(spawner);
-            setTimeout(() => {
-                if(success) alert("🎉 红毯跑酷突围成功！");
-                else alert("❌ 游戏失败，扣除心智！请继续努力争取CD出道机会！");
-            }, 300);
+            if(!isOver) requestAnimationFrame(loop);
         }
     </script></body></html>
     """
-  components.html(html_code, height=340)
+  res = components.html(html_code, height=340, key=f"stage_{curr_stage}")
+  if res == "success":
+    apply_game_result(True)
+  elif res == "fail":
+    apply_game_result(False)
 
 
 def render_stage29_catch_game():
@@ -1464,6 +1340,22 @@ def render_stage29_catch_game():
             if(dir === 0) basketLane = 1; else basketLane = Math.max(0, Math.min(2, basketLane + dir));
         }
 
+        function endGame(success) {
+            if(isOver) return; isOver = true; clearInterval(timer); clearInterval(spawner);
+            ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(0, 0, 276, 130);
+            if(success) {
+                ctx.fillStyle = '#00e676'; ctx.font = 'bold 15px Arial';
+                ctx.fillText("🎉 决选特训大成功！", 65, 65);
+                setTimeout(() => window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'success'}, '*'), 1000);
+            } else {
+                ctx.fillStyle = '#ff5252'; ctx.font = 'bold 13px Arial';
+                ctx.fillText("❌ 游戏失败，实力分扣除！", 50, 45);
+                ctx.font = '11px Arial';
+                ctx.fillText("请继续努力争取CD出道机会！", 55, 75);
+                setTimeout(() => window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'fail'}, '*'), 1200);
+            }
+        }
+
         function loop() {
             ctx.clearRect(0, 0, 276, 130); ctx.strokeStyle = '#2d1b4e';
             for(let i=1; i<3; i++) { ctx.beginPath(); ctx.moveTo(i*trackWidth, 0); ctx.lineTo(i*trackWidth, 130); ctx.stroke(); }
@@ -1490,32 +1382,15 @@ def render_stage29_catch_game():
 
             ctx.font = '26px Arial'; ctx.fillText('🧺', basketLane * trackWidth + 28, 118);
 
-            if(!isOver) {
-                requestAnimationFrame(loop);
-            } else {
-                ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(0, 0, 276, 130);
-                if(score >= 6) {
-                    ctx.fillStyle = '#00e676'; ctx.font = 'bold 15px Arial';
-                    ctx.fillText("🎉 决选特训大成功！", 65, 65);
-                } else {
-                    ctx.fillStyle = '#ff5252'; ctx.font = 'bold 13px Arial';
-                    ctx.fillText("❌ 游戏失败，实力分扣除！", 50, 45);
-                    ctx.font = '11px Arial';
-                    ctx.fillText("请继续努力争取CD出道机会！", 55, 75);
-                }
-            }
-        }
-
-        function endGame(success) {
-            if(isOver) return; isOver = true; clearInterval(timer); clearInterval(spawner);
-            setTimeout(() => {
-                if(success) alert("🎉 音符接接乐特训大成功！");
-                else alert("❌ 游戏失败，实力分扣除！请继续努力争取CD出道机会！");
-            }, 300);
+            if(!isOver) requestAnimationFrame(loop);
         }
     </script></body></html>
     """
-  components.html(html_code, height=320)
+  res = components.html(html_code, height=320, key=f"stage_{curr_stage}")
+  if res == "success":
+    apply_game_result(True)
+  elif res == "fail":
+    apply_game_result(False)
 
 
 # 主标题
@@ -1595,7 +1470,7 @@ if not st.session_state.game_started:
 elif not st.session_state.passed_audition:
   st.subheader("🌟 【练习生甄选大舞台】现场考核")
   st.markdown(
-      f'<div class="event-card"><b>🎯 甄选考核进行中：</b><br>完成下方的小游戏考核，通过即可正式签约！</div>',
+      f'<div class="event-card"><b>🎯 甄选考核进行中：</b><br>完成下方的小游戏考核，倒计时结束系统将自动判定！</div>',
       unsafe_allow_html=True,
   )
 
@@ -1606,35 +1481,7 @@ elif not st.session_state.passed_audition:
   elif st.session_state.audition_track == "rap":
     render_audition_rap_game()
   else:
-    render_audition_variety_game()
-
-  st.markdown("---")
-  col_s1, col_s2 = st.columns(2)
-  with col_s1:
-    if st.button("🌟 完成考核（挑战成功判定）", use_container_width=True):
-      if st.session_state.audition_track == "vocal":
-        st.session_state.vocal += 30
-      elif st.session_state.audition_track == "dance":
-        st.session_state.dance += 30
-      elif st.session_state.audition_track == "rap":
-        st.session_state.rap += 30
-      else:
-        st.session_state.variety += 30
-      st.session_state.passed_audition = True
-      st.success("🎉 评委席全票通过！正式签约成为练习生！")
-      time.sleep(1)
-      st.rerun()
-  with col_s2:
-    if st.button("❌ 挑战失败（扣除实力分）", use_container_width=True):
-      st.session_state.vocal = max(0, st.session_state.vocal - 10)
-      st.session_state.dance = max(0, st.session_state.dance - 10)
-      st.session_state.stress += 25
-      st.session_state.passed_audition = True
-      st.warning(
-          "⚠️ 甄选考核失利，全项实力分扣除 10 pt！已勉强编入练习生预备营。"
-      )
-      time.sleep(1)
-      st.rerun()
+    render_audition_vocal_game()
 
 # -------------------------------------------------------------------
 # STAGE 1 - 30 关卡严格精准匹配
@@ -1723,7 +1570,7 @@ else:
     render_2048_game()
   elif curr_stage == 27:
     st.markdown(
-        f'<div class="event-card"><b>🏃 Stage 27：【金唱片大赏】红毯滚动跑酷挑战</b><br>红毯现场真实滚动跑酷！跳过 6 个迎面而来的障碍物即可突围成功！</div>',
+        f'<div class="event-card"><b>🏃 Stage 17：【金唱片大赏】红毯滚动跑酷挑战</b><br>红毯现场真实滚动跑酷！跳过 6 个迎面而来的障碍物即可突围成功！</div>',
         unsafe_allow_html=True,
     )
     render_parkour_game()
@@ -1936,31 +1783,6 @@ else:
         st.session_state.variety += 15
         st.session_state.bond += 10
         st.session_state.stage += 1
-        st.rerun()
-
-  # --- 游戏关卡下方统一步骤跳转按钮（含成功通关或手动失败扣分按钮） ---
-  if curr_stage in [2, 5, 7, 9, 11, 13, 15, 18, 21, 24, 27, 29]:
-    st.markdown("---")
-    col_g1, col_g2 = st.columns(2)
-    with col_g1:
-      if st.button("➡️ 挑战成功：进入下一个 Stage！", use_container_width=True):
-        st.session_state.dance += 15
-        st.session_state.vocal += 15
-        st.session_state.fans += 500
-        st.session_state.stage += 1
-        st.rerun()
-    with col_g2:
-      if st.button("❌ 挑战失败：扣除实力分！", use_container_width=True):
-        st.session_state.vocal = max(0, st.session_state.vocal - 8)
-        st.session_state.dance = max(0, st.session_state.dance - 8)
-        st.session_state.rap = max(0, st.session_state.rap - 5)
-        st.session_state.variety = max(0, st.session_state.variety - 5)
-        st.session_state.stress += 15
-        st.session_state.stage += 1
-        st.warning(
-            "❌ 游戏失败：全项实力分扣除，心智受损！请继续努力争取CD出道机会！"
-        )
-        time.sleep(1.2)
         st.rerun()
 
   # -------------------------------------------------------------------
