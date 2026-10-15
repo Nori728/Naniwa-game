@@ -1009,127 +1009,170 @@ def render_outfit_game():
 def render_watermelon_game():
   html_code = """
     <!DOCTYPE html><html><head><style>
-    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; color: #fff; }
+    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; color: #fff; overflow: hidden; }
     .box { background: #1a0f30; border: 2px solid #ff2a75; border-radius: 14px; padding: 10px; width: 300px; text-align: center; position: relative; }
     .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.96); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 14px; }
     .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
     .top-panel { display: flex; justify-content: space-between; align-items: center; background: #211035; border: 1px solid #ab47bc; border-radius: 8px; padding: 4px 10px; margin-bottom: 6px; font-size: 11px; }
-    .next-preview { font-size: 20px; background: rgba(255,255,255,0.1); border-radius: 6px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
-    .game-container { background: #211035; border: 2px solid #ab47bc; border-radius: 10px; height: 170px; position: relative; overflow: hidden; cursor: pointer; }
-    .drop-guide { position: absolute; top: 0; width: 3px; height: 100%; background: rgba(255,255,255,0.4); pointer-events: none; }
-    .ball { position: absolute; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; transform: translate(-50%, -50%); box-shadow: 0 3px 6px rgba(0,0,0,0.3); }
-    </style></head><body>
+    .next-preview { font-size: 18px; background: rgba(255,255,255,0.1); border-radius: 6px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; }
+    #canvas-container { width: 280px; height: 170px; background: #211035; border: 2px solid #ab47bc; border-radius: 10px; position: relative; overflow: hidden; margin: 0 auto; cursor: pointer; }
+    </style>
+    <!-- 引入 Matter.js 物理引擎 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+    </head><body>
     <div class="box">
         <div id="startOverlay" class="start-overlay">
-            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:6px; font-size:13px;">🍉 顶奢偶像大西瓜挑战</div>
-            <div style="color:#fff; font-size:11px; margin-bottom:10px;">看准<b>下一颗萌物</b>，点击箱子投放！相同萌物碰撞自动进化，合成出 <b>🌟 终极大西瓜蛋糕</b> 胜利！</div>
-            <button class="start-btn" onclick="startGame()">▶️ 开始挑战</button>
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:6px; font-size:13px;">🏆 偶像物理物理大西瓜</div>
+            <div style="color:#fff; font-size:11px; margin-bottom:10px;">点击箱子上方投掷萌物！<b>真实重力碰撞与挤压</b>，合成出 <b>🏆 闪亮奖杯</b> 胜利！</div>
+            <button class="start-btn" onclick="startGame()">▶️ 开始真实物理挑战</button>
         </div>
         <div class="top-panel">
-            <div>✨ 最高: <span id="wLevel" style="color:#ffeb3b;">🍙 小饭团</span> | ⏳ <span id="wTime">15</span>s</div>
+            <div>✨ 最高: <span id="wLevel" style="color:#ffeb3b;">🍙</span> | ⏳ <span id="wTime">40</span>s</div>
             <div style="display:flex; align-items:center; gap:5px;"><span>NEXT:</span><div class="next-preview" id="nextPreview">🍙</div></div>
         </div>
-        <div class="game-container" id="gameBoard" onclick="boardClick(event)">
-            <div class="drop-guide" id="guideLine" style="left: 150px;"></div>
-        </div>
-        <div id="w-tip" style="color: #fff; font-size: 11px; margin-top: 5px;">点击箱子内部投放萌物！</div>
+        <div id="canvas-container" onclick="dropBall(event)"></div>
+        <div id="w-tip" style="color: #fff; font-size: 11px; margin-top: 5px;">享受真实物理碰撞与合成！</div>
     </div>
     <script>
-        let timeLeft = 40, isStarted = false, isOver = false, timer, balls = [];
-        const boardEl = document.getElementById('gameBoard'), timeEl = document.getElementById('wTime'), lvlEl = document.getElementById('wLevel'), tipEl = document.getElementById('w-tip'), guideLine = document.getElementById('guideLine'), nextPreview = document.getElementById('nextPreview');
+        let timeLeft = 40, isStarted = false, isOver = false, timer;
+        const timeEl = document.getElementById('wTime'), lvlEl = document.getElementById('wLevel'), tipEl = document.getElementById('w-tip'), nextPreview = document.getElementById('nextPreview');
         
-        const items = [
-            { name: '🍙 小饭团', size: 26, emoji: '🍙' },
-            { name: '🧢 应援帽', size: 36, emoji: '🧢' },
-            { name: '🎧 音乐耳机', size: 46, emoji: '🎧' },
-            { name: '🎤 黄金话筒', size: 56, emoji: '🎤' },
-            { name: '🏆 闪亮奖杯', size: 68, emoji: '🏆' }
-     ];
+        // 极致简化的萌物配置 (半径、图标、分值、颜色)
+        const ITEMS = [
+            { radius: 14, emoji: '🍙', name: '🍙' },
+            { radius: 20, emoji: '🧢', name: '🧢' },
+            { radius: 27, emoji: '🎧', name: '🎧' },
+            { radius: 35, emoji: '🎤', name: '🎤' },
+            { radius: 44, emoji: '🏆', name: '🏆' }
+        ];
 
         let nextIdx = 0, maxAchievedIdx = 0;
+        let engine, render, runner, world;
 
-        function getRandomSpawnIdx() {
-            return Math.random() < 0.7 ? 0 : 1;
-        }
+        function getRandomSpawnIdx() { return Math.random() < 0.7 ? 0 : 1; }
 
         function startGame() {
             document.getElementById('startOverlay').style.display = 'none';
             isStarted = true; nextIdx = getRandomSpawnIdx(); updatePreview();
-            timer = setInterval(() => {
-                if(timeLeft > 0 && !isOver) { timeLeft--; timeEl.innerText = timeLeft; }
-                else if(!isOver) { endGame(false); }
-            }, 1000);
-        }
+            
+            // 初始化 Matter.js 物理世界
+            const { Engine, Render, Runner, Bodies, Composite, Constraint, Events } = Matter;
 
-        function updatePreview() {
-            nextPreview.innerText = items[nextIdx].emoji;
-        }
+            engine = Engine.create();
+            world = engine.world;
 
-        boardEl.onmousemove = (e) => {
-            let rect = boardEl.getBoundingClientRect();
-            guideLine.style.left = (e.clientX - rect.left) + 'px';
-        };
+            const container = document.getElementById('canvas-container');
+            const width = 280, height = 170;
 
-        function boardClick(e) {
-            if(!isStarted || isOver) return;
-            let rect = boardEl.getBoundingClientRect();
-            let x = Math.max(25, Math.min(275, e.clientX - rect.left));
-            balls.push({ x: x, y: 25, level: nextIdx });
-            nextIdx = getRandomSpawnIdx(); updatePreview();
-            settleBalls(); renderBalls();
-        }
+            // 创建无头渲染器并将 canvas 放入容器
+            render = Render.create({
+                element: container,
+                engine: engine,
+                options: { width: width, height: height, background: '#211035', wireframes: false }
+            });
+            Render.run(render);
 
-        function settleBalls() {
-            for(let i = 0; i < balls.length; i++) {
-                let b = balls[i], targetY = 145;
-                for(let j = 0; j < balls.length; j++) {
-                    if(i === j) continue;
-                    let other = balls[j];
-                    if(Math.abs(b.x - other.x) < (items[b.level].size/2 + items[other.level].size/2) && other.y > b.y) {
-                        let candidateY = other.y - items[other.level].size;
-                        if(candidateY < targetY) targetY = candidateY;
-                    }
-                }
-                b.y = targetY;
-            }
-            for(let i = 0; i < balls.length; i++) {
-                for(let j = i + 1; j < balls.length; j++) {
-                    let b1 = balls[i], b2 = balls[j];
-                    if(Math.hypot(b1.x - b2.x, b1.y - b2.y) < (items[b1.level].size/2 + items[b1.level].size/2 + 4)) {
-                        if(b1.level === b2.level && b1.level < items.length - 1) {
-                            b1.level++;
-                            if(b1.level > maxAchievedIdx) { maxAchievedIdx = b1.level; lvlEl.innerText = items[maxAchievedIdx].name; }
-                            balls.splice(j, 1);
-                            tipEl.innerHTML = "<span style='color:#00e676;'>🎉 进化为 " + items[b1.level].name + "！</span>";
-                            if(b1.level >= items.length - 1) { renderBalls(); setTimeout(() => endGame(true), 400); return; }
-                            break;
+            runner = Runner.create();
+            Runner.run(runner, engine);
+
+            // 创建箱子边界 (底、左、右)
+            const wallOpts = { isStatic: true, render: { fillStyle: '#31115c' } };
+            const ground = Bodies.rectangle(width / 2, height + 15, width, 40, wallOpts);
+            const leftWall = Bodies.rectangle(-15, height / 2, 40, height, wallOpts);
+            const rightWall = Bodies.rectangle(width + 15, height / 2, 40, height, wallOpts);
+            Composite.add(world, [ground, leftWall, rightWall]);
+
+            // 监听碰撞合成事件
+            Events.on(engine, 'collisionStart', (event) => {
+                let pairs = event.pairs;
+                for (let i = 0; i < pairs.length; i++) {
+                    let p = pairs[i];
+                    let bA = p.bodyA, bB = p.bodyB;
+                    if (bA.level !== undefined && bB.level !== undefined && bA.level === bB.level && !bA.isProcessing && !bB.isProcessing) {
+                        if (bA.level < ITEMS.length - 1) {
+                            bA.isProcessing = true; bB.isProcessing = true;
+                            let newLevel = bA.level + 1;
+                            let midX = (bA.position.x + bB.position.x) / 2;
+                            let midY = (bA.position.y + bB.position.y) / 2;
+
+                            Composite.remove(world, [bA, bB]);
+                            createBall(midX, midY, newLevel);
+
+                            if (newLevel > maxAchievedIdx) {
+                                maxAchievedIdx = newLevel;
+                                lvlEl.innerText = ITEMS[maxAchievedIdx].name;
+                                tipEl.innerHTML = "<span style='color:#00e676;'>🎉 进化为 " + ITEMS[newLevel].name + "！</span>";
+                                if (newLevel >= ITEMS.length - 1) {
+                                    endGame(true);
+                                }
+                            }
                         }
                     }
                 }
-            }
+            });
+
+            // 自定义渲染器：在每个物理圆上绘制 Emoji 表情
+            Events.on(render, 'afterRender', () => {
+                let context = render.context;
+                let bodies = Composite.allBodies(world);
+                bodies.forEach(body => {
+                    if (body.level !== undefined) {
+                        let item = ITEMS[body.level];
+                        context.font = (item.radius * 1.1) + 'px Arial';
+                        context.textAlign = 'center';
+                        context.textBaseline = 'middle';
+                        context.fillText(item.emoji, body.position.x, body.position.y);
+                    }
+                });
+            });
+
+            timer = setInterval(() => {
+                if (timeLeft > 0 && !isOver) {
+                    timeLeft--; timeEl.innerText = timeLeft;
+                } else if (!isOver) {
+                    endGame(false);
+                }
+            }, 1000);
         }
 
-        function renderBalls() {
-            boardEl.querySelectorAll('.ball').forEach(el => el.remove());
-            balls.forEach(b => {
-                let info = items[b.level];
-                let el = document.createElement('div');
-                el.className = 'ball'; el.style.width = info.size + 'px'; el.style.height = info.size + 'px';
-                el.style.left = b.x + 'px'; el.style.top = b.y + 'px';
-                el.innerText = info.emoji; boardEl.appendChild(el);
+        function updatePreview() { nextPreview.innerText = ITEMS[nextIdx].emoji; }
+
+        function dropBall(e) {
+            if (!isStarted || isOver) return;
+            const rect = document.getElementById('canvas-container').getBoundingClientRect();
+            let x = Math.max(35, Math.min(245, e.clientX - rect.left));
+            createBall(x, 15, nextIdx);
+            nextIdx = getRandomSpawnIdx(); updatePreview();
+        }
+
+        function createBall(x, y, level) {
+            let item = ITEMS[level];
+            let ball = Matter.Bodies.circle(x, y, item.radius, {
+                restitution: 0.3, // 弹性
+                friction: 0.1,
+                render: { fillStyle: 'transparent' }
             });
+            ball.level = level;
+            Matter.Composite.add(world, ball);
         }
 
         function endGame(success) {
-            if(isOver) return; isOver = true; clearInterval(timer);
-            setTimeout(() => {
-                if(success) alert("🎉 恭喜你成功合成终极大西瓜蛋糕！外务挑战大胜利！");
-                else alert("💧 时间到！未合成出终极大西瓜蛋糕！");
-            }, 300);
+            if (isOver) return; isOver = true; clearInterval(timer);
+            if(success) {
+                tipEl.innerHTML = "<span style='color:#00e676;'>🏆 成功合成闪亮奖杯！请点击下方【挑战成功】！</span>";
+            } else {
+                tipEl.innerHTML = "<span style='color:#ff5252;'>时间到！请点击下方判定结果！</span>";
+            }
         }
     </script></body></html>
     """
-  components.html(html_code, height=340)
+  res = render_safe_game_component(
+      html_code, height=340, key_name=f"game_watermelon_{curr_stage}"
+  )
+  if res == "success":
+    apply_game_result(True)
+  elif res == "fail":
+    apply_game_result(False)
 
 
 def render_2048_game():
