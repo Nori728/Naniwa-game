@@ -1020,7 +1020,7 @@ def render_watermelon_game():
     </head><body>
     <div class="box">
         <div id="startOverlay" class="start-overlay">
-            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:6px; font-size:13px;">🏆 偶像物理物理大西瓜</div>
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:6px; font-size:13px;">🏆 偶像闪亮奖杯</div>
             <div style="color:#fff; font-size:11px; margin-bottom:10px;">点击箱子上方投掷萌物！<b>真实重力碰撞与挤压</b>，合成出 <b>🏆 闪亮奖杯</b> 胜利！</div>
             <button class="start-btn" onclick="startGame()">▶️ 开始真实物理挑战</button>
         </div>
@@ -1035,7 +1035,7 @@ def render_watermelon_game():
         let timeLeft = 40, isStarted = false, isOver = false, timer;
         const timeEl = document.getElementById('wTime'), lvlEl = document.getElementById('wLevel'), tipEl = document.getElementById('w-tip'), nextPreview = document.getElementById('nextPreview');
         
-        // 极致简化的萌物配置 (半径、图标、分值、颜色)
+        // 极致简化的萌物配置 (半径、图标、分值)
         const ITEMS = [
             { radius: 14, emoji: '🍙', name: '🍙' },
             { radius: 20, emoji: '🧢', name: '🧢' },
@@ -1054,7 +1054,7 @@ def render_watermelon_game():
             isStarted = true; nextIdx = getRandomSpawnIdx(); updatePreview();
             
             // 初始化 Matter.js 物理世界
-            const { Engine, Render, Runner, Bodies, Composite, Constraint, Events } = Matter;
+            const { Engine, Render, Runner, Bodies, Composite, Events } = Matter;
 
             engine = Engine.create();
             world = engine.world;
@@ -1062,7 +1062,6 @@ def render_watermelon_game():
             const container = document.getElementById('canvas-container');
             const width = 280, height = 170;
 
-            // 创建无头渲染器并将 canvas 放入容器
             render = Render.create({
                 element: container,
                 engine: engine,
@@ -1146,7 +1145,7 @@ def render_watermelon_game():
         function createBall(x, y, level) {
             let item = ITEMS[level];
             let ball = Matter.Bodies.circle(x, y, item.radius, {
-                restitution: 0.3, // 弹性
+                restitution: 0.3,
                 friction: 0.1,
                 render: { fillStyle: 'transparent' }
             });
@@ -1164,14 +1163,16 @@ def render_watermelon_game():
         }
     </script></body></html>
     """
+  # 使用 st.session_state.stage 彻底解决作用域 NameError 问题
   res = render_safe_game_component(
-      html_code, height=340, key_name=f"game_watermelon_{curr_stage}"
+      html_code,
+      height=340,
+      key_name=f"game_watermelon_{st.session_state.stage}",
   )
   if res == "success":
     apply_game_result(True)
   elif res == "fail":
     apply_game_result(False)
-
 
 def render_2048_game():
   html_code = """
