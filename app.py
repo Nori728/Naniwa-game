@@ -102,44 +102,54 @@ IDOL_GROUPS = {
     "ACEes": ["浮所飞贵", "那须雄登", "佐藤龙我", "作间龙斗", "深田龙生"],
 }
 
-# 3. 样式美化（橙光视觉风）
+# 3. 样式美化（高清晰度对比视觉风，解决字体看不清问题）
 st.markdown(
     """
     <style>
     .stApp {
-        background: linear-gradient(135deg, #1a0f30 0%, #2d1b4e 50%, #4a148c 100%);
+        background: linear-gradient(135deg, #120824 0%, #1f103d 50%, #31115c 100%);
         color: #ffffff;
     }
     .event-card {
-        background: rgba(45, 27, 78, 0.85);
+        background: rgba(30, 18, 56, 0.95);
         color: #ffffff;
-        padding: 22px;
-        border-radius: 18px;
-        border: 2px solid #ff4081;
-        box-shadow: 0px 10px 30px rgba(255, 64, 129, 0.4);
-        margin: 14px 0;
-        font-size: 15px;
-        line-height: 1.7;
+        padding: 24px;
+        border-radius: 16px;
+        border: 2px solid #ff2a75;
+        box-shadow: 0px 8px 25px rgba(255, 42, 117, 0.35);
+        margin: 16px 0;
+        font-size: 16px;
+        line-height: 1.8;
     }
     .cute-info {
-        background: rgba(255, 255, 255, 0.95);
+        background: rgba(255, 255, 255, 0.98);
         border-radius: 14px;
-        padding: 16px;
-        border: 2px dashed #ff4081;
-        color: #4a148c;
-        font-weight: 600;
-        margin-bottom: 14px;
-        box-shadow: 0px 5px 15px rgba(0,0,0,0.2);
+        padding: 18px;
+        border: 2px dashed #ff2a75;
+        color: #2b0c4f;
+        font-weight: 700;
+        font-size: 16px;
+        margin-bottom: 16px;
+        box-shadow: 0px 5px 15px rgba(0,0,0,0.3);
+    }
+    label {
+        color: #ffeb3b !important;
+        font-weight: bold !important;
+        font-size: 16px !important;
+    }
+    .stTextInput input, .stSelectbox select, .stRadio div {
+        color: #ffffff !important;
+        font-weight: bold !important;
     }
     .stButton > button {
-        background: linear-gradient(45deg, #ff4081, #ab47bc) !important;
+        background: linear-gradient(45deg, #ff2a75, #9c27b0) !important;
         color: white !important;
-        font-size: 15px !important;
+        font-size: 16px !important;
         font-weight: bold !important;
-        border-radius: 18px !important;
-        border: none !important;
-        padding: 10px 22px !important;
-        box-shadow: 0px 4px 15px rgba(255, 64, 129, 0.5);
+        border-radius: 16px !important;
+        border: 2px solid #ff80ab !important;
+        padding: 12px 24px !important;
+        box-shadow: 0px 4px 15px rgba(255, 42, 117, 0.5);
         touch-action: manipulation;
     }
     </style>
@@ -179,34 +189,34 @@ def get_rand_member():
 
 
 # -------------------------------------------------------------------
-# 甄选专属互动小游戏组件（Vocal / Dance / Rap / 杂耍）
+# 甄选专属互动小游戏（Vocal / 舞蹈 / Rap / 特技堆高）
 # -------------------------------------------------------------------
 
 
 def render_audition_vocal_game():
   html_code = """
     <!DOCTYPE html><html><head><style>
-    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; color: #fff; }
     .box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 12px; width: 300px; text-align: center; position: relative; }
-    .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
+    .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.96); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
     .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
     .vocal-btn { background: linear-gradient(135deg, #ff4081, #ab47bc); color: white; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; border-radius: 20px; cursor: pointer; margin-top: 10px; }
     .vocal-btn:active { transform: scale(0.92); }
     </style></head><body>
     <div class="box">
         <div id="startOverlay" class="start-overlay">
-            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">🎤 甄选项目：Vocal 高音长音挑战</div>
-            <div style="color:#fff; font-size:11px; margin-bottom:10px;">当光标移动到 🎯 完美绿区时按下保持高音！</div>
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">🎤 甄选项目：Vocal 高音长音精准抓准</div>
+            <div style="color:#fff; font-size:11px; margin-bottom:10px;">当光标进入 🎯 绿区时点击稳定高音！</div>
             <button class="start-btn" onclick="startGame()">▶️ 开始 Vocal 考核</button>
         </div>
-        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">🎤 Vocal 甄选：长音爆发力</div>
+        <div style="color: #ffeb3b; font-weight: bold; font-size: 13px;">🎤 Vocal 甄选：长音爆发力</div>
         <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 3px;">✨ 完美高音: <span id="vScore">0</span> / 4 | ⏳ <span id="vTime">12</span>s</div>
         <div style="background: #211035; border: 2px solid #ab47bc; border-radius: 8px; height: 35px; margin: 12px 0; position: relative; overflow: hidden;">
             <div style="position: absolute; left: 115px; width: 70px; height: 100%; background: rgba(0, 230, 118, 0.4); border-left: 2px dashed #00e676; border-right: 2px dashed #00e676;">🎯</div>
             <div id="vCursor" style="position: absolute; left: 0px; width: 8px; height: 100%; background: #ff4081; border-radius: 4px;"></div>
         </div>
         <button class="vocal-btn" onclick="hitVocal()">🎶 稳定高音！</button>
-        <div id="v-tip" style="color: #fff; font-size: 11px; margin-top: 5px;">看准绿区稳住气息！</div>
+        <div id="v-tip" style="color: #fff; font-size: 11px; margin-top: 5px;">看准绿区瞬间稳住气息！</div>
     </div>
     <script>
         let score = 0, timeLeft = 12, isStarted = false, isOver = false, cursorX = 0, dir = 3.5, timer, animator;
@@ -251,186 +261,229 @@ def render_audition_vocal_game():
 def render_audition_dance_game():
   html_code = """
     <!DOCTYPE html><html><head><style>
-    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; color: #fff; }
     .box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 12px; width: 300px; text-align: center; position: relative; }
-    .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
+    .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.96); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
     .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
-    .click-btn { background: linear-gradient(135deg, #ff4081, #ab47bc); color: white; border: none; width: 140px; height: 65px; font-size: 18px; font-weight: bold; border-radius: 32px; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 64, 129, 0.5); margin: 10px 0; }
-    .click-btn:active { transform: scale(0.92); }
+    .arrow-display { font-size: 36px; margin: 10px 0; background: #211035; border: 2px solid #ab47bc; border-radius: 10px; padding: 8px; }
+    .dir-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 6px; }
+    .dir-btn { background: linear-gradient(135deg, #ff4081, #7b1fa2); color: white; border: none; padding: 10px 0; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; }
+    .dir-btn:active { background: #00e676; transform: scale(0.92); }
     </style></head><body>
     <div class="box">
         <div id="startOverlay" class="start-overlay">
-            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">💃 甄选项目：Dance 舞步爆发连击</div>
-            <div style="color:#fff; font-size:11px; margin-bottom:10px;">12秒内疯狂点击按钮，达成 70 下以上！</div>
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">💃 甄选项目：Dance 舞步方向键闪烁卡点</div>
+            <div style="color:#fff; font-size:11px; margin-bottom:10px;">12秒内根据闪烁提示点击对应的方向键！</div>
             <button class="start-btn" onclick="startGame()">▶️ 开始 Dance 考核</button>
         </div>
-        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">💃 Dance 甄选：动感舞步连击</div>
-        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 5px;">🔥 舞步连击: <span id="dCount">0</span> / 70 | ⏳ <span id="dTime">12</span>s</div>
-        <button class="click-btn" onclick="handleDance()">🕺 疯狂卡点！</button>
-        <div id="d-tip" style="color: #fff; font-size: 11px;">展现极致的身体协调与爆发力！</div>
+        <div style="color: #ffeb3b; font-weight: bold; font-size: 13px;">💃 Dance 甄选：方向键卡点</div>
+        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 3px;">✨ 正确卡点: <span id="dScore">0</span> / 8 | ⏳ <span id="dTime">12</span>s</div>
+        <div class="arrow-display" id="targetArrow">⬆️</div>
+        <div class="dir-grid">
+            <button class="dir-btn" onclick="pressArrow('⬆️')">⬆️ 上</button>
+            <button class="dir-btn" onclick="pressArrow('⬇️')">⬇️ 下</button>
+            <button class="dir-btn" onclick="pressArrow('⬅️')">⬅️ 左</button>
+            <button class="dir-btn" onclick="pressArrow('➡️')">➡️ 右</button>
+        </div>
+        <div id="d-tip" style="color: #fff; font-size: 11px; margin-top: 6px;">看准当前箭头按下对应方向！</div>
     </div>
     <script>
-        let count = 0, timeLeft = 12, isStarted = false, isOver = false, timer;
-        const countEl = document.getElementById('dCount'), timeEl = document.getElementById('dTime'), tipEl = document.getElementById('d-tip');
+        let score = 0, timeLeft = 12, isStarted = false, isOver = false, timer;
+        const arrows = ['⬆️', '⬇️', '⬅️', '➡️'];
+        let currentArrow = '⬆️';
+        const targetEl = document.getElementById('targetArrow'), scoreEl = document.getElementById('dScore'), timeEl = document.getElementById('dTime'), tipEl = document.getElementById('d-tip');
 
         function startGame() {
             document.getElementById('startOverlay').style.display = 'none';
             isStarted = true;
+            nextArrow();
             timer = setInterval(() => {
-                if(timeLeft > 0 && !isOver) {
-                    timeLeft--;
-                    timeEl.innerText = timeLeft;
-                } else if(!isOver) {
-                    isOver = true;
-                    clearInterval(timer);
-                    if(count >= 70) {
-                        tipEl.innerHTML = "<span style='color:#00e676;'>🎉 舞步燃爆全场！首席舞者预定！</span>";
-                    } else {
-                        tipEl.innerHTML = "<span style='color:#ff5252;'>💧 体力不支，动作稍显僵硬...</span>";
-                    }
-                }
+                if(timeLeft > 0 && !isOver) { timeLeft--; timeEl.innerText = timeLeft; }
+                else if(!isOver) { endDance(); }
             }, 1000);
         }
 
-        function handleDance() {
+        function nextArrow() {
+            if(isOver) return;
+            currentArrow = arrows[Math.floor(Math.random() * arrows.length)];
+            targetEl.innerText = currentArrow;
+        }
+
+        function pressArrow(dir) {
             if(!isStarted || isOver) return;
-            count++;
-            countEl.innerText = count;
+            if(dir === currentArrow) {
+                score++;
+                scoreEl.innerText = score;
+                tipEl.innerHTML = "<span style='color:#00e676;'>🎉 完美卡点！动作标准！</span>";
+                nextArrow();
+            } else {
+                tipEl.innerHTML = "<span style='color:#ff5252;'>💧 方向踩错，拍子乱了！</span>";
+            }
+        }
+
+        function endDance() {
+            isOver = true; clearInterval(timer);
+            if(score >= 8) { tipEl.innerHTML = "<span style='color:#00e676;'>🎉 舞步考核大成功！</span>"; }
+            else { tipEl.innerHTML = "<span style='color:#ff5252;'>💧 考核未达标，动作稍显生疏！</span>"; }
         }
     </script></body></html>
     """
-  components.html(html_code, height=265)
+  components.html(html_code, height=310)
 
 
 def render_audition_rap_game():
   html_code = """
     <!DOCTYPE html><html><head><style>
-    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; color: #fff; }
     .box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 12px; width: 300px; text-align: center; position: relative; }
-    .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
+    .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.96); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
     .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
-    .rap-btn { background: linear-gradient(135deg, #ff4081, #ab47bc); color: white; border: none; width: 140px; height: 65px; font-size: 18px; font-weight: bold; border-radius: 32px; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 64, 129, 0.5); margin: 10px 0; }
-    .rap-btn:active { transform: scale(0.92); }
+    .light-box { font-size: 40px; margin: 10px 0; background: #211035; border: 2px solid #ab47bc; border-radius: 10px; padding: 6px; }
+    .color-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 6px; }
+    .c-btn { border: none; padding: 10px 0; font-size: 14px; font-weight: bold; border-radius: 8px; cursor: pointer; color: #fff; }
+    .c-btn:active { transform: scale(0.92); }
     </style></head><body>
     <div class="box">
         <div id="startOverlay" class="start-overlay">
-            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">🔥 甄选项目：Rap 机关枪快嘴连击</div>
-            <div style="color:#fff; font-size:11px; margin-bottom:10px;">12秒内疯狂点击按钮，达成 80 下以上！</div>
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">🔥 甄选项目：Rap 节奏灯光颜色闪烁匹配</div>
+            <div style="color:#fff; font-size:11px; margin-bottom:10px;">根据闪烁的灯光颜色点击对应按钮！</div>
             <button class="start-btn" onclick="startGame()">▶️ 开始 Rap 考核</button>
         </div>
-        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">🔥 Rap 甄选：快嘴节奏风暴</div>
-        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 5px;">⚡ 快嘴连击: <span id="rCount">0</span> / 80 | ⏳ <span id="rTime">12</span>s</div>
-        <button class="rap-btn" onclick="handleRap()">🎤 疯狂输出！</button>
-        <div id="r-tip" style="color: #fff; font-size: 11px;">用密集的韵律掌控全场空气！</div>
+        <div style="color: #ffeb3b; font-weight: bold; font-size: 13px;">🔥 Rap 甄选：灯光颜色匹配</div>
+        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 3px;">✨ 匹配成功: <span id="rScore">0</span> / 7 | ⏳ <span id="rTime">12</span>s</div>
+        <div class="light-box" id="targetLight">🔴</div>
+        <div class="color-grid">
+            <button class="c-btn" style="background: #e53935;" onclick="pressColor('red')">🔴 红色</button>
+            <button class="c-btn" style="background: #fbc02d; color:#000;" onclick="pressColor('yellow')">🟡 黄色</button>
+            <button class="c-btn" style="background: #1e88e5;" onclick="pressColor('blue')">🔵 蓝色</button>
+            <button class="c-btn" style="background: #43a047;" onclick="pressColor('green')">🟢 绿色</button>
+        </div>
+        <div id="r-tip" style="color: #fff; font-size: 11px; margin-top: 6px;">看准闪烁灯光颜色迅速按下！</div>
     </div>
     <script>
-        let count = 0, timeLeft = 12, isStarted = false, isOver = false, timer;
-        const countEl = document.getElementById('rCount'), timeEl = document.getElementById('rTime'), tipEl = document.getElementById('r-tip');
+        let score = 0, timeLeft = 12, isStarted = false, isOver = false, timer;
+        const colors = [
+            { name: 'red', emoji: '🔴' },
+            { name: 'yellow', emoji: '🟡' },
+            { name: 'blue', emoji: '🔵' },
+            { name: 'green', emoji: '🟢' }
+        ];
+        let currentColor = colors[0];
+        const lightEl = document.getElementById('targetLight'), scoreEl = document.getElementById('rScore'), timeEl = document.getElementById('rTime'), tipEl = document.getElementById('r-tip');
 
         function startGame() {
             document.getElementById('startOverlay').style.display = 'none';
             isStarted = true;
+            nextColor();
             timer = setInterval(() => {
-                if(timeLeft > 0 && !isOver) {
-                    timeLeft--;
-                    timeEl.innerText = timeLeft;
-                } else if(!isOver) {
-                    isOver = true;
-                    clearInterval(timer);
-                    if(count >= 80) {
-                        tipEl.innerHTML = "<span style='color:#00e676;'>🎉 节奏风暴！全场评委起立鼓掌！</span>";
-                    } else {
-                        tipEl.innerHTML = "<span style='color:#ff5252;'>💧 词句卡壳，气势稍逊一筹...</span>";
-                    }
-                }
+                if(timeLeft > 0 && !isOver) { timeLeft--; timeEl.innerText = timeLeft; }
+                else if(!isOver) { endRap(); }
             }, 1000);
         }
 
-        function handleRap() {
+        function nextColor() {
+            if(isOver) return;
+            currentColor = colors[Math.floor(Math.random() * colors.length)];
+            lightEl.innerText = currentColor.emoji;
+        }
+
+        function pressColor(cName) {
             if(!isStarted || isOver) return;
-            count++;
-            countEl.innerText = count;
+            if(cName === currentColor.name) {
+                score++;
+                scoreEl.innerText = score;
+                tipEl.innerHTML = "<span style='color:#00e676;'>🎉 节奏完美契合！</span>";
+                nextColor();
+            } else {
+                tipEl.innerHTML = "<span style='color:#ff5252;'>💧 颜色按错，说唱断拍！</span>";
+            }
+        }
+
+        function endRap() {
+            isOver = true; clearInterval(timer);
+            if(score >= 7) { tipEl.innerHTML = "<span style='color:#00e676;'>🎉 Rap 考核大成功！</span>"; }
+            else { tipEl.innerHTML = "<span style='color:#ff5252;'>💧 节奏偏离，说唱未达标！</span>"; }
         }
     </script></body></html>
     """
-  components.html(html_code, height=265)
+  components.html(html_code, height=310)
 
 
 def render_audition_variety_game():
   html_code = """
     <!DOCTYPE html><html><head><style>
-    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; color: #fff; }
     .box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 12px; width: 300px; text-align: center; position: relative; }
-    .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
+    .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.96); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
     .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
-    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 10px auto; width: 240px; }
-    .tile { background: linear-gradient(135deg, #ab47bc, #7b1fa2); border: 2px solid #ff80ab; color: #fff; height: 50px; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-    .tile:active { transform: scale(0.92); }
+    .stack-area { background: #211035; border: 2px solid #ab47bc; border-radius: 8px; height: 110px; margin: 10px 0; position: relative; overflow: hidden; display: flex; flex-direction: column-reverse; align-items: center; padding-bottom: 5px; }
+    .stack-block { background: linear-gradient(135deg, #ff4081, #ab47bc); color: white; font-weight: bold; border-radius: 6px; height: 20px; font-size: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 2px; }
+    .drop-btn { background: linear-gradient(135deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 20px; font-size: 15px; font-weight: bold; border-radius: 20px; cursor: pointer; margin-top: 5px; }
+    .drop-btn:active { transform: scale(0.92); }
     </style></head><body>
     <div class="box">
         <div id="startOverlay" class="start-overlay">
-            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">🤡 甄选项目：特殊才艺平衡杂耍</div>
-            <div style="color:#fff; font-size:11px; margin-bottom:10px;">点击互换9宫格道具，按 1 到 9 排序！</div>
+            <div style="color:#ffeb3b; font-weight:bold; margin-bottom:8px; font-size:13px;">🤹 甄选项目：特技杂耍物品堆高挑战</div>
+            <div style="color:#fff; font-size:11px; margin-bottom:10px;">看准时机按下落下，把特技物品稳稳叠高！</div>
             <button class="start-btn" onclick="startGame()">▶️ 开始杂耍考核</button>
         </div>
-        <div style="color: #ffeb3b; font-weight: bold; font-size: 12px;">🤡 特殊才艺：道具平衡拼图</div>
-        <div class="grid" id="vGrid"></div>
-        <div id="v-tip" style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 3px;">✨ 点击两两交换道具复原平衡！</div>
+        <div style="color: #ffeb3b; font-weight: bold; font-size: 13px;">🤹 特技杂耍：稳稳叠高塔</div>
+        <div style="color: #00e676; font-size: 11px; font-weight: bold; margin-top: 3px;">✨ 堆高层数: <span id="stackScore">0</span> / 5 | ⏳ <span id="stackTime">12</span>s</div>
+        <div class="stack-area" id="stackArea">
+            <div style="color: #8e8e93; font-size: 11px; margin-bottom: 35px;">👇 物品堆叠区</div>
+        </div>
+        <button class="drop-btn" onclick="dropItem()">📦 稳稳放下物品！</button>
+        <div id="stack-tip" style="color: #fff; font-size: 11px; margin-top: 5px;">看准时机叠放，不要倒塌！</div>
     </div>
     <script>
-        let board = [3, 1, 5, 2, 8, 4, 9, 6, 7];
-        let target = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-        let firstSelected = null;
-        const gridEl = document.getElementById('vGrid'), tipEl = document.getElementById('v-tip');
+        let score = 0, timeLeft = 12, isStarted = false, isOver = false, timer;
+        const areaEl = document.getElementById('stackArea'), scoreEl = document.getElementById('stackScore'), timeEl = document.getElementById('stackTime'), tipEl = document.getElementById('stack-tip');
 
         function startGame() {
             document.getElementById('startOverlay').style.display = 'none';
-            renderBoard();
+            isStarted = true;
+            timer = setInterval(() => {
+                if(timeLeft > 0 && !isOver) { timeLeft--; timeEl.innerText = timeLeft; }
+                else if(!isOver) { endStack(); }
+            }, 1000);
         }
 
-        function renderBoard() {
-            gridEl.innerHTML = '';
-            board.forEach((val, idx) => {
-                let tile = document.createElement('div');
-                tile.className = 'tile';
-                tile.innerText = '🤹‍♂️' + val;
-                if(firstSelected === idx) tile.style.border = '2px solid #00e676';
-                tile.onclick = () => selectTile(idx);
-                gridEl.appendChild(tile);
-            });
-        }
-
-        function selectTile(idx) {
-            if(firstSelected === null) {
-                firstSelected = idx;
-                renderBoard();
-            } else {
-                let temp = board[firstSelected];
-                board[firstSelected] = board[idx];
-                board[idx] = temp;
-                firstSelected = null;
-                renderBoard();
-                checkWin();
+        function dropItem() {
+            if(!isStarted || isOver) return;
+            score++;
+            scoreEl.innerText = score;
+            let block = document.createElement('div');
+            block.className = 'stack-block';
+            let widths = ['140px', '120px', '100px', '90px', '80px'];
+            block.style.width = widths[Math.min(score-1, 4)];
+            block.innerText = '📦 杂耍物 ' + score;
+            areaEl.appendChild(block);
+            tipEl.innerHTML = "<span style='color:#00e676;'>🎉 成功叠起一层！保持平衡！</span>";
+            if(score >= 5) {
+                endStack(true);
             }
         }
 
-        function checkWin() {
-            if(board.every((v, i) => v === target[i])) {
-                tipEl.innerHTML = "<span style='color:#00e676;'>🎉 杂耍道具完美平衡！全场爆笑惊叹！</span>";
+        function endStack(success = false) {
+            isOver = true; clearInterval(timer);
+            if(success || score >= 4) {
+                tipEl.innerHTML = "<span style='color:#00e676;'>🎉 杂耍特技完美通关！</span>";
+            } else {
+                tipEl.innerHTML = "<span style='color:#ff5252;'>💧 堆叠高度未达标！</span>";
             }
         }
     </script></body></html>
     """
-  components.html(html_code, height=275)
+  components.html(html_code, height=325)
 
 
 # -------------------------------------------------------------------
-# 原有小游戏组件库保持原样
+# 原有游戏组件库（钢琴块、应援呐喊、闪光灯躲避、挖宝、打地鼠、快门抓拍、Wink、接战袍、翻牌、9宫格拼图）保持原样
 # -------------------------------------------------------------------
 def render_piano_tiles_game():
   html_code = """
     <!DOCTYPE html><html><head><style>
-    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; color: #fff; }
     .piano-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 14px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); position: relative; overflow: hidden; width: 300px; height: 220px; }
     canvas { display: block; }
     .btn-row { display: flex; gap: 6px; margin-top: 8px; width: 300px; }
@@ -496,7 +549,7 @@ def render_piano_tiles_game():
 def render_shout_game():
   html_code = """
     <!DOCTYPE html><html><head><style>
-    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; color: #fff; }
     .shout-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); padding: 12px; width: 300px; text-align: center; position: relative; }
     .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
     .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
@@ -550,7 +603,7 @@ def render_shout_game():
 def render_dodge_game():
   html_code = """
     <!DOCTYPE html><html><head><style>
-    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; color: #fff; }
     .game-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 14px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); position: relative; overflow: hidden; width: 300px; height: 210px; }
     canvas { display: block; }
     .btn-row { display: flex; gap: 8px; margin-top: 8px; width: 300px; }
@@ -632,7 +685,7 @@ def render_dodge_game():
 def render_dig_game():
   html_code = """
     <!DOCTYPE html><html><head><style>
-    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; color: #fff; }
     .game-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 10px; width: 300px; text-align: center; }
     .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 8px 0; }
     .soil-tile { background: linear-gradient(135deg, #5d4037, #3e2723); border: 2px solid #8d6e63; border-radius: 8px; height: 50px; font-size: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #fff; }
@@ -699,7 +752,7 @@ def render_dig_game():
 def render_whack_mole_game():
   html_code = """
     <!DOCTYPE html><html><head><style>
-    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; color: #fff; }
     .mole-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); padding: 10px; width: 300px; text-align: center; position: relative; }
     .mole-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 8px 0; }
     .hole { background: #211035; border: 2px solid #ab47bc; border-radius: 10px; height: 50px; font-size: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
@@ -772,7 +825,7 @@ def render_whack_mole_game():
 def render_snapshot_game():
   html_code = """
     <!DOCTYPE html><html><head><style>
-    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; color: #fff; }
     .game-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 10px; width: 300px; text-align: center; position: relative; }
     .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
     .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
@@ -837,7 +890,7 @@ def render_snapshot_game():
 def render_wink_game():
   html_code = """
     <!DOCTYPE html><html><head><style>
-    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; color: #fff; }
     .game-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 14px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); position: relative; overflow: hidden; width: 300px; height: 210px; }
     canvas { display: block; }
     .btn-row { display: flex; gap: 6px; margin-top: 8px; width: 300px; }
@@ -925,7 +978,7 @@ def render_wink_game():
 def render_outfit_game():
   html_code = """
     <!DOCTYPE html><html><head><style>
-    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; color: #fff; }
     .game-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 14px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); position: relative; overflow: hidden; width: 300px; height: 210px; }
     canvas { display: block; }
     .btn-row { display: flex; gap: 8px; margin-top: 8px; width: 300px; }
@@ -1012,7 +1065,7 @@ def render_outfit_game():
 def render_memory_game():
   html_code = """
     <!DOCTYPE html><html><head><style>
-    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; color: #fff; }
     .game-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 10px; width: 300px; text-align: center; position: relative; }
     .start-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(26,15,48,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 12px; }
     .start-btn { background: linear-gradient(45deg, #00e676, #00b0ff); color: #000; border: none; padding: 10px 18px; font-size: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; }
@@ -1090,7 +1143,7 @@ def render_memory_game():
 def render_puzzle_game():
   html_code = """
     <!DOCTYPE html><html><head><style>
-    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; }
+    body { background: transparent; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; color: #fff; }
     .puzzle-box { background: #1a0f30; border: 2px solid #ff80ab; border-radius: 12px; padding: 10px; width: 300px; text-align: center; }
     .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 10px auto; width: 240px; }
     .p-tile { background: linear-gradient(135deg, #ab47bc, #7b1fa2); border: 2px solid #ff80ab; color: #fff; height: 55px; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
@@ -1149,28 +1202,32 @@ def render_puzzle_game():
 st.title("💖 星途闪耀：我的练习生日常")
 
 # -------------------------------------------------------------------
-# STAGE 0: 开局与甄选阶段
+# STAGE 0: 开局封面（包含昵称、组合、幸运物扭蛋、以及甄选项目选择）
 # -------------------------------------------------------------------
 if not st.session_state.game_started:
   st.markdown(
-      '<div class="cute-info">✨ 欢迎来到 STARTO 偶像养成营！请输入你的名字，选择心仪组合并抽取开局传奇幸运物！</div>',
+      '<div class="cute-info">✨ 欢迎来到 STARTO 偶像养成营！请在下方完成你的入营登记：输入名字、选择心仪组合、抽取传奇幸运物，并选定你的【初次甄选表演项目】！</div>',
       unsafe_allow_html=True,
   )
+
   name_input = st.text_input(
-      "✏️ 请输入你的名字（或昵称）：", placeholder="例如：酱酱 / 小夏"
+      "✏️ 你的练习生名字 / 昵称：",
+      placeholder="例如：酱酱 / 小夏",
+      help="请输入你喜欢的昵称",
   )
   st.markdown("---")
+
   selected_group = st.selectbox(
-      "选择你想加入/并肩作战的组合（全团按年龄排序）：",
+      "🎶 选择你想并肩作战的出道组合（全团按年龄排序）：",
       list(IDOL_GROUPS.keys()),
   )
   st.markdown("---")
-  st.subheader("🎁 抽开局传奇幸运物扭蛋")
 
+  st.subheader("🎁 抽开局传奇幸运物扭蛋")
   if "temp_gacha" not in st.session_state:
     st.session_state.temp_gacha = ""
 
-  if st.button("🎲 点击抽取开局传奇幸运物！"):
+  if st.button("🎲 点击抽取你的开局传奇幸运物！"):
     gacha_pool = [
         "🍀 前辈送的开光御守（遇到危机扣除信任度减半）",
         "👟 加厚防滑特制舞鞋（舞蹈练习与舞台爆发力大幅提升）",
@@ -1185,57 +1242,68 @@ if not st.session_state.game_started:
     st.success(f"✨ 你抽中了：**{st.session_state.temp_gacha}**")
 
   st.markdown("---")
-  if st.button("🚀 签订研修契约，进入甄选考核！", use_container_width=True):
+  st.subheader("🌟 选择你的初次甄选表演项目（四选一）")
+  audition_selection = st.radio(
+      "请选择你最擅长、并在甄选大舞台上展示的项目：",
+      [
+          "1. 🎤 Vocal（声乐高音长音挑战）",
+          "2. 💃 Dance（方向键闪烁卡点挑战）",
+          "3. 🔥 Rap（灯光颜色闪烁匹配挑战）",
+          "4. 🤹 特技杂耍（物品稳稳叠高塔挑战）",
+      ],
+  )
+
+  st.markdown("---")
+  if st.button(
+      "🚀 签订研修契约，进入甄选考核舞台！", use_container_width=True
+  ):
     if not name_input.strip():
-      st.error("请先输入你的名字哦！")
+      st.error("❌ 请先输入你的名字哦！")
     else:
       if not st.session_state.temp_gacha:
         st.session_state.temp_gacha = "📖 记满心得的旧笔记本"
       st.session_state.player_name = name_input.strip()
       st.session_state.group = selected_group
       st.session_state.lucky_item = st.session_state.temp_gacha
+
+      # 记录选择的轨道
+      if audition_selection.startswith("1"):
+        st.session_state.audition_track = "vocal"
+      elif audition_selection.startswith("2"):
+        st.session_state.audition_track = "dance"
+      elif audition_selection.startswith("3"):
+        st.session_state.audition_track = "rap"
+      else:
+        st.session_state.audition_track = "variety"
+
       st.session_state.game_started = True
       st.rerun()
 
 # -------------------------------------------------------------------
-# STAGE 0.5: 练习生甄选分流考核
+# STAGE 0.5: 独立甄选考核小游戏（根据封面所选项目单独呈现）
 # -------------------------------------------------------------------
 elif not st.session_state.passed_audition:
-  st.subheader("🌟 【练习生甄选大舞台】初次考核定位")
+  st.subheader("🌟 【练习生甄选大舞台】现场考核")
   st.markdown(
-      '<div class="event-card"><b>🎯 甄选环节说明：</b><br>想要成为正式 Jr 必须通过残酷的初试！请选择你擅长的初舞台表演项目，顺利完成考核即可正式进入事务所！</div>',
+      f'<div class="event-card"><b>🎯 甄选考核进行中：</b><br>你选择了 <b>{st.session_state.audition_track.upper()}</b> 项目！请在下方完成专属考核，成功过关即可正式签约！</div>',
       unsafe_allow_html=True,
   )
 
-  audition_choice = st.radio(
-      "请选择你的初次甄选表演项目：",
-      [
-          "1. 🎤 Vocal（声乐高音展示）",
-          "2. Dance（动感舞步卡点）",
-          "3. Rap（机关枪快嘴节奏）",
-          "4. 🤹 特殊才艺杂耍（平衡道具展示）",
-      ],
-  )
-  st.markdown("---")
-
-  if audition_choice.startswith("1"):
-    st.session_state.audition_track = "vocal"
+  # 仅仅渲染玩家选中的那一个专属游戏
+  if st.session_state.audition_track == "vocal":
     render_audition_vocal_game()
-  elif audition_choice.startswith("2"):
-    st.session_state.audition_track = "dance"
+  elif st.session_state.audition_track == "dance":
     render_audition_dance_game()
-  elif audition_choice.startswith("3"):
-    st.session_state.audition_track = "rap"
+  elif st.session_state.audition_track == "rap":
     render_audition_rap_game()
   else:
-    st.session_state.audition_track = "variety"
     render_audition_variety_game()
 
   st.markdown("---")
   if st.button(
       "🌟 完成考核，接受社长与评委的最终裁决！", use_container_width=True
   ):
-    # 根据不同轨道给予初始属性加成
+    # 根据轨道加属性
     if st.session_state.audition_track == "vocal":
       st.session_state.vocal += 30
     elif st.session_state.audition_track == "dance":
